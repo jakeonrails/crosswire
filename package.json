@@ -1,0 +1,24 @@
+{
+  "name": "crosswire",
+  "version": "0.1.0-alpha",
+  "description": "Composable, accessible Hotwire primitives for Rails.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./app/assets/javascripts/crosswire/index.js",
+    "./controllers/*": "./app/assets/javascripts/crosswire/controllers/*.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:browser": "vitest run --project browser"
+  },
+  "peerDependencies": {
+    "@hotwired/stimulus": ">=3.2"
+  },
+  "devDependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
+  }
+}
