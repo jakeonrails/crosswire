@@ -23,6 +23,7 @@ module Crosswire
     # A single bundle CANNOT be lazy-loaded: stimulus-loading registers via a dynamic
     # `import("${under}/${name}_controller")`, which needs one module per controller.
     # See docs/DECISIONS.md R2.
+    #
     # Runs AFTER importmap-rails' own "importmap" initializer, not before it, because
     # that is the initializer that assigns `app.importmap` in the first place:
     #

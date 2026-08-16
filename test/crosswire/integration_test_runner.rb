@@ -734,6 +734,22 @@ module CrosswireIntegration
     def test_shadow_check_ran_at_boot_and_passed
       assert Crosswire::ShadowCheck.new(app).run
     end
+
+    # Both asset-facing initializers are conditional, and `test/dummy` deliberately
+    # satisfies both conditions, so it cannot prove the negative branches work. A
+    # jsbundling app has no `importmap`; an app with no pipeline at all has no
+    # `config.assets`. Either one must still boot.
+    def test_engine_boots_in_a_host_with_neither_importmap_nor_an_asset_pipeline
+      script = File.expand_path("support/bare_boot.rb", __dir__)
+      output = IO.popen([RbConfig.ruby, script], err: [:child, :out], &:read)
+
+      assert $?.success?, "bare host failed to boot:\n\n#{output}"
+      assert_includes output, "BARE_BOOT_OK"
+      assert_includes output, "importmap=false"
+      assert_includes output, "assets=false"
+      assert_includes output, "attributes_helper=true",
+                      "cw_attrs must be available even with no asset pipeline"
+    end
   end
 
   # ---------------------------------------------------------------------------------

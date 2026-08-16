@@ -133,6 +133,30 @@ module Crosswire
       assert_empty violations, "naming violation:\n#{violations.map { |v| "  #{v}" }.join("\n")}"
     end
 
+    # The contract says a helper is required for EVERY component — the helper layer is
+    # the whole thesis, since a controller only stays generic if its ids, classes and
+    # bindings are injected from outside.
+    #
+    # `dismiss` shipped for a week without one, despite being a reference implementation
+    # and despite `TransitionHelper`'s own docstring calling `crosswire_dismiss_attrs`.
+    # Nothing caught it until an app actually rendered. Symmetry checks are cheap; the
+    # bugs they catch are not.
+    def test_every_controller_has_a_matching_helper
+      helper_dir = File.join(ROOT, "app/helpers/crosswire")
+
+      violations = controllers.filter_map do |path|
+        name = File.basename(path).sub(/_controller\.js\z/, "")
+        expected = File.join(helper_dir, "#{name}_helper.rb")
+        "#{name}_controller.js has no #{name}_helper.rb" unless File.exist?(expected)
+      end
+
+      assert_empty violations, <<~MSG
+        Every component ships a helper (see "Files per component" in the contract):
+
+        #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+
     def test_every_presenter_has_a_matching_controller
       violations = Dir[File.join(PRESENTER_DIR, "*.rb")].sort.filter_map do |path|
         name = File.basename(path, ".rb")

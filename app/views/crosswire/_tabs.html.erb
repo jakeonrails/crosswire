@@ -8,17 +8,23 @@
   Locals:
     tabs    Crosswire::Presenters::Tabs
     panels  Array<{id:, label:, body:}> — body already captured per tab
+
+  The root element wraps the tablist AND every panel — see
+  Crosswire::Presenters::Tabs#root_attrs for why both stacked controllers need a
+  common ancestor of every tab and every panel, not just the tablist.
 %>
-<div <%= cw_attrs(tabs.tablist_attrs, class: "cw-tabs__tablist") %>>
+<div <%= cw_attrs(tabs.root_attrs, class: "cw-tabs") %>>
+  <div <%= cw_attrs(tabs.tablist_attrs, class: "cw-tabs__tablist") %>>
+    <% panels.each do |panel| %>
+      <button <%= cw_attrs(tabs.tab_attrs(tab_id: panel[:id]), class: "cw-tabs__tab") %>>
+        <%= panel[:label] %>
+      </button>
+    <% end %>
+  </div>
+
   <% panels.each do |panel| %>
-    <button <%= cw_attrs(tabs.tab_attrs(tab_id: panel[:id]), class: "cw-tabs__tab") %>>
-      <%= panel[:label] %>
-    </button>
+    <div <%= cw_attrs(tabs.panel_attrs(tab_id: panel[:id]), class: "cw-tabs__panel") %>>
+      <%= panel[:body] %>
+    </div>
   <% end %>
 </div>
-
-<% panels.each do |panel| %>
-  <div <%= cw_attrs(tabs.panel_attrs(tab_id: panel[:id]), class: "cw-tabs__panel") %>>
-    <%= panel[:body] %>
-  </div>
-<% end %>

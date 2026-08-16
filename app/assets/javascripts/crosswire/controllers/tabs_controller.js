@@ -11,10 +11,17 @@ import { Controller } from "@hotwired/stimulus"
  *          param (String, optional)
  * Events   cw--tabs:changed (detail.selected)
  *
- * COMPOSES WITH cw--roving-focus — stacked on the SAME tablist element
- * (`data-controller="cw--roving-focus cw--tabs"`, see
- * `Crosswire::Presenters::Tabs#tablist_attrs`) rather than reimplementing arrow-key
- * navigation (R5a). Every `tab` target is ALSO a roving-focus `item` target, so
+ * COMPOSES WITH cw--roving-focus — stacked on a shared ROOT element that wraps
+ * both the tablist and every panel (`data-controller="cw--roving-focus cw--tabs"`,
+ * see `Crosswire::Presenters::Tabs#root_attrs` for why it has to be the root and
+ * not just the tablist: Stimulus scopes `tabTargets`/`panelTargets` to
+ * descendants of whichever element carries `data-controller="cw--tabs"`, and
+ * panels are siblings of the tablist, not descendants of it) rather than
+ * reimplementing arrow-key navigation (R5a). The `keydown` action that drives
+ * roving-focus itself stays scoped to the tablist specifically (not the wider
+ * root), so arrow keys pressed inside a panel's own form fields are never
+ * mistaken for tab navigation. Every `tab` target is ALSO a roving-focus `item`
+ * target, so
  * `cw--roving-focus` owns Left/Right/Home/End movement and the roving
  * `tabindex="0"`/`"-1"` bookkeeping across them completely — THIS controller never
  * writes `tabindex` on a tab, only `aria-selected`. Splitting the two attributes

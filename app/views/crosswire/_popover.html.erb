@@ -1,0 +1,21 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. The native popovertarget/popover wiring and the optional
+  cw--popover enhancement both live in Crosswire::Presenters::Popover, so this
+  file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Trigger and panel are siblings here, not nested — popovertarget/popover is an
+  attribute-level relationship the browser resolves by id, so nothing requires a
+  shared wrapper. See Crosswire::Presenters::Popover's class docstring.
+
+  Locals:
+    popover        Crosswire::Presenters::Popover
+    trigger_label  String
+    body           String — panel content (already captured)
+%>
+<button <%= cw_attrs(popover.trigger_attrs, class: "cw-popover__trigger") %>>
+  <%= trigger_label %>
+</button>
+<div <%= cw_attrs(popover.panel_attrs, class: "cw-popover__panel") %>>
+  <%= body %>
+</div>

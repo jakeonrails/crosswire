@@ -13,18 +13,24 @@ module Crosswire
     # correct — every ARIA relationship a screen reader needs lives here, not in the
     # partial (R2), so an ejected or restyled copy keeps them all.
     #
-    # COMPOSES WITH cw--roving-focus by STACKING controllers on the tablist element
-    # (`data-controller="cw--roving-focus cw--tabs"`, built in `tablist_attrs`
-    # below) rather than reimplementing arrow-key navigation (R5a) — this is the
-    # entire reason `roving-focus` was built first. Every `tab` is ALSO a
-    # roving-focus `item` (see `tab_attrs`), so Left/Right/Home/End all come from
-    # `cw--roving-focus` for free; this presenter/controller pair owns only
-    # selection state, panel visibility, and the optional URL sync. See the
-    # controller docstring for exactly how the two talk to each other:
-    # `cw--roving-focus:moved` in (via the presenter's `action()` pass-through) to
-    # implement "automatic" activation, nothing at all out (a plain click or
-    # Enter/Space on a tab is a real DOM event, so it needs no cross-controller
-    # plumbing per R5a case 1).
+    # COMPOSES WITH cw--roving-focus by STACKING controllers on a shared root
+    # element (`data-controller="cw--roving-focus cw--tabs"`, built in `root_attrs`
+    # below — see that method's docstring for why the root has to wrap the tablist
+    # AND every panel, not just the tablist) rather than reimplementing arrow-key
+    # navigation (R5a) — this is the entire reason `roving-focus` was built first.
+    # Every `tab` is ALSO a roving-focus `item` (see `tab_attrs`), so
+    # Left/Right/Home/End all come from `cw--roving-focus` for free; this
+    # presenter/controller pair owns only selection state, panel visibility, and
+    # the optional URL sync. See the controller docstring for exactly how the two
+    # talk to each other: `cw--roving-focus:moved` in (via the presenter's
+    # `action()` pass-through) to implement "automatic" activation, nothing at all
+    # out (a plain click or Enter/Space on a tab is a real DOM event, so it needs
+    # no cross-controller plumbing per R5a case 1).
+    #
+    # A caller using `root_attrs`/`tablist_attrs`/`tab_attrs`/`panel_attrs`
+    # directly (the `_for` helper form) must render `root_attrs` on an element that
+    # is an ANCESTOR of both the tablist and every panel — see `_tabs.html.erb` for
+    # the shipped shape.
     #
     # RULE 0 NOTE: there is no native tabs element, so this presenter is not "the
     # zero-JS answer" the way `disclosure`/`dialog`/`popover` are. If your panels
@@ -55,7 +61,7 @@ module Crosswire
       # @param param [String, nil] query-param name to keep in sync with the
       #   selected tab via `history.replaceState` — see the controller docstring
       #   for why not Turbo Frame history. Omit for no URL sync.
-      # @param overrides [Hash] merged into the tablist element, last
+      # @param overrides [Hash] merged into the root element (see `root_attrs`), last
       def initialize(id:, selected:, activation: "automatic", param: nil, **overrides)
         @id = id
         @selected = selected.to_s

@@ -91,39 +91,46 @@ module Crosswire
       # --- state rendered server-side --------------------------------------------------
 
       def test_activation_defaults_to_automatic_and_is_rendered_server_side
-        assert_equal "automatic", presenter.tablist_attrs["data-cw--tabs-activation-value"]
+        assert_equal "automatic", presenter.root_attrs["data-cw--tabs-activation-value"]
       end
 
       def test_activation_manual_is_rendered_server_side
-        attrs = presenter(activation: "manual").tablist_attrs
+        attrs = presenter(activation: "manual").root_attrs
         assert_equal "manual", attrs["data-cw--tabs-activation-value"]
       end
 
       def test_param_is_omitted_when_not_given
-        refute presenter.tablist_attrs.key?("data-cw--tabs-param-value")
+        refute presenter.root_attrs.key?("data-cw--tabs-param-value")
       end
 
       def test_param_is_passed_through_when_given
-        attrs = presenter(param: "tab").tablist_attrs
+        attrs = presenter(param: "tab").root_attrs
         assert_equal "tab", attrs["data-cw--tabs-param-value"]
       end
 
       # --- stacked-controller composition with roving-focus (R5a) ---------------------
 
-      def test_tablist_stacks_roving_focus_and_tabs_controllers
-        assert_equal "cw--roving-focus cw--tabs", presenter.tablist_attrs["data-controller"]
+      def test_root_stacks_roving_focus_and_tabs_controllers
+        assert_equal "cw--roving-focus cw--tabs", presenter.root_attrs["data-controller"]
       end
 
-      def test_tablist_is_horizontal_roving_focus
-        assert_equal "horizontal", presenter.tablist_attrs["data-cw--roving-focus-orientation-value"]
+      def test_root_carries_horizontal_roving_focus_state
+        assert_equal "horizontal", presenter.root_attrs["data-cw--roving-focus-orientation-value"]
       end
 
-      def test_tablist_wires_roving_focus_navigate_and_the_moved_reaction
-        attrs = presenter.tablist_attrs
-        assert_equal(
-          "keydown->cw--roving-focus#navigate cw--roving-focus:moved->cw--tabs#selectFromMove",
-          attrs["data-action"]
-        )
+      def test_root_wires_the_moved_reaction
+        assert_equal "cw--roving-focus:moved->cw--tabs#selectFromMove", presenter.root_attrs["data-action"]
+      end
+
+      # The keydown action itself is scoped to the TABLIST, not the wider root, so
+      # arrow keys typed inside a panel's own form fields are never mistaken for
+      # tab navigation — see the presenter's root_attrs docstring.
+      def test_tablist_wires_the_roving_focus_navigate_action
+        assert_equal "keydown->cw--roving-focus#navigate", presenter.tablist_attrs["data-action"]
+      end
+
+      def test_tablist_carries_no_controller_of_its_own
+        refute presenter.tablist_attrs.key?("data-controller")
       end
 
       def test_every_tab_is_also_a_roving_focus_item
@@ -154,13 +161,13 @@ module Crosswire
 
       # --- caller overrides compose, never clobber -------------------------------------
 
-      def test_caller_controller_on_tablist_is_added_not_replaced
-        attrs = presenter(data: { controller: "analytics" }).tablist_attrs
+      def test_caller_controller_on_root_is_added_not_replaced
+        attrs = presenter(data: { controller: "analytics" }).root_attrs
         assert_equal "cw--roving-focus cw--tabs analytics", attrs["data-controller"]
       end
 
       def test_caller_can_force_replacement_with_bang
-        attrs = presenter(data: { "controller!" => "mine-only" }).tablist_attrs
+        attrs = presenter(data: { "controller!" => "mine-only" }).root_attrs
         assert_equal "mine-only", attrs["data-controller"]
       end
 
@@ -177,7 +184,7 @@ module Crosswire
       # --- context-freedom -------------------------------------------------------------
 
       def test_presenter_needs_no_view_context
-        assert_kind_of Hash, presenter.tablist_attrs
+        assert_kind_of Hash, presenter.root_attrs
         refute defined?(::Rails), "test suite must not boot Rails"
       end
     end

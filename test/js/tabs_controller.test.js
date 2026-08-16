@@ -42,14 +42,16 @@ function markup({ selected = "profile", activation = null, param = null, ids = [
 
   return `
     <div data-controller="cw--roving-focus cw--tabs"
+         data-cw--roving-focus-orientation-value="horizontal"
          data-cw--tabs-selected-value="${selected}"
          ${activation ? `data-cw--tabs-activation-value="${activation}"` : ""}
          ${param ? `data-cw--tabs-param-value="${param}"` : ""}
-         data-action="keydown->cw--roving-focus#navigate cw--roving-focus:moved->cw--tabs#selectFromMove"
-         role="tablist">
-      ${tabs}
-    </div>
-    ${panels}`
+         data-action="cw--roving-focus:moved->cw--tabs#selectFromMove">
+      <div data-action="keydown->cw--roving-focus#navigate" role="tablist">
+        ${tabs}
+      </div>
+      ${panels}
+    </div>`
 }
 
 function key(k) {

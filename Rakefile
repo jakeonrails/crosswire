@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rake/testtask"
+require "shellwords"
 
 # Minitest auto-discovers plugins from every loaded gem. Because the Gemfile pins `rails`
 # for the generator suite, that discovery finds railties' `minitest/rails_plugin.rb`, which
@@ -22,6 +23,21 @@ end
 desc "Run the JS controller tests"
 task :js do
   sh "npm test"
+end
+
+DUMMY = File.expand_path("test/dummy", __dir__)
+
+desc "Start the dummy host app + Lookbook on PORT (default 3000). Lookbook: /lookbook"
+task :lookbook do
+  port = ENV.fetch("PORT", "3000")
+  puts "  demo     http://localhost:#{port}/"
+  puts "  Lookbook http://localhost:#{port}/lookbook"
+  sh "cd #{DUMMY.shellescape} && bin/rails server -p #{port}"
+end
+
+desc "Run only the Rails integration suite (boots test/dummy), with full output"
+task :integration do
+  sh "#{RbConfig.ruby.shellescape} test/crosswire/integration_test_runner.rb"
 end
 
 task default: %i[test]

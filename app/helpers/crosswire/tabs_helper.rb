@@ -40,13 +40,18 @@ module Crosswire
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
     #   <%= crosswire_tabs_for id: "settings", selected: @tab do |t| %>
-    #     <div <%= cw_attrs(t.tablist_attrs) %>>
-    #       <button <%= cw_attrs(t.tab_attrs(tab_id: "profile")) %>>Profile</button>
-    #       <button <%= cw_attrs(t.tab_attrs(tab_id: "billing")) %>>Billing</button>
+    #     <div <%= cw_attrs(t.root_attrs) %>>
+    #       <div <%= cw_attrs(t.tablist_attrs) %>>
+    #         <button <%= cw_attrs(t.tab_attrs(tab_id: "profile")) %>>Profile</button>
+    #         <button <%= cw_attrs(t.tab_attrs(tab_id: "billing")) %>>Billing</button>
+    #       </div>
+    #       <div <%= cw_attrs(t.panel_attrs(tab_id: "profile")) %>>…</div>
+    #       <div <%= cw_attrs(t.panel_attrs(tab_id: "billing")) %>>…</div>
     #     </div>
-    #     <div <%= cw_attrs(t.panel_attrs(tab_id: "profile")) %>>…</div>
-    #     <div <%= cw_attrs(t.panel_attrs(tab_id: "billing")) %>>…</div>
     #   <% end %>
+    #
+    # The root element must wrap the tablist AND every panel — see
+    # Crosswire::Presenters::Tabs#root_attrs.
     def crosswire_tabs_for(**options)
       yield Crosswire::Presenters::Tabs.new(**options)
     end

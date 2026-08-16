@@ -48,6 +48,26 @@ module Crosswire
         assert_equal "cw--roving-focus", presenter.root_attrs["data-controller"]
       end
 
+      # --- state_attrs / action_attrs: the composition seam used by `tabs` -----------
+      # See docs/COMPONENT_CONTRACT.md R5a and Crosswire::Presenters::Tabs#root_attrs
+      # for why a composer needs these split apart rather than only `root_attrs`.
+
+      def test_root_attrs_is_state_and_action_merged
+        assert_equal presenter.root_attrs, presenter.state_attrs.merge(presenter.action_attrs)
+      end
+
+      def test_state_attrs_carries_the_controller_and_values_but_no_action
+        attrs = presenter(orientation: "horizontal").state_attrs
+        assert_equal "cw--roving-focus", attrs["data-controller"]
+        assert_equal "horizontal", attrs["data-cw--roving-focus-orientation-value"]
+        refute attrs.key?("data-action")
+      end
+
+      def test_action_attrs_carries_only_the_navigate_action
+        attrs = presenter.action_attrs
+        assert_equal({ "data-action" => "keydown->cw--roving-focus#navigate" }, attrs)
+      end
+
       # R8a — six named keys plus arbitrary typeahead characters cannot be expressed
       # as `data-action` filters at all, so there is exactly one generic action and
       # the controller does its own `switch` on event.key.
