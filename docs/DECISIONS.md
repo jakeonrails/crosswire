@@ -153,6 +153,49 @@ signal that the zero-logic premise has broken.
 
 ---
 
+## D6 — Distribution: gem first, with tiered ejection and a copy-paste catalog
+**Locked 2026-08-15 (Jake).**
+
+Jake asked whether the shadcn copy/paste model beats shipping partials. Answer: do both,
+because our architecture supports copy/paste *better* than shadcn's does.
+
+**Ship the gem.** Then `rails g crosswire:eject <component>` with three tiers:
+
+| Tier | Copies | Consumer keeps receiving |
+|---|---|---|
+| `--markup` *(default)* | the partial | a11y wiring, controller fixes, presenter changes |
+| `--controller` | partial + Stimulus controller, re-registered under the app's own identifier | nothing — full ownership |
+| `--all` | every component's markup | as per `--markup` |
+
+**Why this beats plain shadcn**, and it is structural, not marketing:
+
+1. **Accessibility lives in the presenter (Ruby), not in the markup.** An ejected partial
+   that still calls `d.trigger_attrs` keeps correct `aria-expanded` / `aria-controls` / id
+   wiring even after a total restyle. In shadcn the a11y is *in* the copied code, so an
+   edit can silently break it and never be fixed upstream.
+2. **`ShadowCheck` gives ejected markup a version contract.** The `<%# crosswire:contract vN %>`
+   marker means a v2 upgrade fails at boot naming the file and both versions. Copy/paste
+   normally has no staleness signal at all; this is the mechanism that gives it one.
+
+**Corollary that constrains everything else:** keep partials deliberately dumb and push all
+logic and a11y into presenters. The more that lives in the presenter, the more an ejected
+component keeps working correctly. This reinforces D5 rather than complicating it.
+
+**Also:** the docs site doubles as a **copy-paste catalog**, rendering each component's full
+source from the same files the gem ships, so someone can lift a component with no dependency
+at all.
+
+**Market context** (`07b`, `05`, `09`): Reddit's single repeated reason for choosing Inertia
+is *"you get shadcn and a ready-made component ecosystem."* `shadcn-rails` (892★) explicitly
+says it is not a component library. **Rails Designer, the closest commercial competitor,
+already ships generator-delivered rather than as a runtime dependency.** Copy-in is the
+prevailing expectation in this space; the gem is what lets us also offer maintenance.
+
+**Reopen if:** ejection turns out to be the dominant install path, which would mean the gem
+is scaffolding rather than a dependency and the maintenance story needs rethinking.
+
+---
+
 ## Open
 
 *(none currently blocking)*

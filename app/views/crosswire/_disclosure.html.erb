@@ -1,0 +1,22 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision lives in Crosswire::Presenters::Disclosure,
+  so this file is safe to restyle, shadow, or eject — the ARIA wiring travels with the
+  presenter, not with the markup. See docs/DECISIONS.md D6.
+
+  Locals:
+    disclosure  Crosswire::Presenters::Disclosure
+    summary     String or nil — trigger label; omit and pass your own trigger via the panel
+    panel       String — panel content (already captured)
+%>
+<div <%= cw_attrs(disclosure.root_attrs, class: "cw-disclosure") %>>
+  <% if summary %>
+    <button <%= cw_attrs(disclosure.trigger_attrs, class: "cw-disclosure__trigger") %>>
+      <%= summary %>
+    </button>
+  <% end %>
+
+  <div <%= cw_attrs(disclosure.panel_attrs, class: "cw-disclosure__panel") %>>
+    <%= panel %>
+  </div>
+</div>
