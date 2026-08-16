@@ -90,7 +90,14 @@ module Crosswire
         merge(
           roving_focus.state_attrs,
           controller_attrs,
-          values(activation: activation, param: param),
+          # `selected` MUST be emitted, not merely used to render `aria-selected` on
+          # each tab. The controller declares `selected: String` with no default, so
+          # without this it reads "" on connect, matches no panel, and #render() hides
+          # every panel and deselects every tab — clobbering correct server-rendered
+          # markup the moment JS boots. That is exactly the R4 failure: state has to be
+          # rendered server-side, on the element, or the single write path starts from
+          # a lie. Caught by rendering it in a browser, not by a unit test.
+          values(selected: selected, activation: activation, param: param),
           # Inbound half of the composition (R5a case 3): react to roving-focus's
           # own `moved` event to implement "automatic" activation. There is no
           # outbound half — see the class docstring.

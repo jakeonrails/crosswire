@@ -3,7 +3,7 @@
     Search
     <%# A STABLE id plus data-turbo-permanent is what preserves focus and caret across
         the round-trip. That part lives in markup, not in the controller. %>
-    <input <%= cw_attrs(crosswire_autosubmit(delay: delay, event: event),
+    <input <%= cw_attrs(crosswire_autosubmit_attrs(delay: delay, event: event),
                         type: "search", name: "q", id: "q") %> data-turbo-permanent>
   </label>
 </form>

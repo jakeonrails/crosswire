@@ -72,7 +72,7 @@
 <section id="autosubmit">
   <h3>autosubmit</h3>
   <form action="/" method="get">
-    <input <%= cw_attrs(crosswire_autosubmit(delay: 300), type: "search", name: "q", id: "q") %> data-turbo-permanent>
+    <input <%= cw_attrs(crosswire_autosubmit_attrs(delay: 300), type: "search", name: "q", id: "q") %> data-turbo-permanent>
   </form>
   <%= crosswire_autosubmit_for(event: "change", scope: "#filters") do |a| %>
     <select <%= cw_attrs(a.root_attrs, name: "status") %>>

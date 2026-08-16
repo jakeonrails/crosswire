@@ -158,6 +158,67 @@ module Crosswire
       MSG
     end
 
+    # Required constructor keywords that name a declared Stimulus value must actually be
+    # EMITTED by `root_attrs`. R4 says state lives in a value and the server renders it —
+    # a presenter that accepts `selected:` and then never writes
+    # `data-cw--tabs-selected-value` has broken that contract even though every unit test
+    # still passes, because the controller reads the type default (`""`) on connect.
+    #
+    # `tabs` shipped exactly that bug: server-rendered markup was correct, then Stimulus
+    # booted and hid every panel. Only visible by loading a real page. This check makes
+    # that class of bug fail the build instead.
+    #
+    # Scoped narrowly on purpose: only REQUIRED keywords, and only where the name also
+    # appears as a declared value. Optional keywords (`param:`) may legitimately be
+    # absent, and plenty of required ones (`id:`) are not values at all.
+    REQUIRED_ARG_FIXTURES = {
+      "disclosure" => { id: "probe" },
+      "dialog" => { id: "probe" },
+      "popover" => { id: "probe" },
+      "persist" => { key: "probe" },
+      "hotkey" => { key: "probe" },
+      "timeout" => { delay: 1000 },
+      "sync" => { target: "#probe" },
+      "tabs" => { id: "probe", selected: "one" }
+    }.freeze
+
+    def test_required_state_keywords_are_rendered_as_values
+      violations = Crosswire::COMPONENTS.flat_map do |name, presenter|
+        controller = File.join(CONTROLLER_DIR, "#{name}_controller.js")
+        next [] unless File.exist?(controller)
+
+        declared = code_of(controller)[/static\s+values\s*=\s*\{(.*?)\}\s*$/m, 1].to_s
+                                      .scan(/^\s*(\w+)\s*:/).flatten
+
+        required = presenter.instance_method(:initialize).parameters
+                            .select { |kind, _| kind == :keyreq }.map { |_, arg| arg.to_s }
+
+        instance = presenter.new(**REQUIRED_ARG_FIXTURES.fetch(name.to_s, {}))
+
+        # Not every component calls its root `root_attrs`: `confirm`'s root IS the
+        # <dialog> it stacks onto (`dialog_attrs`), and `popover`'s trigger and panel
+        # share no common ancestor by design (`panel_attrs`). So gather every zero-arg
+        # `*_attrs` method rather than assuming a name — the value only has to be
+        # rendered *somewhere* on the controller element.
+        attrs = instance.public_methods(false)
+                        .grep(/_attrs\z/)
+                        .select { |m| instance.method(m).arity <= 0 }
+                        .reduce({}) { |acc, m| acc.merge(instance.public_send(m)) }
+
+        (required & declared).filter_map do |arg|
+          key = "data-#{presenter.identifier}-#{arg.tr("_", "-")}-value"
+          "#{name}: requires #{arg}: and declares it as a Stimulus value, but no *_attrs method emits #{key}" unless attrs.key?(key)
+        end
+      end
+
+      assert_empty violations, <<~MSG
+        R4 violation — required state is accepted but never rendered, so the controller
+        reads its type default on connect and clobbers correct server-rendered markup:
+
+        #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+
     # Widgets are the components that own markup — derived from which components ship
     # a partial, never a hardcoded list, because components are still being added.
     def widget_names

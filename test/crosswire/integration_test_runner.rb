@@ -577,7 +577,7 @@ module CrosswireIntegration
     end
 
     def test_autosubmit_helper_returns_attrs_ready_for_cw_attrs
-      el = attrs(view.cw_attrs(view.crosswire_autosubmit(delay: 300, event: "change", scope: "#filters"),
+      el = attrs(view.cw_attrs(view.crosswire_autosubmit_attrs(delay: 300, event: "change", scope: "#filters"),
                                type: "search", name: "q"))
 
       assert_equal "cw--autosubmit", el["data-controller"]
