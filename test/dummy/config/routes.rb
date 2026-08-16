@@ -15,6 +15,13 @@ Rails.application.routes.draw do
   # host would write.
   patch "/sortable_demo", to: "demo#sortable_demo"
 
+  # Real slow (sleeps briefly) and failing (a genuine 500) endpoints for the
+  # `loading`/`fallback` Lookbook previews, so both demonstrate against REAL Turbo
+  # events end to end rather than a simulated fetch — same rationale as
+  # /sortable_demo above (D2: the gem ships no routes of its own).
+  get "/survivability_demo/slow", to: "demo#survivability_demo_slow"
+  get "/survivability_demo/fail", to: "demo#survivability_demo_fail"
+
   # crosswire ships no routes of its own (D2 — the consumer writes their own endpoints),
   # but mounting it proves the engine is a well-formed mountable engine.
   mount Crosswire::Engine => "/crosswire"

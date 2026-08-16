@@ -29,10 +29,12 @@ require "crosswire/presenters/dialog"
 require "crosswire/presenters/dirty_form"
 require "crosswire/presenters/disclosure"
 require "crosswire/presenters/dismiss"
+require "crosswire/presenters/fallback"
 require "crosswire/presenters/focus_trap"
 require "crosswire/presenters/hotkey"
 require "crosswire/presenters/intersection"
 require "crosswire/presenters/interval"
+require "crosswire/presenters/loading"
 require "crosswire/presenters/persist"
 require "crosswire/presenters/popover"
 require "crosswire/presenters/preserve"
@@ -83,6 +85,8 @@ module Crosswire
     relative_time: Crosswire::Presenters::RelativeTime,
     countdown: Crosswire::Presenters::Countdown,
     preserve: Crosswire::Presenters::Preserve,
+    loading: Crosswire::Presenters::Loading,
+    fallback: Crosswire::Presenters::Fallback,
 
     # Widgets — own markup, ship an ejectable partial
     disclosure: Crosswire::Presenters::Disclosure,

@@ -27,4 +27,23 @@ class DemoController < ApplicationController
   def sortable_demo
     head :ok
   end
+
+  # GET target for the `loading`/`fallback` Lookbook previews — see routes.rb.
+  # Sleeps briefly so a real fetch is slow enough to observe cw--loading's
+  # anti-flicker delay and cw--fallback's "loading" state, then renders a
+  # <turbo-frame> whose id matches whatever the requesting frame/form asked for
+  # (?id=), which is how Turbo knows to match the response into it.
+  def survivability_demo_slow
+    sleep 1.5
+    render partial: "demo/survivability_demo_frame",
+           locals: {frame_id: params[:id], message: "Loaded at #{Time.current.strftime("%H:%M:%S")}."}
+  end
+
+  # GET target for the `fallback` Lookbook preview — see routes.rb. A real 500, so
+  # cw--fallback's "failed" state comes from an actual failed response
+  # (turbo:before-fetch-response, fetchResponse.succeeded == false), not a
+  # simulated one.
+  def survivability_demo_fail
+    head :internal_server_error
+  end
 end

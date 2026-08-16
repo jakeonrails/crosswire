@@ -10,10 +10,12 @@ import DialogController from "crosswire/controllers/dialog_controller"
 import DirtyFormController from "crosswire/controllers/dirty_form_controller"
 import DisclosureController from "crosswire/controllers/disclosure_controller"
 import DismissController from "crosswire/controllers/dismiss_controller"
+import FallbackController from "crosswire/controllers/fallback_controller"
 import FocusTrapController from "crosswire/controllers/focus_trap_controller"
 import HotkeyController from "crosswire/controllers/hotkey_controller"
 import IntersectionController from "crosswire/controllers/intersection_controller"
 import IntervalController from "crosswire/controllers/interval_controller"
+import LoadingController from "crosswire/controllers/loading_controller"
 import PersistController from "crosswire/controllers/persist_controller"
 import PopoverController from "crosswire/controllers/popover_controller"
 import PreserveController from "crosswire/controllers/preserve_controller"
@@ -75,6 +77,8 @@ export const CROSSWIRE_CONTROLLERS = {
   "cw--relative-time": RelativeTimeController,
   "cw--countdown": CountdownController,
   "cw--preserve": PreserveController,
+  "cw--loading": LoadingController,
+  "cw--fallback": FallbackController,
 
   // Widgets
   "cw--disclosure": DisclosureController,
@@ -138,10 +142,12 @@ export {
   DirtyFormController,
   DisclosureController,
   DismissController,
+  FallbackController,
   FocusTrapController,
   HotkeyController,
   IntersectionController,
   IntervalController,
+  LoadingController,
   PersistController,
   PopoverController,
   PreserveController,

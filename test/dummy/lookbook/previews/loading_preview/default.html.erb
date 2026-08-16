@@ -1,0 +1,35 @@
+<style>
+  .cw-loading-demo [data-loading] { opacity: .55; outline: 2px dashed #9333ea; outline-offset: 2px; }
+  .cw-loading-demo section { margin-block-end: 1rem; }
+</style>
+
+<div <%= cw_attrs(crosswire_loading_attrs(delay: delay)) %> class="cw-loading-demo">
+  <section>
+    <h3>Turbo Frame reload</h3>
+    <p>
+      <a href="/survivability_demo/slow?id=loading-demo-frame" data-turbo-frame="loading-demo-frame">
+        Reload (1.5s real round trip)
+      </a>
+    </p>
+    <turbo-frame id="loading-demo-frame" src="/survivability_demo/slow?id=loading-demo-frame">
+      Loading…
+    </turbo-frame>
+  </section>
+
+  <section>
+    <h3>Form submission — the submitter is marked too, separately from the form</h3>
+    <%= tag.form action: "/survivability_demo/slow", method: "get",
+                 data: {turbo_frame: "loading-demo-form-result"} do %>
+      <input type="hidden" name="id" value="loading-demo-form-result">
+      <button type="submit">Submit (1.5s real round trip)</button>
+    <% end %>
+    <turbo-frame id="loading-demo-form-result"></turbo-frame>
+  </section>
+</div>
+
+<p>
+  <code>data-loading</code> is bare and unprefixed — Livewire-compatible, so Tailwind
+  v4's <code>data-loading:</code>/<code>in-data-loading:</code>/<code>has-data-loading:</code>
+  variants (and any CSS already written against that name) work with zero CSS shipped
+  by this gem. The outline above is this preview's own styling, not the gem's.
+</p>

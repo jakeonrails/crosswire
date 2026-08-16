@@ -1,0 +1,24 @@
+<style>
+  .cw-fallback-demo [data-cw--fallback-target="failed"] { color: #b91c1c; }
+</style>
+
+<%= crosswire_fallback_for state: "loading" do |f| %>
+  <div <%= cw_attrs(f.root_attrs) %> class="cw-fallback-demo">
+    <p <%= cw_attrs(f.loading_attrs) %>>Loading…</p>
+    <p <%= cw_attrs(f.failed_attrs) %>>
+      Could not load.
+      <button type="button" data-action="click->cw--fallback#retry">Retry</button>
+    </p>
+    <turbo-frame id="fallback-demo-frame" src="/survivability_demo/fail" loading="lazy">
+    </turbo-frame>
+  </div>
+<% end %>
+
+<p>
+  This frame is lazy-loaded against a route that always returns a real 500, so
+  `cw--fallback` starts in <code>state: "loading"</code> and moves to
+  <code>"failed"</code> on the actual response — no simulated fetch involved.
+  <a href="/survivability_demo/slow?id=fallback-demo-frame" data-turbo-frame="fallback-demo-frame">
+    Point it at a working endpoint instead
+  </a> to see <code>cw--fallback:recovered</code> fire.
+</p>
