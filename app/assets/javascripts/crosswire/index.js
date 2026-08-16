@@ -1,17 +1,27 @@
+import ActivateController from "crosswire/controllers/activate_controller"
+import AutogrowController from "crosswire/controllers/autogrow_controller"
 import AutosubmitController from "crosswire/controllers/autosubmit_controller"
+import CharCountController from "crosswire/controllers/char_count_controller"
 import ClickOutsideController from "crosswire/controllers/click_outside_controller"
 import ClipboardController from "crosswire/controllers/clipboard_controller"
 import ConfirmController from "crosswire/controllers/confirm_controller"
+import CountdownController from "crosswire/controllers/countdown_controller"
 import DialogController from "crosswire/controllers/dialog_controller"
+import DirtyFormController from "crosswire/controllers/dirty_form_controller"
 import DisclosureController from "crosswire/controllers/disclosure_controller"
 import DismissController from "crosswire/controllers/dismiss_controller"
 import FocusTrapController from "crosswire/controllers/focus_trap_controller"
 import HotkeyController from "crosswire/controllers/hotkey_controller"
 import IntersectionController from "crosswire/controllers/intersection_controller"
+import IntervalController from "crosswire/controllers/interval_controller"
 import PersistController from "crosswire/controllers/persist_controller"
 import PopoverController from "crosswire/controllers/popover_controller"
+import RelativeTimeController from "crosswire/controllers/relative_time_controller"
+import RevealController from "crosswire/controllers/reveal_controller"
 import RovingFocusController from "crosswire/controllers/roving_focus_controller"
 import ScrollLockController from "crosswire/controllers/scroll_lock_controller"
+import SelectionController from "crosswire/controllers/selection_controller"
+import SortableController from "crosswire/controllers/sortable_controller"
 import SyncController from "crosswire/controllers/sync_controller"
 import TabsController from "crosswire/controllers/tabs_controller"
 import TimeoutController from "crosswire/controllers/timeout_controller"
@@ -39,7 +49,7 @@ import TransitionController from "crosswire/controllers/transition_controller"
  *   registerCrosswireControllers(application, ["cw--disclosure", "cw--dismiss"])
  */
 export const CROSSWIRE_CONTROLLERS = {
-  // Behaviours — decorate an existing element, ship no markup
+  // Behaviours
   "cw--dismiss": DismissController,
   "cw--transition": TransitionController,
   "cw--persist": PersistController,
@@ -50,11 +60,21 @@ export const CROSSWIRE_CONTROLLERS = {
   "cw--click-outside": ClickOutsideController,
   "cw--scroll-lock": ScrollLockController,
   "cw--timeout": TimeoutController,
+  "cw--interval": IntervalController,
   "cw--sync": SyncController,
+  "cw--activate": ActivateController,
   "cw--clipboard": ClipboardController,
   "cw--autosubmit": AutosubmitController,
+  "cw--dirty-form": DirtyFormController,
+  "cw--char-count": CharCountController,
+  "cw--reveal": RevealController,
+  "cw--autogrow": AutogrowController,
+  "cw--selection": SelectionController,
+  "cw--sortable": SortableController,
+  "cw--relative-time": RelativeTimeController,
+  "cw--countdown": CountdownController,
 
-  // Widgets — own markup, ship an ejectable partial
+  // Widgets
   "cw--disclosure": DisclosureController,
   "cw--dialog": DialogController,
   "cw--confirm": ConfirmController,
@@ -104,20 +124,30 @@ function assertRegistrationComplete(identifiers) {
 }
 
 export {
+  ActivateController,
+  AutogrowController,
   AutosubmitController,
+  CharCountController,
   ClickOutsideController,
   ClipboardController,
   ConfirmController,
+  CountdownController,
   DialogController,
+  DirtyFormController,
   DisclosureController,
   DismissController,
   FocusTrapController,
   HotkeyController,
   IntersectionController,
+  IntervalController,
   PersistController,
   PopoverController,
+  RelativeTimeController,
+  RevealController,
   RovingFocusController,
   ScrollLockController,
+  SelectionController,
+  SortableController,
   SyncController,
   TabsController,
   TimeoutController,

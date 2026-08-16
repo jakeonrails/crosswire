@@ -1,0 +1,19 @@
+<%# The free CSS hook: data-dirty="true"/"false" is always set on the form, so this
+    needs no dirty_class at all. Type in a field and watch the status line below. %>
+<style>
+  form[data-dirty] .dirty-status::after { content: "Saved"; color: #57606a; }
+  form[data-dirty="true"] .dirty-status::after { content: "Unsaved changes"; color: #b35900; }
+</style>
+
+<%= crosswire_dirty_form_for guard: guard do |d| %>
+  <form action="/" method="get" <%= cw_attrs(d.root_attrs) %>>
+    <p>
+      <label>Title<br><input type="text" name="title" value="Draft title"></label>
+    </p>
+    <p>
+      <label>Body<br><textarea name="body">Draft body copy.</textarea></label>
+    </p>
+    <p class="dirty-status">Status: </p>
+    <button type="submit">Save</button>
+  </form>
+<% end %>

@@ -175,11 +175,16 @@ module Crosswire
       "disclosure" => { id: "probe" },
       "dialog" => { id: "probe" },
       "popover" => { id: "probe" },
+      "tabs" => { id: "probe", selected: "one" },
       "persist" => { key: "probe" },
       "hotkey" => { key: "probe" },
       "timeout" => { delay: 1000 },
+      "interval" => { ms: 1000 },
       "sync" => { target: "#probe" },
-      "tabs" => { id: "probe", selected: "one" }
+      "char_count" => { max: 140 },
+      "sortable" => { url: "/probe" },
+      "relative_time" => { datetime: "2026-08-16T00:00:00Z" },
+      "countdown" => { deadline: "2026-08-16T00:00:00Z" }
     }.freeze
 
     def test_required_state_keywords_are_rendered_as_values

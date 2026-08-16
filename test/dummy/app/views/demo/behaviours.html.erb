@@ -81,3 +81,33 @@
     </select>
   <% end %>
 </section>
+
+<section id="dirty-form">
+  <h3>dirty-form</h3>
+  <%= crosswire_dirty_form_for do |d| %>
+    <form action="/" method="get" <%= cw_attrs(d.root_attrs) %>>
+      <input type="text" name="title" value="Draft title">
+      <button type="submit">Save</button>
+    </form>
+  <% end %>
+</section>
+
+<section id="char-count">
+  <h3>char-count</h3>
+  <%= crosswire_char_count_for max: 120 do |c| %>
+    <div <%= cw_attrs(c.root_attrs) %>>
+      <textarea <%= cw_attrs(c.input_attrs) %> rows="2" cols="40">Write a short bio.</textarea>
+      <%= tag.output(**c.output_attrs) %>
+    </div>
+  <% end %>
+</section>
+
+<section id="reveal">
+  <h3>reveal</h3>
+  <%= crosswire_reveal_for do |r| %>
+    <div <%= cw_attrs(r.root_attrs) %>>
+      <input <%= cw_attrs(r.input_attrs) %> name="password" value="hunter2" autocomplete="new-password">
+      <button <%= cw_attrs(r.trigger_attrs) %>>Show password</button>
+    </div>
+  <% end %>
+</section>

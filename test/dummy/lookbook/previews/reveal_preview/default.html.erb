@@ -1,0 +1,16 @@
+<%# The visible label swap is a pure CSS trick off aria-pressed — no JS opinion here,
+    matching every other crosswire controller's "no design-system opinion" stance. %>
+<style>
+  .reveal-label::before { content: "Show"; }
+  [aria-pressed="true"] .reveal-label::before { content: "Hide"; }
+</style>
+
+<%= crosswire_reveal_for revealed: revealed do |r| %>
+  <div <%= cw_attrs(r.root_attrs) %>>
+    <label>
+      Password<br>
+      <input <%= cw_attrs(r.input_attrs) %> name="password" value="hunter2" autocomplete="new-password">
+    </label>
+    <button <%= cw_attrs(r.trigger_attrs) %>><span class="reveal-label"></span> password</button>
+  </div>
+<% end %>

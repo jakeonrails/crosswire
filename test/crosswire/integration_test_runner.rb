@@ -194,14 +194,19 @@ module CrosswireIntegration
     # component (a real id, a real CSS selector, a real key spec), which is a judgment
     # call this test should never make up on a component's behalf.
     REQUIRED_ARGS = {
-      "disclosure" => {id: "probe"},
-      "dialog" => {id: "probe"},
-      "persist" => {key: "probe"},
-      "hotkey" => {key: "probe"},
-      "timeout" => {delay: 1000},
-      "sync" => {target: "#probe"},
-      "tabs" => {id: "probe", selected: "one"},
-      "popover" => {id: "probe"}
+      "disclosure" => { id: "probe" },
+      "dialog" => { id: "probe" },
+      "popover" => { id: "probe" },
+      "tabs" => { id: "probe", selected: "one" },
+      "persist" => { key: "probe" },
+      "hotkey" => { key: "probe" },
+      "timeout" => { delay: 1000 },
+      "interval" => { ms: 1000 },
+      "sync" => { target: "#probe" },
+      "char_count" => { max: 140 },
+      "sortable" => { url: "/probe" },
+      "relative_time" => { datetime: "2026-08-16T00:00:00Z" },
+      "countdown" => { deadline: "2026-08-16T00:00:00Z" }
     }.freeze
 
     def test_cw_presenter_covers_every_shipped_component
@@ -593,6 +598,69 @@ module CrosswireIntegration
 
       assert_instance_of Crosswire::Presenters::Autosubmit, yielded
     end
+
+    def test_dirty_form_attrs_helper
+      el = attrs(view.cw_attrs(view.crosswire_dirty_form_attrs(guard: false)))
+
+      assert_equal "cw--dirty-form", el["data-controller"]
+      assert_equal "false", el["data-cw--dirty-form-guard-value"]
+      assert_equal "input->cw--dirty-form#check change->cw--dirty-form#check", el["data-action"]
+    end
+
+    def test_dirty_form_for_yields_the_presenter
+      yielded = nil
+      view.crosswire_dirty_form_for { |d| yielded = d }
+
+      assert_instance_of Crosswire::Presenters::DirtyForm, yielded
+    end
+
+    def test_char_count_for_yields_input_and_output_attrs
+      input = output = nil
+      view.crosswire_char_count_for(max: 280) do |c|
+        input = attrs(view.cw_attrs(c.input_attrs))
+        output = attrs(view.cw_attrs(c.output_attrs))
+      end
+
+      assert_equal "input", input["data-cw--char-count-target"]
+      assert_equal "input->cw--char-count#update", input["data-action"]
+      assert_equal "output", output["data-cw--char-count-target"]
+      assert_equal "polite", output["aria-live"]
+    end
+
+    def test_char_count_attrs_helper_requires_max
+      el = attrs(view.cw_attrs(view.crosswire_char_count_attrs(max: 280)))
+
+      assert_equal "cw--char-count", el["data-controller"]
+      assert_equal "280", el["data-cw--char-count-max-value"]
+    end
+
+    def test_reveal_for_yields_trigger_and_input_attrs
+      trigger = input = nil
+      view.crosswire_reveal_for(revealed: true) do |r|
+        trigger = attrs(view.cw_attrs(r.trigger_attrs))
+        input = attrs(view.cw_attrs(r.input_attrs))
+      end
+
+      assert_equal "trigger", trigger["data-cw--reveal-target"]
+      assert_equal "click->cw--reveal#toggle", trigger["data-action"]
+      assert_equal "true", trigger["aria-pressed"]
+      assert_equal "input", input["data-cw--reveal-target"]
+      assert_equal "text", input["type"]
+    end
+
+    def test_reveal_input_type_is_password_server_side_by_default
+      input = nil
+      view.crosswire_reveal_for { |r| input = attrs(view.cw_attrs(r.input_attrs)) }
+
+      assert_equal "password", input["type"]
+    end
+
+    def test_reveal_attrs_helper
+      el = attrs(view.cw_attrs(view.crosswire_reveal_attrs(revealed: false)))
+
+      assert_equal "cw--reveal", el["data-controller"]
+      assert_equal "false", el["data-cw--reveal-revealed-value"]
+    end
   end
 
   # ---------------------------------------------------------------------------------
@@ -798,7 +866,8 @@ module CrosswireIntegration
     def test_behaviours_page_carries_every_behaviour_controller
       get "/behaviours"
 
-      %w[dismiss transition persist intersection focus-trap clipboard autosubmit].each do |identifier|
+      %w[dismiss transition persist intersection focus-trap clipboard autosubmit
+         dirty-form char-count reveal].each do |identifier|
         assert node(response.body, "[data-controller~='cw--#{identifier}']"),
                "cw--#{identifier} missing from /behaviours"
       end

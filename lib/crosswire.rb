@@ -17,20 +17,30 @@ require "crosswire/presenter"
 # `Persist`. It doesn't collide only because requiring the files here first makes
 # Zeitwerk treat them as shadowed and register no autoload at all. Drop these requires
 # and the namespace hazard comes back. Pinned by a test.
+require "crosswire/presenters/activate"
+require "crosswire/presenters/autogrow"
 require "crosswire/presenters/autosubmit"
+require "crosswire/presenters/char_count"
 require "crosswire/presenters/click_outside"
 require "crosswire/presenters/clipboard"
 require "crosswire/presenters/confirm"
+require "crosswire/presenters/countdown"
 require "crosswire/presenters/dialog"
+require "crosswire/presenters/dirty_form"
 require "crosswire/presenters/disclosure"
 require "crosswire/presenters/dismiss"
 require "crosswire/presenters/focus_trap"
 require "crosswire/presenters/hotkey"
 require "crosswire/presenters/intersection"
+require "crosswire/presenters/interval"
 require "crosswire/presenters/persist"
 require "crosswire/presenters/popover"
+require "crosswire/presenters/relative_time"
+require "crosswire/presenters/reveal"
 require "crosswire/presenters/roving_focus"
 require "crosswire/presenters/scroll_lock"
+require "crosswire/presenters/selection"
+require "crosswire/presenters/sortable"
 require "crosswire/presenters/sync"
 require "crosswire/presenters/tabs"
 require "crosswire/presenters/timeout"
@@ -58,9 +68,19 @@ module Crosswire
     click_outside: Crosswire::Presenters::ClickOutside,
     scroll_lock: Crosswire::Presenters::ScrollLock,
     timeout: Crosswire::Presenters::Timeout,
+    interval: Crosswire::Presenters::Interval,
     sync: Crosswire::Presenters::Sync,
+    activate: Crosswire::Presenters::Activate,
     clipboard: Crosswire::Presenters::Clipboard,
     autosubmit: Crosswire::Presenters::Autosubmit,
+    dirty_form: Crosswire::Presenters::DirtyForm,
+    char_count: Crosswire::Presenters::CharCount,
+    reveal: Crosswire::Presenters::Reveal,
+    autogrow: Crosswire::Presenters::Autogrow,
+    selection: Crosswire::Presenters::Selection,
+    sortable: Crosswire::Presenters::Sortable,
+    relative_time: Crosswire::Presenters::RelativeTime,
+    countdown: Crosswire::Presenters::Countdown,
 
     # Widgets — own markup, ship an ejectable partial
     disclosure: Crosswire::Presenters::Disclosure,
