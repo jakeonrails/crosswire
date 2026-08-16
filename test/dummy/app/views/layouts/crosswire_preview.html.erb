@@ -19,6 +19,14 @@
       .opacity-0 { opacity: 0; }
       .opacity-100 { opacity: 1; }
       .is-trapped { outline: 2px dashed currentColor; padding: .5rem; }
+      .menu, .toast { border: 1px solid; border-radius: .375rem; padding: .75rem; max-width: 20rem; }
+      .toolbar { display: flex; gap: .5rem; }
+      .listbox { border: 1px solid; border-radius: .375rem; max-width: 16rem; }
+      .listbox [role=option] { padding: .35rem .6rem; }
+      .listbox [role=option]:focus { outline: 2px solid currentColor; outline-offset: -2px; }
+      .cw-tabs__tablist { display: flex; gap: .25rem; border-bottom: 1px solid; margin-bottom: .5rem; }
+      .cw-tabs__tab { border: none; background: none; padding: .35rem .75rem; }
+      .cw-tabs__tab[aria-selected="true"] { font-weight: 700; border-bottom: 2px solid currentColor; }
     </style>
   </head>
   <body><%= yield %></body>

@@ -55,5 +55,18 @@ module Crosswire
     def crosswire_tabs_for(**options)
       yield Crosswire::Presenters::Tabs.new(**options)
     end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
+    #
+    # The root element must wrap the tablist AND every panel — see
+    # Crosswire::Presenters::Tabs#root_attrs.
+    #
+    #   <div <%= cw_attrs(crosswire_tabs_attrs(id: "settings", selected: @tab)) %>>
+    #     …
+    #   </div>
+    def crosswire_tabs_attrs(**options)
+      Crosswire::Presenters::Tabs.new(**options).root_attrs
+    end
   end
 end

@@ -36,5 +36,19 @@ module Crosswire
     def crosswire_popover_for(**options)
       yield Crosswire::Presenters::Popover.new(**options)
     end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
+    #
+    # `popover` has no single element wrapping trigger+panel (see the presenter
+    # docstring: `popovertarget`/`popover` link the two by id, with no shared
+    # ancestor required) and the controller lives entirely on the panel, so this is
+    # `Presenters::Popover#panel_attrs` rather than a `root_attrs`. You still need
+    # to render the trigger yourself with `crosswire_popover_for`'s `trigger_attrs`.
+    #
+    #   <div <%= cw_attrs(crosswire_popover_attrs(id: "user_card_42")) %>>…</div>
+    def crosswire_popover_attrs(**options)
+      Crosswire::Presenters::Popover.new(**options).panel_attrs
+    end
   end
 end

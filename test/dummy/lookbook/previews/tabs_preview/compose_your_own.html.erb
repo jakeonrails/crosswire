@@ -1,0 +1,17 @@
+<%# The root <div> wraps the tablist AND every panel — a requirement of the stacked
+    composition, not a stylistic choice. See Crosswire::Presenters::Tabs#root_attrs. %>
+<%= crosswire_tabs_for id: "manual-tabs", selected: "html" do |t| %>
+  <div <%= cw_attrs(t.root_attrs) %>>
+    <div <%= cw_attrs(t.tablist_attrs) %>>
+      <button <%= cw_attrs(t.tab_attrs(tab_id: "html")) %>>HTML</button>
+      <button <%= cw_attrs(t.tab_attrs(tab_id: "css")) %>>CSS</button>
+      <button <%= cw_attrs(t.tab_attrs(tab_id: "js")) %>>JS</button>
+    </div>
+
+    <div <%= cw_attrs(t.panel_attrs(tab_id: "html")) %>><code>&lt;div&gt;…&lt;/div&gt;</code></div>
+    <div <%= cw_attrs(t.panel_attrs(tab_id: "css")) %>><code>div { color: red; }</code></div>
+    <div <%= cw_attrs(t.panel_attrs(tab_id: "js")) %>><code>console.log("hi")</code></div>
+  </div>
+<% end %>
+
+<p>Inspect the root <code>&lt;div&gt;</code> above: <code>data-controller="cw--roving-focus cw--tabs"</code> — both controllers, stacked on one element (R5a).</p>

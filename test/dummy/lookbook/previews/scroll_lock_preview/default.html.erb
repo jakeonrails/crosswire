@@ -1,0 +1,28 @@
+<%# No target and no trigger of its own — the owning controller (here, a plain button
+    for demo purposes) drives the lock purely by writing cw--scroll-lock's own
+    active-value attribute directly. This is the same external-write path R4
+    guarantees works for a Turbo morph or a server-rendered value (R5a case 2),
+    invoked here by hand instead of by another controller. %>
+<% s = cw_presenter(:scroll_lock) %>
+<div <%= cw_attrs(s.root_attrs) %> id="scroll-lock-demo"></div>
+
+<button type="button" id="scroll-lock-toggle">Lock page scroll</button>
+<p>Locked: <output id="scroll-lock-status">false</output></p>
+
+<div style="height: 1400px; background: repeating-linear-gradient(currentColor 0 1px, transparent 1px 2rem); opacity: .5;">
+  <p>Scroll this preview frame. Toggling the lock above should stop it from scrolling.</p>
+</div>
+
+<script type="module">
+  const el = document.getElementById("scroll-lock-demo")
+  const button = document.getElementById("scroll-lock-toggle")
+  const status = document.getElementById("scroll-lock-status")
+  let active = false
+
+  button.addEventListener("click", () => {
+    active = !active
+    el.setAttribute("data-cw--scroll-lock-active-value", String(active))
+    status.textContent = String(active)
+    button.textContent = active ? "Unlock page scroll" : "Lock page scroll"
+  })
+</script>

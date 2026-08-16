@@ -20,18 +20,18 @@
 #
 # Appending (not prepending) keeps a consumer's shadowed copy winning inside Lookbook,
 # which is the behaviour D5/D6 want a preview to show.
+#
+# The helper list is derived from `Crosswire.component_names` — the engine's own
+# registry (lib/crosswire.rb) — instead of one hardcoded `helper` line per component,
+# for the same reason `ApplicationController` does it this way: a hardcoded list would
+# leave every newly shipped component's preview unable to call its own helper, which
+# `LookbookTest#test_engine_helpers_are_callable_in_previews` exists to catch.
 class CrosswirePreviewController < Lookbook::PreviewController
   helper Crosswire::AttributesHelper
-  helper Crosswire::AutosubmitHelper
-  helper Crosswire::ClipboardHelper
-  helper Crosswire::ConfirmHelper
-  helper Crosswire::DialogHelper
-  helper Crosswire::DisclosureHelper
-  helper Crosswire::DismissHelper
-  helper Crosswire::FocusTrapHelper
-  helper Crosswire::IntersectionHelper
-  helper Crosswire::PersistHelper
-  helper Crosswire::TransitionHelper
+
+  Crosswire.component_names.each do |name|
+    helper Crosswire.const_get(:"#{name.camelize}Helper")
+  end
 
   append_view_path Rails.root.join("app/views")
   append_view_path Crosswire::Engine.root.join("app/views")

@@ -20,6 +20,7 @@ module Crosswire
     CONTROLLER_DIR = File.join(ROOT, "app/assets/javascripts/crosswire/controllers")
     PRESENTER_DIR = File.join(ROOT, "lib/crosswire/presenters")
     VIEW_DIR = File.join(ROOT, "app/views/crosswire")
+    HELPER_DIR = File.join(ROOT, "app/helpers/crosswire")
 
     def controllers
       @controllers ||= Dir[File.join(CONTROLLER_DIR, "*_controller.js")].sort
@@ -152,6 +153,55 @@ module Crosswire
 
       assert_empty violations, <<~MSG
         Every component ships a helper (see "Files per component" in the contract):
+
+        #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+
+    # Widgets are the components that own markup — derived from which components ship
+    # a partial, never a hardcoded list, because components are still being added.
+    def widget_names
+      Dir[File.join(VIEW_DIR, "_*.html.erb")]
+          .map { |path| File.basename(path).sub(/\A_/, "").sub(/\.html\.erb\z/, "") }
+          .sort
+    end
+
+    def camelize(name)
+      name.to_s.split("_").map { |part| part[0].upcase + part[1..] }.join
+    end
+
+    # The standard (docs/COMPONENT_CONTRACT.md "Files per component" / Naming table):
+    # every component's helper module defines `crosswire_<name>_for` and
+    # `crosswire_<name>_attrs`; widgets (components that own markup — i.e. ship a
+    # partial) additionally define the bare `crosswire_<name>` batteries-included
+    # render form. This is what a consumer relies on to predict the API without
+    # reading the source — landed after four agents built the helper layer in
+    # parallel and drifted into three different naming schemes across components.
+    def test_every_helper_follows_the_standard_naming
+      widgets = widget_names
+
+      violations = controllers.flat_map do |controller_path|
+        name = File.basename(controller_path).sub(/_controller\.js\z/, "")
+        helper_path = File.join(HELPER_DIR, "#{name}_helper.rb")
+
+        next ["#{name}_helper.rb does not exist"] unless File.exist?(helper_path)
+
+        load helper_path
+        mod_name = "Crosswire::#{camelize(name)}Helper"
+        mod = Object.const_get(mod_name)
+        defined_methods = mod.instance_methods(false).map(&:to_s)
+
+        expected = ["crosswire_#{name}_for", "crosswire_#{name}_attrs"]
+        expected << "crosswire_#{name}" if widgets.include?(name)
+
+        expected.filter_map { |m| "#{mod_name}##{m} is missing" unless defined_methods.include?(m) }
+      end
+
+      assert_empty violations, <<~MSG
+        Helper API standard violation (docs/COMPONENT_CONTRACT.md "Files per
+        component" / Naming): every component gets crosswire_<name>_for and
+        crosswire_<name>_attrs; widgets additionally get the bare crosswire_<name>
+        batteries-included form:
 
         #{violations.map { |v| "  #{v}" }.join("\n")}
       MSG

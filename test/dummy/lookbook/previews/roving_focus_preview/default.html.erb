@@ -1,0 +1,8 @@
+<% r = cw_presenter(:roving_focus, orientation: orientation, wrap: wrap) %>
+<div <%= cw_attrs(r.root_attrs, class: "toolbar", role: "toolbar") %> aria-label="Text formatting">
+  <button <%= cw_attrs(r.item_attrs(current: true)) %> type="button">Bold</button>
+  <button <%= cw_attrs(r.item_attrs) %> type="button">Italic</button>
+  <button <%= cw_attrs(r.item_attrs) %> type="button">Underline</button>
+  <button <%= cw_attrs(r.item_attrs) %> type="button">Strikethrough</button>
+</div>
+<p>Tab focuses the group once (only one button is in tab order). Arrow keys move within it.</p>

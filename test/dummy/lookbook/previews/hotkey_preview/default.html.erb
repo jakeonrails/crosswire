@@ -1,0 +1,16 @@
+<p>Press <kbd><%= key %></kbd> (scope: <code><%= scope %></code>) — the button below gets a
+real, synthetic click, which is why the counter increments through the button's own
+click handler rather than through any code of <code>cw--hotkey</code>'s own.</p>
+
+<%= crosswire_hotkey_for key: key, scope: scope, prevent_default: prevent_default do |h| %>
+  <button type="button" id="hotkey-demo-trigger" <%= cw_attrs(h.root_attrs) %>>Open search…</button>
+<% end %>
+
+<p>Clicked: <output id="hotkey-demo-count">0</output> times</p>
+
+<script type="module">
+  let count = 0
+  const button = document.getElementById("hotkey-demo-trigger")
+  const output = document.getElementById("hotkey-demo-count")
+  button.addEventListener("click", () => { output.textContent = ++count })
+</script>

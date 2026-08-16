@@ -15,7 +15,7 @@ Reference implementations: **`disclosure`** (widget with markup) and **`dismiss`
 |---|---|---|
 | `lib/crosswire/presenters/<name>.rb` | **always** | attribute contract + a11y. Pure PORO. |
 | `app/assets/javascripts/crosswire/controllers/<name>_controller.js` | **always** | behaviour |
-| `app/helpers/crosswire/<name>_helper.rb` | **always** | `crosswire_<name>` + `crosswire_<name>_for` |
+| `app/helpers/crosswire/<name>_helper.rb` | **always** | `crosswire_<name>_for` + `crosswire_<name>_attrs`; widgets additionally `crosswire_<name>` — see "Helper API" below |
 | `app/views/crosswire/_<name>.html.erb` | only if it owns markup | ejectable default markup |
 | `test/crosswire/presenters/<name>_test.rb` | **always** | plain Minitest, no Rails |
 | `test/js/<name>_controller.test.js` | **always** | Vitest |
@@ -23,6 +23,39 @@ Reference implementations: **`disclosure`** (widget with markup) and **`dismiss`
 Behaviours that decorate existing elements (`persist`, `intersection`, `transition`,
 `focus-trap`, `clipboard`, `autosubmit`) ship **no partial** — they have no markup of
 their own. Widgets that own markup (`dialog`, `confirm`) ship one.
+
+### Helper API
+
+Every component's helper module exposes the same shape, so a consumer can predict the
+API without reading the source. Which forms a component gets is entirely determined by
+whether it owns markup (i.e. ships a partial):
+
+| Component kind | Helpers | Purpose |
+|---|---|---|
+| **Widget** (owns markup: `confirm`, `dialog`, `disclosure`, `popover`, `tabs`) | `crosswire_<name>` | renders the shipped partial (batteries included) |
+| | `crosswire_<name>_for` | yields the presenter, renders no markup of ours |
+| | `crosswire_<name>_attrs` | returns the merged root attribute hash |
+| **Behaviour** (no markup: everything else) | `crosswire_<name>_for` | yields the presenter — for multi-element components |
+| | `crosswire_<name>_attrs` | returns the merged root attribute hash — the common single-element case |
+
+So: **every** component gets `_for` and `_attrs`; **widgets additionally** get the bare
+render form. `_attrs` returns a plain Hash suitable for `cw_attrs(...)` or
+`tag.div(**...)`; it must NOT render or escape anything — that is `cw_attrs`' job. `_for`
+yields the presenter and returns whatever the block returns.
+
+Where a presenter requires keyword arguments (`disclosure`/`popover` need `id:`,
+`hotkey`/`persist` need `key:`, `sync` needs `target:`, `tabs` needs `id:`+`selected:`,
+`timeout` needs `delay:`), the helpers pass them straight through rather than inventing
+defaults — a hotkey with no key is meaningless and should raise.
+
+A component that owns markup but has no single element to call "the root" (`popover`'s
+trigger and panel share no common ancestor; `confirm`'s single root is a `<dialog>`, not
+a wrapping `<div>`) documents which presenter method `_attrs` actually returns — see
+`Crosswire::PopoverHelper#crosswire_popover_attrs` and
+`Crosswire::ConfirmHelper#crosswire_confirm_attrs` for the worked examples. The widget
+list itself is never hardcoded — derive it from which components have a partial in
+`app/views/crosswire/`, both in code (`test/crosswire/contract_audit_test.rb`) and when
+reading this table, because components are still being added.
 
 ---
 
@@ -117,6 +150,28 @@ element that isn't even in `dialog`'s scope), so #2 was necessary; the Confirm/C
 buttons DO have one, so #1 was both available and simpler than inventing a synthetic
 event for something a plain multi-action `data-action` already does.*
 
+### R5b — When stacking, put each `data-controller` where its own targets live
+R5a says *which mechanism* to use between stacked controllers. It does not say *where in
+the DOM* each controller goes — and that is a separate decision with a wrong answer.
+
+**Stimulus scopes targets to descendants of the element carrying `data-controller`.** So
+two stacked controllers whose target sets have different shapes cannot always share one
+element:
+
+- `cw--tabs` needs `tab` **and** `panel` targets, and panels are siblings of the tablist,
+  not descendants of it — so its controller must sit on a wider root wrapping both.
+- `cw--roving-focus` needs its `keydown` action scoped **narrowly to the tablist**. Put it
+  on the wide root instead and arrow keys typed into a panel's own form fields get
+  hijacked as tab navigation.
+
+The resolution is to separate placement from wiring: give the presenter distinct methods
+for the state-bearing root and the action-bearing element (`RovingFocus#state_attrs` /
+`#action_attrs` alongside `#root_attrs`) rather than assuming one element carries both.
+
+*Why: found building `tabs` on `roving-focus`. The first draft put everything on the
+tablist and `panelTargets` came back silently empty — no error, just a component that did
+nothing. Silent empty-target sets are the characteristic failure of getting this wrong.*
+
 ### R6 — Make destructive events cancelable
 Anything that removes, closes, or replaces DOM dispatches a cancelable event first and
 passes a `complete()` callback in `detail`.
@@ -180,7 +235,7 @@ First line: `<%# crosswire:contract v1 %>`. `ShadowCheck` reads it at boot.
 |---|---|---|
 | Stimulus identifier | `cw--<kebab>` | `cw--focus-trap` |
 | Presenter | `Crosswire::Presenters::<CamelCase>` | `Crosswire::Presenters::FocusTrap` |
-| Helper | `crosswire_<name>` / `crosswire_<name>_for` | `crosswire_dialog` |
+| Helper | `crosswire_<name>_for` / `crosswire_<name>_attrs` (widgets also `crosswire_<name>`) | `crosswire_dialog_for`, `crosswire_dialog_attrs`, `crosswire_dialog` |
 | Partial | `app/views/crosswire/_<name>.html.erb` | overridable by path |
 | Target | `camelCase` **noun** | `data-cw--dialog-target="panel"` |
 | Action method | `camelCase` **verb** | `#toggle`, `#dismiss` |

@@ -6,14 +6,16 @@ module Crosswire
   #   class ApplicationController < ActionController::Base
   #     helper Crosswire::AutosubmitHelper
   #   end
+  #
+  # `autosubmit` is a behaviour, not a widget — it decorates a field you already have,
+  # so it ships no batteries-included render form and no partial, only the two
+  # standard forms.
   module AutosubmitHelper
-    # Batteries-included form — this behaviour owns no markup (see
-    # docs/COMPONENT_CONTRACT.md), so there is nothing to render. Instead this returns
-    # the attrs hash for `crosswire_autosubmit`'s presenter, ready to pass straight
-    # into `cw_attrs` on whatever field element you already have.
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.input(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
     #
-    #   <input <%= cw_attrs(crosswire_autosubmit(delay: 300), type: "search", name: "q") %>>
-    def crosswire_autosubmit(**options)
+    #   <input <%= cw_attrs(crosswire_autosubmit_attrs(delay: 300), type: "search", name: "q") %>>
+    def crosswire_autosubmit_attrs(**options)
       Crosswire::Presenters::Autosubmit.new(**options).root_attrs
     end
 

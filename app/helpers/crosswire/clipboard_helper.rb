@@ -7,8 +7,8 @@ module Crosswire
   #     helper Crosswire::ClipboardHelper
   #   end
   #
-  # `clipboard` is a behaviour, not a widget — it ships no partial, only the `_for`
-  # attribute builder. Note that `status_attrs` must be rendered as part of your normal
+  # `clipboard` is a behaviour, not a widget — it ships no partial, only the two
+  # standard forms. Note that `status_attrs` must be rendered as part of your normal
   # markup (never injected client-side later) — see the presenter and controller
   # docstrings for why.
   module ClipboardHelper
@@ -23,6 +23,23 @@ module Crosswire
     #   <% end %>
     def crosswire_clipboard_for(**options)
       yield Crosswire::Presenters::Clipboard.new(**options)
+    end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.button(**...)`. Renders and escapes nothing itself; that is `cw_attrs`'
+    # job. Covers the controller/values/classes attrs only — per
+    # `Presenters::Clipboard#button_attrs`, the root element can carry the click
+    # action itself for a single-element copy button, so add it explicitly:
+    #
+    #   <button <%= cw_attrs(crosswire_clipboard_attrs(text: invite_url),
+    #             data: { action: "click->cw--clipboard#copy" }, type: "button") %>>
+    #     Copy link
+    #   </button>
+    #
+    # Reach for `crosswire_clipboard_for` when you need separate source/button/status
+    # elements wired too.
+    def crosswire_clipboard_attrs(**options)
+      Crosswire::Presenters::Clipboard.new(**options).root_attrs
     end
   end
 end

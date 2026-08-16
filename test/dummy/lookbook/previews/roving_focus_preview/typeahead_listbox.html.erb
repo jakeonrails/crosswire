@@ -1,0 +1,7 @@
+<% r = cw_presenter(:roving_focus, orientation: "vertical", typeahead: true) %>
+<ul <%= cw_attrs(r.root_attrs, class: "listbox", role: "listbox") %> aria-label="Choose a fruit" style="list-style:none;padding:0;margin:0;">
+  <% %w[Apple Apricot Banana Blueberry Cherry Grape Mango Peach].each_with_index do |fruit, i| %>
+    <li <%= cw_attrs(r.item_attrs(current: i.zero?, role: "option")) %>><%= fruit %></li>
+  <% end %>
+</ul>
+<p>Focus the list, then type a letter — "a" moves to Apple, a second "a" cycles to Apricot.</p>

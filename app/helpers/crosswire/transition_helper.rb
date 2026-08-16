@@ -8,8 +8,7 @@ module Crosswire
   #   end
   #
   # `transition` is a behaviour, not a widget — it decorates an element you already
-  # own, so it ships no partial. This helper exposes only an attribute builder, in the
-  # spirit of `Crosswire::DisclosureHelper#crosswire_disclosure_for`.
+  # own, so it ships no partial, only the two standard forms.
   module TransitionHelper
     # Build the attributes for an element `cw--transition` should decorate.
     #
@@ -26,6 +25,18 @@ module Crosswire
     # commonly `cw--dismiss` (see `Crosswire::Presenters::Transition#leave_on`).
     def crosswire_transition_attrs(**options)
       Crosswire::Presenters::Transition.new(**options).root_attrs
+    end
+
+    # Compose-it-yourself form — yields the presenter, renders no markup of ours.
+    #
+    #   <%= crosswire_transition_for leave: "transition duration-150",
+    #         leave_from: "opacity-100", leave_to: "opacity-0" do |t| %>
+    #     <div <%= cw_attrs(t.root_attrs, t.leave_on, crosswire_dismiss_attrs) %>>
+    #       …
+    #     </div>
+    #   <% end %>
+    def crosswire_transition_for(**options)
+      yield Crosswire::Presenters::Transition.new(**options)
     end
   end
 end

@@ -8,8 +8,8 @@ module Crosswire
   #   end
   #
   # `hotkey` is a behaviour, not a widget — it decorates an element you already have,
-  # so it ships no batteries-included render form and no partial, only the `_for`
-  # attribute builder.
+  # so it ships no batteries-included render form and no partial, only the two
+  # standard forms.
   module HotkeyHelper
     # Yields the presenter, renders no markup of ours.
     #
@@ -20,6 +20,18 @@ module Crosswire
     #   <% end %>
     def crosswire_hotkey_for(**options)
       yield Crosswire::Presenters::Hotkey.new(**options)
+    end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.button(**...)`. Renders and escapes nothing itself; that is `cw_attrs`'
+    # job. `key:` is required and passed straight through to the presenter — a
+    # hotkey with no key is meaningless, so there is no default to fall back on.
+    #
+    #   <button <%= cw_attrs(crosswire_hotkey_attrs(key: "cmd+k"), data: { action: "click->dialog#open" }) %>>
+    #     Search
+    #   </button>
+    def crosswire_hotkey_attrs(**options)
+      Crosswire::Presenters::Hotkey.new(**options).root_attrs
     end
   end
 end

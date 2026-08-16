@@ -39,5 +39,15 @@ module Crosswire
     def crosswire_disclosure_for(**options)
       yield Crosswire::Presenters::Disclosure.new(**options)
     end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
+    #
+    #   <div <%= cw_attrs(crosswire_disclosure_attrs(id: "faq-1"), class: "faq") %>>
+    #     …
+    #   </div>
+    def crosswire_disclosure_attrs(**options)
+      Crosswire::Presenters::Disclosure.new(**options).root_attrs
+    end
   end
 end

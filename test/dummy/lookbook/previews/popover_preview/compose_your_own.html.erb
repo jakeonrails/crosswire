@@ -1,0 +1,8 @@
+<%# No wrapper element — popovertarget/popover is an attribute-level relationship the
+    browser resolves by id, so trigger and panel need no common ancestor. %>
+<%= crosswire_popover_for id: "manual-popover" do |p| %>
+  <button <%= cw_attrs(p.trigger_attrs) %>>About…</button>
+  <div <%= cw_attrs(p.panel_attrs) %>>
+    <p>Rendered with <code>crosswire_popover_for</code> — no shared wrapper anywhere.</p>
+  </div>
+<% end %>

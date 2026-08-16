@@ -8,8 +8,7 @@ module Crosswire
   #   end
   #
   # `persist` is a behaviour, not a widget — it decorates an element you already own, so
-  # it ships no partial. This helper exposes only an attribute builder, in the spirit of
-  # `Crosswire::DisclosureHelper#crosswire_disclosure_for`.
+  # it ships no partial, only the two standard forms.
   module PersistHelper
     # Build the attributes for an element `cw--persist` should decorate.
     #
@@ -20,6 +19,19 @@ module Crosswire
     #   </details>
     def crosswire_persist_attrs(**options)
       Crosswire::Presenters::Persist.new(**options).root_attrs
+    end
+
+    # Compose-it-yourself form — yields the presenter, renders no markup of ours.
+    # `key:` is required and passed straight through to the presenter (which raises
+    # if it's blank) — there is no sane default for the identity of a persisted value.
+    #
+    #   <%= crosswire_persist_for key: "faq-1-open", attribute: "open" do |p| %>
+    #     <details <%= cw_attrs(p.root_attrs) %>>
+    #       …
+    #     </details>
+    #   <% end %>
+    def crosswire_persist_for(**options)
+      yield Crosswire::Presenters::Persist.new(**options)
     end
   end
 end

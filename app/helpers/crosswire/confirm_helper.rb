@@ -33,5 +33,19 @@ module Crosswire
     def crosswire_confirm_for(**options)
       yield Crosswire::Presenters::Confirm.new(**options)
     end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.dialog(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
+    #
+    # `confirm` has a single root element (the `<dialog>` itself, stacking both
+    # `cw--dialog` and `cw--confirm`), so this is `Presenters::Confirm#dialog_attrs`
+    # rather than a `root_attrs` — see the presenter docstring.
+    #
+    #   <dialog <%= cw_attrs(crosswire_confirm_attrs(id: "confirm"), class: "cw-confirm") %>>
+    #     …
+    #   </dialog>
+    def crosswire_confirm_attrs(**options)
+      Crosswire::Presenters::Confirm.new(**options).dialog_attrs
+    end
   end
 end

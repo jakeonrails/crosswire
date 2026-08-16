@@ -1,0 +1,14 @@
+<%= crosswire_tabs id: "settings", selected: selected, activation: activation,
+      tabs: [
+        { id: "profile", label: "Profile" },
+        { id: "billing", label: "Billing" },
+        { id: "danger", label: "Danger zone" }
+      ] do |tab_id| %>
+  <% if tab_id == "profile" %>
+    <p>Name, email, avatar.</p>
+  <% elsif tab_id == "billing" %>
+    <p>Plan: Pro. Next invoice: Sept 1.</p>
+  <% else %>
+    <p>Delete this project. This cannot be undone.</p>
+  <% end %>
+<% end %>

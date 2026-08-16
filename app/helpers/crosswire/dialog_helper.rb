@@ -48,5 +48,15 @@ module Crosswire
     def crosswire_dialog_for(**options)
       yield Crosswire::Presenters::Dialog.new(**options)
     end
+
+    # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
+    # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
+    #
+    #   <div <%= cw_attrs(crosswire_dialog_attrs(id: "confirm-delete"), class: "dialog-wrap") %>>
+    #     …
+    #   </div>
+    def crosswire_dialog_attrs(**options)
+      Crosswire::Presenters::Dialog.new(**options).root_attrs
+    end
   end
 end

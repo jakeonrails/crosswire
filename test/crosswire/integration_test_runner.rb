@@ -59,20 +59,19 @@ module CrosswireIntegration
 
   # Every helper module, mixed into one view context. Mirrors what a consumer's
   # ApplicationController does.
+  #
+  # Derived from `Crosswire.component_names` rather than one hardcoded `helper` line
+  # per component, same reasoning as `ApplicationController`/`CrosswirePreviewController`
+  # in the dummy app: a hardcoded list here would silently leave a newly shipped
+  # component's helper uncallable from every test in this file that renders through
+  # `HelperCase`, rather than failing loudly.
   class HelperCase < ActionView::TestCase
     include Dom
 
     helper Crosswire::AttributesHelper
-    helper Crosswire::AutosubmitHelper
-    helper Crosswire::ClipboardHelper
-    helper Crosswire::ConfirmHelper
-    helper Crosswire::DialogHelper
-    helper Crosswire::DisclosureHelper
-    helper Crosswire::DismissHelper
-    helper Crosswire::FocusTrapHelper
-    helper Crosswire::IntersectionHelper
-    helper Crosswire::PersistHelper
-    helper Crosswire::TransitionHelper
+    Crosswire.component_names.each do |name|
+      helper Crosswire.const_get(:"#{name.camelize}Helper")
+    end
   end
 
   # ---------------------------------------------------------------------------------
@@ -181,11 +180,33 @@ module CrosswireIntegration
       assert_match(/disclosure/, error.message)
     end
 
+    # Every presenter with a REQUIRED keyword (no default in its `initialize`) needs an
+    # entry here, or `cw_presenter(name)` below raises `ArgumentError: missing keyword`.
+    #
+    # Deliberately an explicit fixture map, not a generic `rescue ArgumentError` around
+    # the construction below. A rescue would make this test degrade gracefully — and
+    # silently — the moment a ninth, tenth, eleventh component shipped a new required
+    # keyword: it would swallow the error and the test would keep passing having
+    # constructed nothing for that component, defeating the point of "covers every
+    # shipped component." An explicit map fails LOUDLY (a plain missing-keyword
+    # `ArgumentError`) instead, forcing a human to add a line here and — more
+    # importantly — to decide what a representative fixture value looks like for that
+    # component (a real id, a real CSS selector, a real key spec), which is a judgment
+    # call this test should never make up on a component's behalf.
+    REQUIRED_ARGS = {
+      "disclosure" => {id: "probe"},
+      "dialog" => {id: "probe"},
+      "persist" => {key: "probe"},
+      "hotkey" => {key: "probe"},
+      "timeout" => {delay: 1000},
+      "sync" => {target: "#probe"},
+      "tabs" => {id: "probe", selected: "one"},
+      "popover" => {id: "probe"}
+    }.freeze
+
     def test_cw_presenter_covers_every_shipped_component
       Crosswire.component_names.each do |name|
-        options = {id: "probe"} if %w[disclosure dialog].include?(name)
-        options = {key: "probe"} if name == "persist"
-        assert_kind_of Crosswire::Presenter, view.cw_presenter(name, **(options || {}))
+        assert_kind_of Crosswire::Presenter, view.cw_presenter(name, **REQUIRED_ARGS.fetch(name, {}))
       end
     end
 
