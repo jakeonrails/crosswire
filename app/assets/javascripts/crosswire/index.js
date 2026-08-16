@@ -16,6 +16,7 @@ import IntersectionController from "crosswire/controllers/intersection_controlle
 import IntervalController from "crosswire/controllers/interval_controller"
 import PersistController from "crosswire/controllers/persist_controller"
 import PopoverController from "crosswire/controllers/popover_controller"
+import PreserveController from "crosswire/controllers/preserve_controller"
 import RelativeTimeController from "crosswire/controllers/relative_time_controller"
 import RevealController from "crosswire/controllers/reveal_controller"
 import RovingFocusController from "crosswire/controllers/roving_focus_controller"
@@ -73,6 +74,7 @@ export const CROSSWIRE_CONTROLLERS = {
   "cw--sortable": SortableController,
   "cw--relative-time": RelativeTimeController,
   "cw--countdown": CountdownController,
+  "cw--preserve": PreserveController,
 
   // Widgets
   "cw--disclosure": DisclosureController,
@@ -142,6 +144,7 @@ export {
   IntervalController,
   PersistController,
   PopoverController,
+  PreserveController,
   RelativeTimeController,
   RevealController,
   RovingFocusController,

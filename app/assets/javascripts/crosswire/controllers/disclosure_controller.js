@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { usePreserve } from "crosswire/morph"
 
 /**
  * cw--disclosure — show/hide a panel from a trigger.
@@ -26,11 +27,21 @@ import { Controller } from "@hotwired/stimulus"
  *   4. Events are the composition primitive. Emit them; never declare outlets — an
  *      outlet hardcodes another controller's identifier, which a distributable component
  *      cannot know.
+ *
+ * `static preservedValues = ["open"]` below is this component acting as the reference
+ * adoption of `usePreserve` (crosswire/morph, see its docstring for B1–B7): once this
+ * controller has actually flipped `openValue` itself, a background morph must not
+ * silently revert it back to whatever the server last rendered — but if the server
+ * genuinely re-renders a different `open` state (R4: the value lives in the DOM and
+ * the server drives it) and this controller never touched it since, the server still
+ * wins. That divergence check is `usePreserve`'s whole reason to exist over a blanket
+ * `turbo:before-morph-attribute` block.
  */
 export default class DisclosureController extends Controller {
   static targets = ["trigger", "panel"]
   static values = { open: Boolean }
   static classes = ["open"]
+  static preservedValues = ["open"]
 
   // Stimulus runs value callbacks BEFORE connect(), and for a typed value the initial
   // `previous` argument is the type's default — `false`, not `undefined`. So a
@@ -45,6 +56,7 @@ export default class DisclosureController extends Controller {
     // the value attribute may have been clobbered while the panel kept its real state.
     this.#render()
     this.#ready = true
+    usePreserve(this)
   }
 
   disconnect() {

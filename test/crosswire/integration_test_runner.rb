@@ -206,7 +206,8 @@ module CrosswireIntegration
       "char_count" => { max: 140 },
       "sortable" => { url: "/probe" },
       "relative_time" => { datetime: "2026-08-16T00:00:00Z" },
-      "countdown" => { deadline: "2026-08-16T00:00:00Z" }
+      "countdown" => { deadline: "2026-08-16T00:00:00Z" },
+      "preserve" => { attributes: "aria-expanded" }
     }.freeze
 
     def test_cw_presenter_covers_every_shipped_component

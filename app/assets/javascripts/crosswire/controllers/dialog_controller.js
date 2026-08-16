@@ -35,11 +35,26 @@ import { Controller } from "@hotwired/stimulus"
  * a silent no-op because the dialog element no longer thinks it is open — the page is
  * dead. Reference: this is a corollary of the `<dialog>` `open`-attribute-removal steps
  * in the HTML spec combined with Idiomorph treating `<dialog>` as an ordinary element.
- * Defence: `turbo:before-morph-element` on the panel is cancelled outright while the
- * dialog is open, so Idiomorph never touches it mid-modal; once closed, morphing is
- * allowed again so server-rendered content changes still land normally. `turbo:before-cache`
- * closes the dialog before Turbo snapshots the page, so a cached page never depicts a
- * live modal as dead markup.
+ * Defence, in two layers: `turbo:before-morph-element` on the panel is cancelled
+ * outright while the dialog is open (see `beforeMorph` below), so Idiomorph never
+ * touches it mid-modal at all; once closed, morphing is allowed again so
+ * server-rendered content changes still land normally. `turbo:before-cache` closes the
+ * dialog before Turbo snapshots the page, so a cached page never depicts a live modal
+ * as dead markup.
+ *
+ * A second, narrower guard is installed straight in `connect()`/torn down in
+ * `disconnect()` (R7) rather than wired through `data-action`: seanpdoyle's fix from
+ * turbo#1239 (open since 2024-04, reconfirmed 2026-06 — every app using `<dialog>` +
+ * morph needs it), scoped to this instance's own panel instead of installed globally.
+ * It cancels only the REMOVAL of the `open` attribute and calls `.close()` itself,
+ * rather than the element-wide cancel above. In today's wiring the element-wide guard
+ * always wins first — Idiomorph never even visits a node's attributes once
+ * `beforeNodeMorphed` returns false for it — so this second guard is currently
+ * redundant defence-in-depth, not the primary fix; it exists so this controller
+ * matches the exact upstream-reportable patch verbatim (see `crosswire/morph`'s
+ * `installDialogMorphGuard`, the same fix exposed for any `<dialog>` this controller
+ * does not drive) and so it keeps working correctly if the coarser element-wide guard
+ * is ever loosened to allow in-place content updates while open.
  */
 export default class DialogController extends Controller {
   static targets = ["trigger", "panel"]
@@ -71,15 +86,36 @@ export default class DialogController extends Controller {
   // being upgraded to a real modal — see syncClosed() and the SSR-upgrade test.
   #syncSuppressed = false
 
+  // Bound once per instance so disconnect() removes exactly what connect() added —
+  // R7. Scoped to `event.target === this.panelTarget` rather than `instanceof
+  // HTMLDialogElement` alone (unlike `installDialogMorphGuard`'s document-wide form),
+  // since this listener is only ever attached to this one panel.
+  #openRemovalGuard = (event) => {
+    const { target, detail } = event
+    if (target !== this.panelTarget) return
+    if (detail.attributeName !== "open" || detail.mutationType !== "remove") return
+
+    event.preventDefault()
+    target.close()
+  }
+
   connect() {
     this.#render(this.openValue)
     this.#ready = true
+
+    if (this.hasPanelTarget) {
+      this.panelTarget.addEventListener("turbo:before-morph-attribute", this.#openRemovalGuard)
+    }
   }
 
   disconnect() {
     // R8 — never strand focus on a node about to be detached.
     if (this.element.contains(document.activeElement)) {
       document.activeElement.blur?.()
+    }
+
+    if (this.hasPanelTarget) {
+      this.panelTarget.removeEventListener("turbo:before-morph-attribute", this.#openRemovalGuard)
     }
 
     // R7 — exhaustive teardown. If this instance is disconnected mid-open (e.g. its

@@ -35,6 +35,7 @@ require "crosswire/presenters/intersection"
 require "crosswire/presenters/interval"
 require "crosswire/presenters/persist"
 require "crosswire/presenters/popover"
+require "crosswire/presenters/preserve"
 require "crosswire/presenters/relative_time"
 require "crosswire/presenters/reveal"
 require "crosswire/presenters/roving_focus"
@@ -81,6 +82,7 @@ module Crosswire
     sortable: Crosswire::Presenters::Sortable,
     relative_time: Crosswire::Presenters::RelativeTime,
     countdown: Crosswire::Presenters::Countdown,
+    preserve: Crosswire::Presenters::Preserve,
 
     # Widgets — own markup, ship an ejectable partial
     disclosure: Crosswire::Presenters::Disclosure,

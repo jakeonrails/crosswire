@@ -184,7 +184,15 @@ module Crosswire
       "char_count" => { max: 140 },
       "sortable" => { url: "/probe" },
       "relative_time" => { datetime: "2026-08-16T00:00:00Z" },
-      "countdown" => { deadline: "2026-08-16T00:00:00Z" }
+      "countdown" => { deadline: "2026-08-16T00:00:00Z" },
+      # `preserve` has no REQUIRED keyword (both `attributes:` and `element:` have
+      # defaults) — `required` below is legitimately empty for it, so this entry exists
+      # only because `presenter.new(...)` on line ~201 is unconditional for every
+      # registered component regardless of `required`, and the zero-arg default
+      # combination (`attributes: nil, element: false`) deliberately raises
+      # ArgumentError ("nothing to preserve") rather than silently constructing an
+      # inert preserve.
+      "preserve" => { attributes: "aria-expanded" }
     }.freeze
 
     def test_required_state_keywords_are_rendered_as_values

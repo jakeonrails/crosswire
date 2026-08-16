@@ -44,12 +44,22 @@ module Crosswire
       app.importmap.draw do
         pin_all_from Crosswire::Engine.root.join("app/assets/javascripts/crosswire/controllers"),
                      under: "crosswire/controllers"
+
+        # A non-controller module, pinned individually rather than swept up by
+        # `pin_all_from` above (which only walks the controllers/ directory) — see the
+        # header comment on morph.js for why it lives outside controllers/ in the
+        # first place. Consumers import it directly: `import { usePreserve } from
+        # "crosswire/morph"`.
+        pin "crosswire/morph", to: "crosswire/morph.js"
       end
 
       # Sprockets needs this; Propshaft serves everything on `config.assets.paths` and
       # keeps `precompile` only as a compatibility shim, so appending is a harmless
       # no-op there.
-      app.config.assets.precompile << "crosswire/index.js" if app.config.respond_to?(:assets)
+      if app.config.respond_to?(:assets)
+        app.config.assets.precompile << "crosswire/index.js"
+        app.config.assets.precompile << "crosswire/morph.js"
+      end
     end
 
     # Helpers are opt-in per component rather than blanket-included, so crosswire adds

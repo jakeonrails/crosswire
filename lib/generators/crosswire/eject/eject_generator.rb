@@ -183,8 +183,27 @@ module Crosswire
             * You will not receive any more fixes, accessibility corrections, or
               upgrades for this controller from crosswire — it is a plain Stimulus
               controller now, yours to change freely.
-          #{has_partial_note(name, has_partial)}
+          #{has_partial_note(name, has_partial)}#{shared_module_note(name)}
         MSG
+      end
+
+      # Most controllers are single-file and this note never fires. `preserve` is the
+      # one exception so far — it imports its engine from "crosswire/morph" rather than
+      # inlining it, and that import line survives the byte-for-byte copy unchanged. It
+      # should: crosswire is still installed at the --controller tier (only THIS
+      # controller's ownership transfers), so "crosswire/morph" keeps resolving, and
+      # morph.js itself is deliberately never ejected — it stays a normal gem-provided
+      # module. Detected from the copied source rather than a hardcoded component name,
+      # so a future controller built the same way gets the note for free.
+      def shared_module_note(name)
+        source = controllers_dir.join("#{name}_controller.js").read
+        return "" unless source.match?(%r{from\s+["']crosswire/(\w+)["']})
+
+        module_name = source[%r{from\s+["']crosswire/(\w+)["']}, 1]
+        "  * This controller imports \"crosswire/#{module_name}\" — that stays a " \
+          "gem-provided\n    module and is NOT ejected. It keeps resolving as long as " \
+          "crosswire is still\n    installed, which it is at this tier (only this one " \
+          "controller's ownership\n    transferred).\n"
       end
 
       def has_partial_note(name, has_partial)

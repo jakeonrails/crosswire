@@ -190,4 +190,76 @@ describe("cw--dialog (real browser <dialog>)", () => {
     expect(panel.open).toBe(false)
     expect(document.body.matches(":not([inert])") || !document.body.inert).toBe(true)
   })
+
+  // The second, narrower guard added alongside `preserve` (see the MORPH HAZARD note
+  // in dialog_controller.js): seanpdoyle's exact turbo#1239 fix, installed straight in
+  // connect()/disconnect() rather than through data-action, scoped to this instance's
+  // own panel. In today's wiring the element-wide guard above always wins first — this
+  // dispatches the narrower turbo:before-morph-attribute event directly, bypassing the
+  // element-wide guard (a different event entirely), to exercise this second guard on
+  // its own rather than only ever seeing it shadowed.
+  test("the scoped open-removal guard cancels the raw attribute removal and calls close() itself, verbatim per turbo#1239", async () => {
+    const { panel, trigger } = await boot()
+    trigger.click()
+    await settle()
+    expect(panel.open).toBe(true)
+
+    let closeFired = false
+    panel.addEventListener("close", () => { closeFired = true })
+
+    const event = new CustomEvent("turbo:before-morph-attribute", {
+      bubbles: true,
+      cancelable: true,
+      detail: { attributeName: "open", mutationType: "remove" }
+    })
+    panel.dispatchEvent(event)
+    await settle()
+
+    expect(event.defaultPrevented).toBe(true) // the raw removal itself was refused...
+    expect(panel.open).toBe(false) // ...but close() ran for real, so it is genuinely closed
+    expect(closeFired).toBe(true)
+    expect(document.body.matches(":not([inert])") || !document.body.inert).toBe(true)
+  })
+
+  test("the scoped open-removal guard ignores updates to other attributes and other mutation types", async () => {
+    const { panel, trigger } = await boot()
+    trigger.click()
+    await settle()
+
+    const updateEvent = new CustomEvent("turbo:before-morph-attribute", {
+      bubbles: true,
+      cancelable: true,
+      detail: { attributeName: "open", mutationType: "update" }
+    })
+    panel.dispatchEvent(updateEvent)
+    expect(updateEvent.defaultPrevented).toBe(false)
+
+    const otherAttrEvent = new CustomEvent("turbo:before-morph-attribute", {
+      bubbles: true,
+      cancelable: true,
+      detail: { attributeName: "class", mutationType: "remove" }
+    })
+    panel.dispatchEvent(otherAttrEvent)
+    expect(otherAttrEvent.defaultPrevented).toBe(false)
+
+    expect(panel.open).toBe(true)
+  })
+
+  test("the scoped open-removal guard is torn down on disconnect — R7", async () => {
+    const { el, panel, trigger } = await boot()
+    trigger.click()
+    await settle()
+
+    el.remove()
+    await settle()
+
+    const event = new CustomEvent("turbo:before-morph-attribute", {
+      bubbles: true,
+      cancelable: true,
+      detail: { attributeName: "open", mutationType: "remove" }
+    })
+    panel.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(false)
+  })
 })

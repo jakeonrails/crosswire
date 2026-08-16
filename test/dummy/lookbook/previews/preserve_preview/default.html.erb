@@ -1,0 +1,81 @@
+<style>
+  .cw-preserve-demo { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-block-end: 1rem; }
+  .cw-preserve-demo section { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 1rem; flex: 1 1 16rem; }
+  .cw-preserve-demo h3 { margin-block-start: 0; }
+  .cw-preserve-demo [aria-expanded="true"] { background: #ecfdf5; }
+  .cw-preserve-demo [aria-expanded="false"] { background: #fef2f2; }
+</style>
+
+<div class="cw-preserve-demo">
+  <section>
+    <h3>Without <code>cw--preserve</code></h3>
+    <div id="preserve-demo-unprotected" aria-expanded="false">
+      <button type="button" id="preserve-demo-toggle-unprotected">
+        Toggle (simulates a widget writing its own state)
+      </button>
+      <p>Live <code>aria-expanded</code>: <output id="preserve-demo-readout-unprotected">false</output></p>
+    </div>
+  </section>
+
+  <section>
+    <h3>With <code>cw--preserve</code></h3>
+    <div id="preserve-demo-protected"
+         <%= cw_attrs(crosswire_preserve_attrs(attributes: "aria-expanded")) %>
+         aria-expanded="false">
+      <button type="button" id="preserve-demo-toggle-protected">Toggle</button>
+      <p>Live <code>aria-expanded</code>: <output id="preserve-demo-readout-protected">false</output></p>
+    </div>
+  </section>
+</div>
+
+<p>
+  <button type="button" id="preserve-demo-morph">
+    Simulate morph (server re-renders both boxes back to <code>aria-expanded="false"</code>, nothing else changed)
+  </button>
+</p>
+<p><small id="preserve-demo-log">Toggle either box, then simulate a morph — the left box reverts, the right survives.</small></p>
+
+<%# The "stale" snapshot each box is morphed against — identical to how each box was
+    originally rendered, standing in for a page refresh or a targeted stream replace
+    that has not seen this tab's local changes. A <template> never participates in
+    morphing itself; its content is only ever cloned out for use as the INCOMING side
+    of a real morphElements(current, incoming) call below. %>
+<template id="preserve-demo-stale-unprotected"><div id="preserve-demo-unprotected" aria-expanded="false"></div></template>
+<template id="preserve-demo-stale-protected"><div id="preserve-demo-protected" <%= cw_attrs(crosswire_preserve_attrs(attributes: "aria-expanded")) %> aria-expanded="false"></div></template>
+
+<script type="module">
+  import { morphElements } from "@hotwired/turbo"
+
+  function readExpanded(id) {
+    return document.getElementById(id).getAttribute("aria-expanded")
+  }
+
+  function wireToggle(boxId, readoutId, buttonId) {
+    document.getElementById(buttonId).addEventListener("click", () => {
+      const next = readExpanded(boxId) !== "true"
+      document.getElementById(boxId).setAttribute("aria-expanded", String(next))
+      document.getElementById(readoutId).textContent = String(next)
+    })
+  }
+
+  wireToggle("preserve-demo-unprotected", "preserve-demo-readout-unprotected", "preserve-demo-toggle-unprotected")
+  wireToggle("preserve-demo-protected", "preserve-demo-readout-protected", "preserve-demo-toggle-protected")
+
+  document.getElementById("preserve-demo-morph").addEventListener("click", () => {
+    const stale = (templateId) => document.getElementById(templateId).content.firstElementChild.cloneNode(true)
+
+    // The real thing: @hotwired/turbo's own morphElements(current, incoming), the
+    // same function MorphingPageRenderer uses for a page refresh — not a simulation
+    // of it. cw--preserve intercepts turbo:before-morph-attribute on the protected
+    // box; the unprotected box has nothing listening, so idiomorph's default
+    // behaviour (every attribute the incoming HTML doesn't have is removed) applies
+    // uncontested.
+    morphElements(document.getElementById("preserve-demo-unprotected"), stale("preserve-demo-stale-unprotected"))
+    morphElements(document.getElementById("preserve-demo-protected"), stale("preserve-demo-stale-protected"))
+
+    document.getElementById("preserve-demo-readout-unprotected").textContent = readExpanded("preserve-demo-unprotected")
+    document.getElementById("preserve-demo-readout-protected").textContent = readExpanded("preserve-demo-protected")
+    document.getElementById("preserve-demo-log").textContent =
+      `After morph — unprotected: ${readExpanded("preserve-demo-unprotected")}, protected: ${readExpanded("preserve-demo-protected")}`
+  })
+</script>

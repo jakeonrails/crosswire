@@ -16,6 +16,7 @@ TEMPLATE = File.join(ROOT, "site/template.html")
 OUTPUT = File.join(ROOT, "site/index.html")
 STIMULUS = File.join(ROOT, "node_modules/@hotwired/stimulus/dist/stimulus.js")
 CONTROLLERS = File.join(ROOT, "app/assets/javascripts/crosswire/controllers")
+MORPH = File.join(ROOT, "app/assets/javascripts/crosswire/morph.js")
 
 # Only the controllers the page actually demonstrates. Inlining all of them would
 # bloat the page with code no demo exercises.
@@ -75,12 +76,30 @@ end
 abort "missing #{TEMPLATE}" unless File.exist?(TEMPLATE)
 abort "run `npm install` first — #{STIMULUS} not found" unless File.exist?(STIMULUS)
 
-controllers = DEMOED.map do |name|
+controller_sources = DEMOED.map do |name|
   path = File.join(CONTROLLERS, "#{name}_controller.js")
   abort "demo references #{name} but #{path} does not exist" unless File.exist?(path)
 
-  "// ---- #{name}_controller.js " + ("-" * 40) + "\n" + strip_module_syntax(File.read(path))
-end.join("\n\n")
+  [name, File.read(path)]
+end
+
+# `crosswire/morph.js` is a sibling MODULE, not a controller — nothing in
+# app/assets/javascripts/crosswire/controllers/ pulls it in automatically the way
+# `stimulus.js` above is always inlined. A demoed controller that imports it (currently
+# only `disclosure`, via `usePreserve`) would otherwise reference an undefined function
+# once `strip_module_syntax` deletes the `import` line: the single-file site has no
+# module resolution, so every export has to land in the same flat script scope. Detect
+# the need from the real source rather than hardcoding "disclosure", so the next
+# controller built the same way is covered for free.
+needs_morph = controller_sources.any? { |_, source| source.match?(%r{from\s+["']crosswire/morph["']}) }
+morph_js = needs_morph ? "// ---- morph.js " + ("-" * 46) + "\n" + strip_module_syntax(File.read(MORPH)) : nil
+
+controllers = [
+  morph_js,
+  *controller_sources.map do |name, source|
+    "// ---- #{name}_controller.js " + ("-" * 40) + "\n" + strip_module_syntax(source)
+  end
+].compact.join("\n\n")
 
 registrations = DEMOED.map do |name|
   %(application.register("cw--#{name.tr("_", "-")}", #{class_name_for(name)}))

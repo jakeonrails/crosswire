@@ -15,6 +15,18 @@ Description:
                             be re-registered under your own identifier. Full
                             ownership — you stop receiving fixes for the controller.
 
+                            A controller can import a SHARED module from the gem
+                            rather than everything living in the one file — today
+                            only preserve_controller.js does this, importing
+                            `usePreserve`'s engine from "crosswire/morph". That
+                            import line is copied byte-for-byte and is left pointing
+                            at the gem, on purpose: crosswire itself is still
+                            installed at the --controller tier (only the ONE
+                            controller's ownership transfers), and morph.js is not
+                            copied alongside it — it stays a normal gem-provided
+                            module, upgraded the same way any other un-ejected part
+                            of the gem is.
+
       --all                 Copies every component's markup (markup tier only).
 
     Not every component owns a partial. Behaviours that decorate existing elements
