@@ -25,8 +25,8 @@ module Crosswire
     #       <% end %>
     #     </ul>
     #   <% end %>
-    def crosswire_sortable_for(**options)
-      yield Crosswire::Presenters::Sortable.new(**options)
+    def crosswire_sortable_for(**options, &block)
+      capture(Crosswire::Presenters::Sortable.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

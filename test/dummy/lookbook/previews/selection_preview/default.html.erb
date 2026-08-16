@@ -1,0 +1,31 @@
+<%# Two of three rows start `checked` server-side — a real attribute, so correct before
+    JS runs. `indeterminate` cannot be rendered this way (it is a DOM property, not an
+    attribute) — watch the select-all box in the header flip from plain-checked to
+    indeterminate the instant cw--selection connects and recomputes it. %>
+<%= crosswire_selection_for do |s| %>
+  <div <%= cw_attrs(s.root_attrs) %>>
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" <%= cw_attrs(s.all_attrs, aria: {label: "Select all"}) %>></th>
+          <th>Draft</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% [["Pricing page", false], ["Onboarding flow", true], ["Changelog", true]].each_with_index do |(title, checked), i| %>
+          <tr>
+            <td>
+              <input type="checkbox" name="ids[]" value="<%= i %>" <%= "checked" if checked %>
+                     <%= cw_attrs(s.item_attrs, aria: {label: "Select #{title}"}) %>>
+            </td>
+            <td><%= title %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <p><%= tag.output(**s.count_attrs) %></p>
+
+    <button type="button" <%= cw_attrs(s.action_attrs) %>>Archive selected</button>
+  </div>
+<% end %>

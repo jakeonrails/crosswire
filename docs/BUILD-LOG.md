@@ -109,6 +109,30 @@ takes. Verified with a throwaway probe asserting `disconnect()` actually fires, 
 Three separate agents hit this independently, two in hand-rolled `Application` instances
 inside test bodies — so it is not a property of the shared harness.
 
+### 7. Every `_for` helper double-rendered its block — the documented form was broken
+All 28 `_for` helpers did a bare `yield presenter`. The form the README recommends,
+
+```erb
+<%= crosswire_disclosure_for id: "faq-1" do |d| %>…<% end %>
+```
+
+renders the block **twice**: once as the block writes into ERB's shared output buffer, and
+again when `<%=` prints the block's return value — HTML-escaped, as literal visible text on
+the page. The fix is Rails' own idiom, `capture(presenter, &block)`.
+
+Found by an agent writing Lookbook previews, which is the only reason it surfaced: no test
+had ever rendered a `_for` helper with a block through real ERB. It shipped in the README as
+the recommended Layer-2 usage.
+
+**And the first guard I wrote for it was worthless.** It called the helper directly from
+Ruby, where a bare `yield` returns the block's value and looks perfectly correct — the
+double-render only exists through `<%=` interacting with the buffer. The test passed with
+the bug deliberately reintroduced. Rewritten to `render(inline:)` real ERB, then verified
+the only way that counts: reintroduce the bug, watch it fail, restore.
+
+**Lesson:** a guard written in a different execution mode than the bug does not guard
+anything. Test through the path the user actually takes.
+
 ---
 
 ## Things the environment lies about
@@ -118,6 +142,7 @@ Each of these made a test suite assert something it was not testing.
 | Environment | The lie | Consequence |
 |---|---|---|
 | jsdom | `offsetParent` is **always** `null` (no layout engine) | Visibility filtering and tab order are not merely unreliable, they are **absent**. All real focus-order testing must be browser-tier. |
+| jsdom | has **no global `CSS` object at all** — not a `CSS.supports` returning false | An unguarded `CSS.supports(...)` throws. Guard with `typeof CSS !== "undefined" && CSS.supports?.(…)`. |
 | jsdom | throws `SyntaxError` on `:modal` (nwsapi) | A controller's own `matches(":modal")` idempotency check always reads false and loops. |
 | jsdom + Node 25 | Node's built-in Web Storage global shadows jsdom's, and without `--localstorage-file` has **no methods at all** | Storage tests fail with errors that look like controller bugs. |
 | Any browser | Synthetic events have `isTrusted: false` | Native defaults — Escape closing a `<dialog>`, Tab traversal, scrolling — **never fire**. Tests asserting them can never pass. |

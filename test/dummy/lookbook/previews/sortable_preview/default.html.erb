@@ -1,0 +1,23 @@
+<%# window.Sortable is not present in this dummy app, so cw--sortable logs one console
+    warning and no-ops the drag wiring — deliberately not worked around here, because
+    that IS the honest behaviour of an optional peer that was never installed. The
+    keyboard path below needs nothing but fetch, and drives the exact same
+    reorder-and-persist code a drag would. %>
+<%= crosswire_sortable_for url: "/sortable_demo", param_name: param_name do |s| %>
+  <ul <%= cw_attrs(s.root_attrs) %> style="list-style:none;padding:0;margin:0;max-width:20rem;">
+    <% %w[Homepage Pricing Onboarding].each_with_index do |title, i| %>
+      <li <%= cw_attrs(s.item_attrs(id: "sortable-item-#{i}")) %>
+          style="display:flex;align-items:center;gap:.5rem;border:1px solid currentColor;padding:.35rem .6rem;margin-bottom:.25rem;">
+        <span style="flex:1;"><%= title %></span>
+        <button <%= cw_attrs(s.move_up_attrs(disabled: i.zero?)) %>>&uarr;</button>
+        <button <%= cw_attrs(s.move_down_attrs(disabled: i == 2)) %>>&darr;</button>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<p>
+  No drag handle will do anything in this preview — there is no SortableJS to drive it.
+  The &uarr;/&darr; buttons reorder the list, PATCH <code>/sortable_demo</code> (a route
+  added to this dummy app for this preview), and persist for real.
+</p>

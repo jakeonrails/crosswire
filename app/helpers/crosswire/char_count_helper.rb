@@ -32,8 +32,8 @@ module Crosswire
     #       <%= tag.output(**c.output_attrs) %>
     #     </div>
     #   <% end %>
-    def crosswire_char_count_for(**options)
-      yield Crosswire::Presenters::CharCount.new(**options)
+    def crosswire_char_count_for(**options, &block)
+      capture(Crosswire::Presenters::CharCount.new(**options), &block)
     end
   end
 end

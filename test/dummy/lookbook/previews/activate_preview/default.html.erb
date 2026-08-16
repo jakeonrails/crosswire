@@ -1,0 +1,23 @@
+<div style="height: 8rem; overflow: auto; border: 1px solid currentColor;">
+  <div style="height: 12rem;">Scroll down…</div>
+
+  <%= crosswire_activate_for target: "#load-more" do |a| %>
+    <div <%= cw_attrs(cw_presenter(:intersection, once: true).root_attrs, a.root_attrs,
+                      data: { action: "cw--intersection:entered->cw--activate#activate" },
+                      class: "sentinel") %>>
+      Sentinel — <a href="#" id="load-more">Load more</a> gets a real (but synthetic) click
+      once this scrolls into view.
+    </div>
+  <% end %>
+</div>
+
+<p>Status: <output id="activate-demo-status">idle</output></p>
+
+<script type="module">
+  const link = document.getElementById("load-more")
+  const status = document.getElementById("activate-demo-status")
+  link.addEventListener("click", (event) => {
+    event.preventDefault()
+    status.textContent = `clicked — isTrusted: ${event.isTrusted}, detail: ${event.detail}`
+  })
+</script>

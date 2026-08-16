@@ -1,0 +1,20 @@
+<%# target: nil (the default) clicks activate's OWN element. Safe here only because the
+    triggering event is mouseenter, not click — binding click->cw--activate#activate on
+    the same element it clicks would recurse forever. %>
+<%= crosswire_activate_for do |a| %>
+  <a href="#" id="hover-trigger-link"
+     <%= cw_attrs(a.root_attrs, data: { action: "mouseenter->cw--activate#activate" }) %>>
+    Hover me
+  </a>
+<% end %>
+
+<p>Status: <output id="hover-trigger-status">idle</output></p>
+
+<script type="module">
+  const link = document.getElementById("hover-trigger-link")
+  const status = document.getElementById("hover-trigger-status")
+  link.addEventListener("click", (event) => {
+    event.preventDefault()
+    status.textContent = `activated — isTrusted: ${event.isTrusted}, detail: ${event.detail}`
+  })
+</script>

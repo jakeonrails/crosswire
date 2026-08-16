@@ -1081,4 +1081,50 @@ module CrosswireIntegration
       assert_empty missing, "scenarios with no ERB template: #{missing.inspect}"
     end
   end
+
+  # Regression: every `_for` helper must `capture` its block, not bare-`yield` it.
+  #
+  # With a bare yield, the documented form
+  #
+  #   <%= crosswire_disclosure_for id: "x" do |d| %>…<% end %>
+  #
+  # renders the block TWICE — once as the block writes into the shared buffer, then
+  # again when `<%=` outputs the block's return value, HTML-escaped, as visible text on
+  # the page. Every one of the 28 helpers shipped with this bug; it was caught by an
+  # agent writing Lookbook previews, not by any test, because no test rendered a `_for`
+  # helper with a block through real ERB.
+  class ForHelperCaptureTest < HelperCase
+    def test_every_for_helper_captures_its_block_exactly_once
+      violations = Crosswire.component_names.filter_map do |name|
+        method = "crosswire_#{name}_for"
+        next unless respond_to?(method)
+
+        args = Layer0Test::REQUIRED_ARGS.fetch(name, {})
+
+        # MUST go through real ERB. Calling the helper directly from Ruby returns the
+        # block's value and looks correct either way — the double-render only manifests
+        # through `<%=` interacting with the shared output buffer. The first version of
+        # this test called the helper directly, passed with the bug deliberately
+        # reintroduced, and was therefore worthless.
+        erb = "<%= #{method}(**args) do |c| %><div>SENTINEL</div><% end %>"
+        rendered = render(inline: erb, locals: { args: args }).to_s
+
+        count = rendered.scan("SENTINEL").size
+        escaped = rendered.include?("&lt;")
+
+        if count != 1
+          "#{method}: block rendered #{count} times (expected 1)"
+        elsif escaped
+          "#{method}: block output was HTML-escaped into visible text"
+        end
+      end
+
+      assert_empty violations, <<~MSG
+        `_for` helpers must capture(presenter, &block), never bare `yield`:
+
+        #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+  end
+
 end

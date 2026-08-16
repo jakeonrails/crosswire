@@ -19,8 +19,8 @@ module Crosswire
     #       <%= link_to "Load more", next_page_path, id: "load_more" %>
     #     </div>
     #   <% end %>
-    def crosswire_activate_for(**options)
-      yield Crosswire::Presenters::Activate.new(**options)
+    def crosswire_activate_for(**options, &block)
+      capture(Crosswire::Presenters::Activate.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for

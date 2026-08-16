@@ -1,0 +1,15 @@
+<%= crosswire_interval_for ms: ms, immediate: immediate do |i| %>
+  <div id="interval-demo" <%= cw_attrs(i.root_attrs) %>></div>
+<% end %>
+
+<p>
+  Ticks so far: <output id="interval-demo-count">0</output>
+  — switch to another browser tab and back; the count pauses while this tab is hidden and
+  resumes with a fresh interval, not a burst of catch-up ticks.
+</p>
+
+<script type="module">
+  const el = document.getElementById("interval-demo")
+  const output = document.getElementById("interval-demo-count")
+  el.addEventListener("cw--interval:tick", (event) => { output.textContent = event.detail.count })
+</script>

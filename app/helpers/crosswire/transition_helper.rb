@@ -35,8 +35,8 @@ module Crosswire
     #       …
     #     </div>
     #   <% end %>
-    def crosswire_transition_for(**options)
-      yield Crosswire::Presenters::Transition.new(**options)
+    def crosswire_transition_for(**options, &block)
+      capture(Crosswire::Presenters::Transition.new(**options), &block)
     end
   end
 end

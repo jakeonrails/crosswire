@@ -24,8 +24,8 @@ module Crosswire
     #   <%= crosswire_autogrow_for max_rows: 12 do |a| %>
     #     <%= f.text_area :body, **a.root_attrs %>
     #   <% end %>
-    def crosswire_autogrow_for(**options)
-      yield Crosswire::Presenters::Autogrow.new(**options)
+    def crosswire_autogrow_for(**options, &block)
+      capture(Crosswire::Presenters::Autogrow.new(**options), &block)
     end
   end
 end

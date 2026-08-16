@@ -21,8 +21,8 @@ module Crosswire
     #       <span class="sr-only" <%= cw_attrs(c.status_attrs) %>></span>
     #     </div>
     #   <% end %>
-    def crosswire_clipboard_for(**options)
-      yield Crosswire::Presenters::Clipboard.new(**options)
+    def crosswire_clipboard_for(**options, &block)
+      capture(Crosswire::Presenters::Clipboard.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

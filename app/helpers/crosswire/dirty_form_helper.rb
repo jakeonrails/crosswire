@@ -26,8 +26,8 @@ module Crosswire
     #       …
     #     <% end %>
     #   <% end %>
-    def crosswire_dirty_form_for(**options)
-      yield Crosswire::Presenters::DirtyForm.new(**options)
+    def crosswire_dirty_form_for(**options, &block)
+      capture(Crosswire::Presenters::DirtyForm.new(**options), &block)
     end
   end
 end

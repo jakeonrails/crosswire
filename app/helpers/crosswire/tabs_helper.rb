@@ -52,8 +52,8 @@ module Crosswire
     #
     # The root element must wrap the tablist AND every panel — see
     # Crosswire::Presenters::Tabs#root_attrs.
-    def crosswire_tabs_for(**options)
-      yield Crosswire::Presenters::Tabs.new(**options)
+    def crosswire_tabs_for(**options, &block)
+      capture(Crosswire::Presenters::Tabs.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

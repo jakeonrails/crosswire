@@ -3,6 +3,10 @@
   <head>
     <title>crosswire preview</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%# Required for the `sortable` preview's real PATCH round trip: `config.load_defaults`
+        turns forgery protection on by default, so a fetch with no X-CSRF-Token 422s.
+        Every other existing preview is read-only and never noticed this was missing. %>
+    <%= csrf_meta_tags %>
     <%# The previews are LIVE: the same importmap the host app uses is loaded here, so
         every component in Lookbook is a real, connected Stimulus controller. %>
     <%= javascript_importmap_tags %>

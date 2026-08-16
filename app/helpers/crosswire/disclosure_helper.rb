@@ -36,8 +36,8 @@ module Crosswire
     #       <%= tag.div(**d.panel_attrs) { "…" } %>
     #     </div>
     #   <% end %>
-    def crosswire_disclosure_for(**options)
-      yield Crosswire::Presenters::Disclosure.new(**options)
+    def crosswire_disclosure_for(**options, &block)
+      capture(Crosswire::Presenters::Disclosure.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

@@ -1,0 +1,20 @@
+<style>
+  /* Rule 0: this is what actually grows the textarea below, in every current browser. */
+  .cw-autogrow-demo {
+    field-sizing: content;
+    min-height: 3lh;
+    max-height: 20lh;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+  }
+</style>
+
+<%= crosswire_autogrow_for max_rows: max_rows do |a| %>
+  <textarea <%= cw_attrs(a.root_attrs, class: "cw-autogrow-demo") %> rows="1">Type past one line and this box grows. That is the CSS class above, not cw--autogrow — open dev tools and you will find data-controller="cw--autogrow" on this element, but its connect() returns immediately the moment it detects CSS.supports("field-sizing", "content"), which every current browser reports true for.</textarea>
+<% end %>
+
+<p>
+  <code>cw--autogrow</code> is wired up above purely to prove it stays a safe, inert no-op
+  next to the CSS — not because it is doing any of the visible work.
+</p>

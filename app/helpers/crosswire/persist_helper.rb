@@ -30,8 +30,8 @@ module Crosswire
     #       …
     #     </details>
     #   <% end %>
-    def crosswire_persist_for(**options)
-      yield Crosswire::Presenters::Persist.new(**options)
+    def crosswire_persist_for(**options, &block)
+      capture(Crosswire::Presenters::Persist.new(**options), &block)
     end
   end
 end

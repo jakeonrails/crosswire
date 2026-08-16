@@ -19,8 +19,8 @@ module Crosswire
     #       …
     #     </dialog>
     #   <% end %>
-    def crosswire_scroll_lock_for(**options)
-      yield Crosswire::Presenters::ScrollLock.new(**options)
+    def crosswire_scroll_lock_for(**options, &block)
+      capture(Crosswire::Presenters::ScrollLock.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

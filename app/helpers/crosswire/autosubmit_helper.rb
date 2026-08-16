@@ -26,8 +26,8 @@ module Crosswire
     #       ...
     #     </select>
     #   <% end %>
-    def crosswire_autosubmit_for(**options)
-      yield Crosswire::Presenters::Autosubmit.new(**options)
+    def crosswire_autosubmit_for(**options, &block)
+      capture(Crosswire::Presenters::Autosubmit.new(**options), &block)
     end
   end
 end

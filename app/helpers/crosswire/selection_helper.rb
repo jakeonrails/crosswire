@@ -36,8 +36,8 @@ module Crosswire
     #       <button type="button" <%= cw_attrs(s.action_attrs) %>>Archive</button>
     #     </div>
     #   <% end %>
-    def crosswire_selection_for(**options)
-      yield Crosswire::Presenters::Selection.new(**options)
+    def crosswire_selection_for(**options, &block)
+      capture(Crosswire::Presenters::Selection.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

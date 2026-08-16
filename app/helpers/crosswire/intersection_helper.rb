@@ -18,8 +18,8 @@ module Crosswire
     #       Loading more…
     #     </div>
     #   <% end %>
-    def crosswire_intersection_for(**options)
-      yield Crosswire::Presenters::Intersection.new(**options)
+    def crosswire_intersection_for(**options, &block)
+      capture(Crosswire::Presenters::Intersection.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

@@ -32,8 +32,8 @@ module Crosswire
     #       <button <%= cw_attrs(r.trigger_attrs) %>>Show password</button>
     #     </div>
     #   <% end %>
-    def crosswire_reveal_for(**options)
-      yield Crosswire::Presenters::Reveal.new(**options)
+    def crosswire_reveal_for(**options, &block)
+      capture(Crosswire::Presenters::Reveal.new(**options), &block)
     end
   end
 end

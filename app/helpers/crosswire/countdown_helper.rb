@@ -22,8 +22,8 @@ module Crosswire
     #       </time>
     #     </div>
     #   <% end %>
-    def crosswire_countdown_for(**options)
-      yield Crosswire::Presenters::Countdown.new(**options)
+    def crosswire_countdown_for(**options, &block)
+      capture(Crosswire::Presenters::Countdown.new(**options), &block)
     end
 
     # Returns the merged ROOT attribute hash — a plain Hash, ready for

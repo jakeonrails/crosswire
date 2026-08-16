@@ -1,0 +1,13 @@
+<%= crosswire_countdown_for deadline: deadline, format: format do |c| %>
+  <div <%= cw_attrs(c.root_attrs) %>>
+    <time <%= cw_attrs(c.output_attrs) %>></time>
+  </div>
+<% end %>
+
+<p>
+  Deadline: <code><%= deadline %></code>. Inspect the element above — its
+  <code>aria-live</code> starts at <code>"off"</code>, flips to <code>"assertive"</code>
+  once 30 seconds remain (so a screen reader hears the final "5… 4… 3…" that actually
+  matters), and reverts to <code>"off"</code> the instant it dispatches
+  <code>cw--countdown:elapsed</code>.
+</p>

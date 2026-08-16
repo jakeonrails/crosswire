@@ -37,8 +37,8 @@ module Crosswire
     #       <button <%= cw_attrs(d.trigger_attrs) %>>&times;</button>
     #     </div>
     #   <% end %>
-    def crosswire_dismiss_for(**options)
-      yield Crosswire::Presenters::Dismiss.new(**options)
+    def crosswire_dismiss_for(**options, &block)
+      capture(Crosswire::Presenters::Dismiss.new(**options), &block)
     end
   end
 end

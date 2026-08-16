@@ -23,8 +23,8 @@ module Crosswire
     #   <%= crosswire_relative_time_for datetime: comment.created_at.utc.iso8601 do |rt| %>
     #     <time <%= cw_attrs(rt.root_attrs) %>><%= time_ago_in_words(comment.created_at) %> ago</time>
     #   <% end %>
-    def crosswire_relative_time_for(**options)
-      yield Crosswire::Presenters::RelativeTime.new(**options)
+    def crosswire_relative_time_for(**options, &block)
+      capture(Crosswire::Presenters::RelativeTime.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for

@@ -30,8 +30,8 @@ module Crosswire
     #       <button <%= cw_attrs(c.confirm_attrs) %>><%= c.confirm_label %></button>
     #     </dialog>
     #   <% end %>
-    def crosswire_confirm_for(**options)
-      yield Crosswire::Presenters::Confirm.new(**options)
+    def crosswire_confirm_for(**options, &block)
+      capture(Crosswire::Presenters::Confirm.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or

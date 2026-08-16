@@ -1,0 +1,13 @@
+<%= crosswire_relative_time_for datetime: datetime, threshold: threshold do |rt| %>
+  <p>
+    Posted
+    <time <%= cw_attrs(rt.root_attrs) %>><%= time_ago_in_words(Time.iso8601(datetime)) %> ago</time>
+  </p>
+<% end %>
+
+<p>
+  Hover the timestamp, or read its <code>title</code> attribute with a screen reader — both
+  carry the exact absolute instant. There is deliberately no <code>aria-live</code> here:
+  this element re-renders its own text every few seconds, and announcing that on every
+  change would be a screen-reader denial-of-service, not a convenience.
+</p>

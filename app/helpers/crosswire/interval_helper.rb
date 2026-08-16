@@ -19,8 +19,8 @@ module Crosswire
     #            data-action="cw--interval:tick->job_status#reload"></div>
     #     </turbo-frame>
     #   <% end %>
-    def crosswire_interval_for(**options)
-      yield Crosswire::Presenters::Interval.new(**options)
+    def crosswire_interval_for(**options, &block)
+      capture(Crosswire::Presenters::Interval.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs`

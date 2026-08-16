@@ -17,8 +17,8 @@ module Crosswire
     #     <textarea maxlength="280" <%= cw_attrs(s.root_attrs) %>></textarea>
     #   <% end %>
     #   <span id="char-count">0</span>
-    def crosswire_sync_for(**options)
-      yield Crosswire::Presenters::Sync.new(**options)
+    def crosswire_sync_for(**options, &block)
+      capture(Crosswire::Presenters::Sync.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
