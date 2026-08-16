@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+
+      # Ruby: presenters, Attributes, the contract audit, and the Rails integration
+      # suite (which runs in a child process so the main suite never boots Rails).
+      - run: bundle exec rake test
+
+      # JS tier 1 — jsdom.
+      - run: npm test
+
+      # JS tier 2 — real Chromium. Not optional: jsdom has no layout engine, throws on
+      # `:modal`, and cannot fire native defaults, so an entire class of assertion is
+      # dishonest there. See the gotchas table in docs/COMPONENT_CONTRACT.md.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+
+      # The published page must actually respond to a click.
+      - run: ruby bin/build_site.rb
+      - run: node bin/smoke_site.mjs

@@ -1,0 +1,63 @@
+name: Deploy site to GitHub Pages
+
+# The site is BUILT from the gem's real source (bin/build_site.rb inlines the actual
+# controllers and Stimulus), so it must be rebuilt in CI rather than committed as a
+# built artifact and trusted. A stale site/index.html would show demos that no longer
+# match the library — the exact drift the build script exists to prevent.
+#
+# The smoke test is not optional here. A byte-level build guard would not have caught
+# the bug that shipped an entirely inert page (see docs/BUILD-LOG.md #2): the markup was
+# correct, the controllers registered, and nothing responded to a click.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a half-finished deploy; queue instead.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # Build the page from real source, then prove it actually works.
+      - run: ruby bin/build_site.rb
+      - run: node bin/smoke_site.mjs
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
