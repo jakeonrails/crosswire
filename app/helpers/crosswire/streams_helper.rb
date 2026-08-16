@@ -67,5 +67,48 @@ module Crosswire
 
       turbo_stream_from(*streamables, channel: channel, **attributes)
     end
+
+    # A plain Hash of the one attribute `versioned_replace` (see
+    # `crosswire/stream_actions.js`) reads on both sides: `{ "data-cw-version" => "42" }`.
+    # Spread it onto whatever tag builder you already render the partial's root
+    # element with — this is not a Stimulus component, so unlike every
+    # `crosswire_<name>_attrs` elsewhere in this gem it is not meant for `cw_attrs`
+    # specifically, just for the version to appear on the root element by whatever
+    # means the partial already uses:
+    #
+    #   <div id="<%= dom_id(widget) %>" <%= cw_attrs(crosswire_version_attrs(widget)) %>>
+    #   <%= tag.div id: dom_id(widget), **crosswire_version_attrs(widget) %>
+    #
+    # @param versionable [Integer, #crosswire_stream_version] an already-resolved
+    #   version, or an object mixing in `Crosswire::Streams::Versioned` (or otherwise
+    #   responding to `crosswire_stream_version`).
+    # @return [Hash{String => String}]
+    def crosswire_version_attrs(versionable)
+      version = versionable.is_a?(Integer) ? versionable : versionable.crosswire_stream_version
+      { "data-cw-version" => version.to_s }
+    end
+
+    # Build a `<turbo-stream action="versioned_replace">` tag directly, for the rare
+    # case you are composing a `.turbo_stream.erb` template by hand rather than
+    # broadcasting from a model (`Crosswire::Streams::Versioned#broadcast_versioned_replace_to`
+    # covers that far more common path). A thin wrapper over
+    # `turbo_stream.action(:versioned_replace, target, **rendering, &block)` — the same
+    # primitive `turbo_stream.replace`/`.update`/etc. are themselves built on
+    # (`Turbo::Streams::TagBuilder#action`) — not a reimplementation of it.
+    #
+    #   <%= crosswire_versioned_replace dom_id(widget), partial: "widgets/widget", locals: { widget: widget } %>
+    #
+    # RULE 0 and the self-echo caveat are documented on
+    # `crosswire/stream_actions.js` — read that first; this helper (and the model
+    # concern) assume you have already decided `broadcast_replace_to` earns its keep
+    # over `broadcasts_refreshes` for measured reasons.
+    #
+    # @param target [Object] forwarded to `Turbo::Streams::TagBuilder#action` — a dom id
+    #   String, or an object `ActionView::RecordIdentifier.dom_id` accepts
+    # @param rendering [Hash] `partial:`, `locals:`, `html:`, `method: :morph`, …
+    # @return [ActiveSupport::SafeBuffer]
+    def crosswire_versioned_replace(target, **rendering, &block)
+      turbo_stream.action(:versioned_replace, target, **rendering, &block)
+    end
   end
 end

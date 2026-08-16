@@ -1,0 +1,86 @@
+<style>
+  .cw-versioned-demo { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 1rem; max-width: 20rem; margin-block-end: 1rem; }
+
+  @keyframes cw-versioned-demo-bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.05); background: #fef2f2; }
+    60% { transform: scale(0.98); }
+    100% { transform: scale(1); }
+  }
+
+  .cw-versioned-demo-bounce { animation: cw-versioned-demo-bounce 360ms ease; }
+</style>
+
+<div id="versioned-demo-target" <%= cw_attrs(crosswire_version_attrs(1)) %> class="cw-versioned-demo">
+  <p>Version <strong id="versioned-demo-version-readout">1</strong></p>
+</div>
+
+<p>
+  <button type="button" id="versioned-demo-apply-newer">Apply a NEWER version</button>
+  <button type="button" id="versioned-demo-apply-stale">Send a STALE version (equal-or-older — always skipped)</button>
+</p>
+<p><small id="versioned-demo-log">
+  Click "Apply a NEWER version" a few times, then "Send a STALE version" — the box
+  bounces instead of changing, and the log below explains why.
+</small></p>
+
+<%# Both buttons ultimately reach the same client entry point a real Action Cable
+    delivery does: Turbo.renderStreamMessage with a <turbo-stream
+    action="versioned_replace"> payload. This preview hand-builds that payload instead
+    of actually broadcasting one, the same dev/test-only shortcut preserve_preview's
+    "simulate morph" button takes with morphElements. %>
+<script type="module">
+  import * as Turbo from "@hotwired/turbo"
+  import { registerCrosswireStreamActions } from "crosswire/stream_actions"
+
+  registerCrosswireStreamActions(Turbo)
+
+  const log = document.getElementById("versioned-demo-log")
+
+  function currentVersion() {
+    return parseInt(document.getElementById("versioned-demo-target").dataset.cwVersion, 10)
+  }
+
+  function streamMessage(version) {
+    return `<turbo-stream action="versioned_replace" target="versioned-demo-target">
+      <template>
+        <div id="versioned-demo-target" data-cw-version="${version}" class="cw-versioned-demo">
+          <p>Version <strong id="versioned-demo-version-readout">${version}</strong></p>
+        </div>
+      </template>
+    </turbo-stream>`
+  }
+
+  // Listens at the DOCUMENT level, not on the box element directly, because
+  // "versioned-demo-target" is a DIFFERENT DOM node after every applied replace (a
+  // plain replace — no method="morph" here — swaps the whole element) — a listener
+  // attached to today's node would silently stop hearing anything after the first
+  // successful apply. cw--stream:skipped bubbles specifically so this works.
+  document.addEventListener("cw--stream:skipped", (event) => {
+    if (event.target.id !== "versioned-demo-target") return
+
+    log.textContent =
+      `Skipped: the payload's version (${event.detail.payloadVersion}) was not newer than ` +
+      `the page's (${event.detail.pageVersion}). versioned_replace discarded it instead of ` +
+      "applying it — this is correct, not a bug."
+
+    const live = document.getElementById("versioned-demo-target")
+    live.classList.remove("cw-versioned-demo-bounce")
+    void live.offsetWidth // force reflow so re-adding the class re-triggers the animation on repeat clicks
+    live.classList.add("cw-versioned-demo-bounce")
+  })
+
+  document.getElementById("versioned-demo-apply-newer").addEventListener("click", () => {
+    const next = currentVersion() + 1
+    Turbo.renderStreamMessage(streamMessage(next))
+    log.textContent = `Applied version ${next}.`
+  })
+
+  document.getElementById("versioned-demo-apply-stale").addEventListener("click", () => {
+    // Always sends version 1 — the box's own starting version. Equal to (before any
+    // "newer" click) or older than (after one) whatever the box currently shows, so
+    // this is always a skip: a redelivery of an already-applied version, or a
+    // genuinely reordered stale broadcast — versioned_replace treats both the same.
+    Turbo.renderStreamMessage(streamMessage(1))
+  })
+</script>

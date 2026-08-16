@@ -51,6 +51,11 @@ module Crosswire
         # first place. Consumers import it directly: `import { usePreserve } from
         # "crosswire/morph"`.
         pin "crosswire/morph", to: "crosswire/morph.js"
+
+        # Same reasoning as `crosswire/morph` above — registers into
+        # `Turbo.StreamActions`, not into Stimulus, so it is not a controller either.
+        # `import { registerCrosswireStreamActions } from "crosswire/stream_actions"`.
+        pin "crosswire/stream_actions", to: "crosswire/stream_actions.js"
       end
 
       # Sprockets needs this; Propshaft serves everything on `config.assets.paths` and
@@ -59,6 +64,7 @@ module Crosswire
       if app.config.respond_to?(:assets)
         app.config.assets.precompile << "crosswire/index.js"
         app.config.assets.precompile << "crosswire/morph.js"
+        app.config.assets.precompile << "crosswire/stream_actions.js"
       end
     end
 

@@ -2,8 +2,10 @@
 
 require "crosswire"
 
-# `Crosswire::Streams` — the Ruby-side half of the survivability tier's stream-
-# authorization piece (`Crosswire::AuthorizedStreamChannel` + `crosswire_stream_from`).
+# `Crosswire::Streams` — the Ruby-side half of the survivability tier's stream pieces:
+# authorization (`Crosswire::AuthorizedStreamChannel` + `crosswire_stream_from`) and
+# monotonic-version ordering (`Crosswire::Streams::Versioned` +
+# `crosswire_version_attrs` / `crosswire_versioned_replace`, in `streams_helper.rb`).
 #
 # NOT required by lib/crosswire.rb, NOT in the engine's autoload/eager-load paths.
 # `Crosswire::AuthorizedStreamChannel < Turbo::StreamsChannel` needs turbo-rails (and,
@@ -36,12 +38,13 @@ unless defined?(Turbo::StreamsChannel)
 end
 
 require "crosswire/streams/authorized_stream_channel"
+require "crosswire/streams/versioned"
 
 module Crosswire
   # `Crosswire::AuthorizedStreamChannel` — the public name. The class itself lives in
   # the `Crosswire::Streams` namespace (see authorized_stream_channel.rb) so that this
-  # file, and everything else `lib/crosswire/streams/` grows (piece 4's
-  # `Crosswire::Streams::Versioned`), has one namespace to hang off; this constant is
-  # the short, memorable alias a consumer actually subclasses.
+  # file, and everything else `lib/crosswire/streams/` grows (`Crosswire::Streams::Versioned`,
+  # in versioned.rb), has one namespace to hang off; this constant is the short,
+  # memorable alias a consumer actually subclasses.
   AuthorizedStreamChannel = Crosswire::Streams::AuthorizedStreamChannel
 end

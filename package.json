@@ -7,7 +7,8 @@
   "exports": {
     ".": "./app/assets/javascripts/crosswire/index.js",
     "./controllers/*": "./app/assets/javascripts/crosswire/controllers/*.js",
-    "./morph": "./app/assets/javascripts/crosswire/morph.js"
+    "./morph": "./app/assets/javascripts/crosswire/morph.js",
+    "./stream_actions": "./app/assets/javascripts/crosswire/stream_actions.js"
   },
   "scripts": {
     "test": "vitest run",
