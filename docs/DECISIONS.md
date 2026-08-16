@@ -94,28 +94,68 @@ each cites the file that establishes it.
 
 ---
 
+## D5 — View layer: context-free presenter core, ERB partials in v1, VC companion deferred, no Phlex
+**Resolved 2026-08-15 by evidence (`research/notes/20-view-layer-reconsidered.md`). Jake may overrule.**
+
+Reopened by Jake, who challenged `17`'s "not ViewComponent, not Phlex" verdict. The
+investigation **corrected `17`'s reasoning but largely upheld its conclusion**, and changed
+the core design.
+
+**The correction that matters.** The override asymmetry belongs to **sidecar templates**, not
+to ViewComponent. A VC's `@lookup_context` *is* the app's (`base.rb:117`), so a component
+whose template simply delegates — `<%= render partial: "crosswire/disclosure", … %>` — picks
+up an app's shadowed partial normally. Verified by building all five variants:
+
+| Renderer | App override wins? |
+|---|---|
+| ERB helper | **yes** |
+| VC with its own sidecar template | no |
+| VC delegating to a core partial | **yes** |
+| Phlex with Ruby markup | no |
+| Phlex delegating to a core partial | **yes** |
+
+So we control whether shadowing works. `17`'s "one asymmetry decides this" was wrong.
+(Confirmed separately: VC 4.12.0 has exactly three template sources and **zero** runtime
+references to view paths; `config.view_component_path` does not exist in v4; monkeypatching
+`erb_template` onto a shipped component fails because templates are memoized and compiled.)
+
+**The decisions:**
+
+1. **Presenters are the core, and take NO view context.** Pure POROs returning attribute
+   hashes — `Crosswire::Disclosure#trigger_attrs` / `#panel_attrs`. This **corrects `17`'s
+   design**, which passed a view context into the presenter; that blocks Phlex reuse and
+   makes unit testing awkward. Empirically validated: one presenter drove **four renderers to
+   byte-identical HTML**, with adapters of 9–17 lines and zero logic.
+2. **ERB helpers + partials ship in v1**, as the only renderer.
+3. **`crosswire-view_component` is deferred to post-v1**, built when a consumer asks. Its
+   templates will *delegate to the core partials*, so VC users get idiomatic call sites **and**
+   shadowing **and** subclass + `render_parent`.
+4. **No `crosswire-phlex`.** A transitive *patch-level* pin (`phlex ~> 2.4.0`), ~200 helper
+   shims, its own serializer quirks and a second CI matrix — for the smallest audience.
+5. **VC-primary is rejected**: the good override behaviour comes from the partial, not from
+   VC, so "VC primary over partials" is just ERB-primary plus a mandatory dependency.
+
+**The strongest counter-argument, now answered.** Shadowed partials going silently stale on
+upgrade was the real objection (and `17` waved it away in a sentence). Resolved with a ~25-line
+boot-time `ShadowCheck`: resolve each shipped partial through the app's `LookupContext` and
+verify a `<%# crosswire:contract vN %>` marker. All four scenarios pass, including "crosswire
+v2 ships, the app's shadow still declares v1" → caught at boot, naming the file and both
+versions. That is what makes shadowing defensible rather than merely convenient.
+
+**Novelty:** no Ruby gem ships one component set through ERB + VC/Phlex. Closest is `vident`
+(core + `-view_component` + `-phlex`), which validates the shape but has no ERB leg. Cautionary
+data point: **pagy deleted its entire extras/frontends system at v43** and discontinued four of
+six frontends — multi-frontend maintenance has a real failure record.
+
+**Reopen if:** a consumer needs VC before v1 ships (then pull the companion forward — it does
+not change the core), or if presenter-driven adapters start accumulating logic, which is the
+signal that the zero-logic premise has broken.
+
+---
+
 ## Open
 
-### O1 — View layer: ERB helpers + partials, or ViewComponent / Phlex?
-**Status: REOPENED 2026-08-15 by Jake. Under investigation.**
-
-`research/notes/17` recommended plain ERB helpers + overridable partials, on the grounds that
-engine views sit on the ActionView lookup path (so a consumer overrides by creating a file)
-while ViewComponent globs sidecar templates from its own source directory and therefore
-cannot be shadowed.
-
-Jake's challenge: VC/Phlex feel right for a *modern app* — why not for a library? And could
-we ship a thin VC or Phlex wrapper gem?
-
-Under evaluation (`research/notes/20-view-layer-reconsidered.md`, in progress):
-- Does the VC override claim survive contact with current VC source?
-- Is partial-shadowing actually *good*, or is it an unversioned footgun that breaks silently
-  on upgrade while subclassing is at least explicit about coupling?
-- **The candidate synthesis:** make zero-dependency attribute **presenters** the core
-  (`Crosswire::Disclosure#trigger_attrs` / `#panel_attrs`), with thin, logic-free renderers
-  — ERB in core, `crosswire-view_component` and `crosswire-phlex` as companions. If the
-  renderers contain no logic, the cost of three is small.
-- Lookbook: what previews actually cost us without VC.
+*(none currently blocking)*
 
 ### O2 — Upstream contributions
 Two are cheap and high-visibility: the 8-line `<dialog>`/morph deadlock fix a maintainer
