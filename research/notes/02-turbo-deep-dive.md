@@ -1764,7 +1764,18 @@ Rules:
 
 Combine with `data-turbo-visit-direction` for directional animations:
 
+> **ERRATUM (added post-review, see `08-ui-pattern-catalog.md` errata).**
+> The `@view-transition { navigation: auto; }` line below **does nothing under Turbo.**
+> That at-rule opts into *cross-document* view transitions performed by the browser during
+> a real navigation. Turbo Drive intercepts navigation and swaps the body itself, so no
+> cross-document navigation ever occurs and the rule never fires. Turbo's transitions come
+> from `document.startViewTransition()` in its own render path, gated on the
+> `turbo-view-transition` meta above. **Keep the `::view-transition-*` rules and the
+> `[data-turbo-visit-direction]` selectors — those are what actually style Turbo's
+> transitions. Delete the `@view-transition` at-rule.**
+
 ```css
+/* ⚠ no-op under Turbo — see erratum above; retained to show the shape of the mistake */
 @view-transition { navigation: auto; }
 
 ::view-transition-old(root),
