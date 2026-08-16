@@ -1,0 +1,32 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision lives in Crosswire::Presenters::Dialog,
+  so this file is safe to restyle, shadow, or eject — the ARIA wiring, the native
+  <dialog> semantics, and the Turbo-morph defence all travel with the controller and
+  presenter, not with this markup. See docs/DECISIONS.md D6.
+
+  Locals:
+    dialog         Crosswire::Presenters::Dialog
+    title          String or nil — rendered as the accessible heading
+    trigger_label  String or nil — trigger button text; omit to supply your own trigger
+                   anywhere on the page via dialog.trigger_attrs
+    body           String — dialog body content (already captured)
+%>
+<div <%= cw_attrs(dialog.root_attrs, class: "cw-dialog") %>>
+  <% if trigger_label %>
+    <button <%= cw_attrs(dialog.trigger_attrs, class: "cw-dialog__trigger") %>>
+      <%= trigger_label %>
+    </button>
+  <% end %>
+
+  <dialog <%= cw_attrs(dialog.panel_attrs, class: "cw-dialog__panel") %>>
+    <% if title %>
+      <h2 <%= cw_attrs(dialog.title_attrs, class: "cw-dialog__title") %>><%= title %></h2>
+      <button <%= cw_attrs(dialog.close_attrs, class: "cw-dialog__close") %>>&times;</button>
+    <% end %>
+
+    <div class="cw-dialog__body">
+      <%= body %>
+    </div>
+  </dialog>
+</div>

@@ -1,0 +1,21 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision — role, aria-labelledby/describedby,
+  id relationships — lives in Crosswire::Presenters::Confirm, so this file is safe to
+  restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Mount this ONCE (e.g. in the application layout); the same dialog is reused for
+  every confirmation via its `open()` method. See the presenter docstring for wiring
+  it as `Turbo.config.forms.confirm`.
+
+  Locals:
+    confirm  Crosswire::Presenters::Confirm
+%>
+<dialog <%= cw_attrs(confirm.dialog_attrs, class: "cw-confirm") %>>
+  <h2 <%= cw_attrs(confirm.title_attrs, class: "cw-confirm__title") %>><%= confirm.title %></h2>
+  <p <%= cw_attrs(confirm.body_attrs, class: "cw-confirm__body") %>><%= confirm.body %></p>
+  <div class="cw-confirm__actions">
+    <button <%= cw_attrs(confirm.cancel_attrs, class: "cw-confirm__cancel") %>><%= confirm.cancel_label %></button>
+    <button <%= cw_attrs(confirm.confirm_attrs, class: "cw-confirm__confirm") %>><%= confirm.confirm_label %></button>
+  </div>
+</dialog>

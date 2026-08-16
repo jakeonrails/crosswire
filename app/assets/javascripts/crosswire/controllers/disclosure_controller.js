@@ -32,10 +32,23 @@ export default class DisclosureController extends Controller {
   static values = { open: Boolean }
   static classes = ["open"]
 
+  // Stimulus runs value callbacks BEFORE connect(), and for a typed value the initial
+  // `previous` argument is the type's default — `false`, not `undefined`. So a
+  // `previous === undefined` guard silently never fires and every connect announces a
+  // spurious event. Turbo makes that expensive: controllers reconnect on every frame
+  // render, stream render and cache restore, so one bogus event per connect becomes a
+  // steady drip of phantom state changes for anything listening.
+  #ready = false
+
   connect() {
     // Re-assert from the DOM rather than trusting the value alone: after a Turbo morph
     // the value attribute may have been clobbered while the panel kept its real state.
     this.#render()
+    this.#ready = true
+  }
+
+  disconnect() {
+    this.#ready = false
   }
 
   toggle(event) {
@@ -52,11 +65,11 @@ export default class DisclosureController extends Controller {
   }
 
   // Single write path — see note 3 above.
-  openValueChanged(value, previous) {
+  openValueChanged(value) {
     this.#render()
 
-    // Don't announce the initial connect, only real transitions.
-    if (previous === undefined) return
+    // Announce real transitions only, never the initial hydration.
+    if (!this.#ready) return
 
     this.dispatch(value ? "opened" : "closed", {
       detail: { open: value },

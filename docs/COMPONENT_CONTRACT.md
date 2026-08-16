@@ -45,11 +45,37 @@ Stimulus **throws** when a class attribute is absent and has no default mechanis
 *Why: the single most likely way a component breaks for a consumer who did not pass a
 class. (notes/17)*
 
+### R3a — `data-*-class` attributes belong on the controller element, never on a target
+Stimulus's Classes API resolves `data-<identifier>-<name>-class` against the **controller's
+own element**, never against a target. So even when the controller applies the class to a
+target visually, the attribute must be emitted by the presenter's `root_attrs`.
+
+*Why: put it on the target and `this.fooClass` throws `Missing attribute` at runtime — the
+R3 failure, arrived at from the other direction. Caught during the `clipboard` build by
+modelling it on `disclosure`'s `open_class` (which applies to the root, so the distinction
+never came up) and writing a test to pin it down.*
+
 ### R4 — State lives in a value, the server renders it, and there is one write path
 The action handler sets the value; `<name>ValueChanged` does the DOM work. Never both.
 *Why: a server-driven change, a Turbo morph and a click then converge on one code path.
 Turbo 8 morphing overwrites `data-*-value` and skips `connect()` — turbo#1210, closed
 won't-fix — so any other arrangement silently desynchronises. (notes/03, notes/14)*
+
+### R4a — Guard event dispatch with a `#ready` flag, not `previous === undefined`
+Stimulus runs value callbacks **before** `connect()`, and for a typed value the initial
+`previous` argument is the type's default (`false`, `0`, `""`) — **not** `undefined`. So the
+obvious guard silently never fires and every connect announces a phantom event.
+
+```js
+#ready = false
+connect()    { this.#render(); this.#ready = true }
+disconnect() { this.#ready = false }
+openValueChanged(value) { this.#render(); if (!this.#ready) return; this.dispatch(…) }
+```
+
+*Why: Turbo reconnects controllers on every frame render, stream render and cache restore,
+so one bogus event per connect becomes a steady drip of phantom state changes for anything
+listening. Found by a failing test in `disclosure`, not by reading the docs.*
 
 ### R5 — Compose with events, never outlets
 Emit namespaced events (`cw--<name>:<past-tense-verb>`). Never declare a Stimulus outlet.
