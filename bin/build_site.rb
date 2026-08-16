@@ -86,15 +86,41 @@ registrations = DEMOED.map do |name|
   %(application.register("cw--#{name.tr("_", "-")}", #{class_name_for(name)}))
 end.join("\n")
 
+stimulus_js = strip_module_syntax(File.read(STIMULUS))
+
+# BLOCK FORM IS MANDATORY HERE. `String#sub` with a *string* replacement interprets
+# backreferences in that replacement — `\0`–`\9`, `\&`, `\``, `\'`, `\\` and `\+`.
+#
+# This bit hard. Stimulus's own action-descriptor regex contains `\+`:
+#
+#   /^(?:(?:([^.]+?)\+)?(.+?)…/
+#
+# Ruby read that `\+` as "the last matched group", our pattern was a plain string with
+# no groups, so it expanded to EMPTY and silently deleted the `\+` from the shipped
+# regex. The optional group then swallowed a character, and every `click->` in the page
+# was parsed as event `lick`. Nothing threw. The attribute was right, the controller
+# connected, the targets resolved — the whole page was simply inert.
+#
+# The block form returns its value verbatim, with no backreference expansion.
 html = File.read(TEMPLATE)
-           .sub("<!--INJECT:STIMULUS-->", strip_module_syntax(File.read(STIMULUS)))
-           .sub("<!--INJECT:CONTROLLERS-->", controllers)
-           .sub("<!--INJECT:REGISTER-->", registrations)
-           .sub("<!--INJECT:VOCAB-->", vocabulary_rows)
+           .sub("<!--INJECT:STIMULUS-->") { stimulus_js }
+           .sub("<!--INJECT:CONTROLLERS-->") { controllers }
+           .sub("<!--INJECT:REGISTER-->") { registrations }
+           .sub("<!--INJECT:VOCAB-->") { vocabulary_rows }
 
 %w[STIMULUS CONTROLLERS REGISTER VOCAB].each do |marker|
   abort "marker <!--INJECT:#{marker}--> was not replaced" if html.include?("<!--INJECT:#{marker}-->")
 end
+
+# Guard against the above ever returning, and against any other silent mangling: what
+# we inlined must appear in the output byte for byte.
+abort "FATAL: inlined Stimulus does not match its source — injection corrupted it" unless html.include?(stimulus_js)
+abort "FATAL: inlined controllers do not match their source" unless html.include?(controllers)
+
+# And pin the specific regex, because this is the one whose corruption is invisible:
+# no error, no console message, just a page where nothing responds to a click.
+descriptor = File.read(STIMULUS)[/const descriptorPattern = .*/]
+abort "FATAL: Stimulus action-descriptor regex was altered during injection" unless html.include?(descriptor)
 
 FileUtils.mkdir_p(File.dirname(OUTPUT))
 File.write(OUTPUT, html)

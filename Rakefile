@@ -35,6 +35,12 @@ task :lookbook do
   sh "cd #{DUMMY.shellescape} && bin/rails server -p #{port}"
 end
 
+desc "Rebuild site/index.html from the gem's real source, then smoke-test it in Chromium"
+task :site do
+  sh "ruby bin/build_site.rb"
+  sh "node bin/smoke_site.mjs"
+end
+
 desc "Run only the Rails integration suite (boots test/dummy), with full output"
 task :integration do
   sh "#{RbConfig.ruby.shellescape} test/crosswire/integration_test_runner.rb"

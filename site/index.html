@@ -851,7 +851,7 @@ const defaultActionDescriptorFilters = {
         }
     },
 };
-const descriptorPattern = /^(?:(?:([^.]+?))?(.+?)(?:\.(.+?))?(?:@(window|document))?->)?(.+?)(?:#([^:]+?))(?::(.+))?$/;
+const descriptorPattern = /^(?:(?:([^.]+?)\+)?(.+?)(?:\.(.+?))?(?:@(window|document))?->)?(.+?)(?:#([^:]+?))(?::(.+))?$/;
 function parseActionDescriptorString(descriptorString) {
     const source = descriptorString.trim();
     const matches = source.match(descriptorPattern) || [];
