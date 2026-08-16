@@ -70,6 +70,27 @@ module Crosswire
       end
     end
 
+    # `Crosswire::Streams` (the `AuthorizedStreamChannel` piece of the survivability
+    # tier) needs actioncable + turbo-rails — neither is a gem dependency (D5) — so it
+    # is deliberately absent from the `autoload_paths`/`eager_load_paths` above and
+    # never required by `lib/crosswire.rb`. This initializer is its only load path.
+    #
+    # `defined?(Turbo::Engine)` is a truthful gate specifically HERE: `Bundler.require`
+    # has already loaded every gem in the Gemfile before any initializer body runs, so
+    # by the time this block executes, `Turbo::Engine` is defined if and only if
+    # turbo-rails is actually in the bundle. `to_prepare` (rather than a bare
+    # initializer, or `after_initialize`) matters too: it runs after Zeitwerk's
+    # autoloaders are ready, which is what makes `Turbo::StreamsChannel` — itself set
+    # up by turbo-rails' own initializers, which have already run by then — resolvable
+    # when `crosswire/streams` requires `crosswire/streams/authorized_stream_channel`.
+    # `require` is idempotent, so `to_prepare` re-running this on every class-cache
+    # reload in development is harmless.
+    initializer "crosswire.streams" do |app|
+      app.config.to_prepare do
+        require "crosswire/streams" if defined?(Turbo::Engine)
+      end
+    end
+
     # Verify any partial the app has shadowed still matches the contract we ship
     # against. This is what makes ejection (D6) and view-path override (D5) safe:
     # copy/paste normally has no staleness signal, and this gives it one.

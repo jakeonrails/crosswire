@@ -11,6 +11,17 @@ require "rails"
 require "action_controller/railtie"
 require "action_view/railtie"
 
+# Dev/test only (root Gemfile) — needed for `Crosswire::Streams`
+# (`AuthorizedStreamChannel`), the Ruby side of the survivability tier's
+# authorized-subscription piece. Neither is `rails/all`'s concern to load for us:
+# `action_cable/engine` is what defines `ActionCable::Channel::Base`, which
+# `Turbo::StreamsChannel` (and therefore `Crosswire::AuthorizedStreamChannel`) is
+# subclassed from; `turbo-rails` defines `Turbo::Engine`, which is the gate crosswire's
+# own `crosswire.streams` initializer checks with `defined?(Turbo::Engine)` before ever
+# requiring `crosswire/streams`. Neither is a dependency of the gem itself (D5).
+require "action_cable/engine"
+require "turbo-rails"
+
 require "propshaft"
 require "importmap-rails"
 require "lookbook"

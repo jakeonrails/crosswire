@@ -46,4 +46,9 @@ task :integration do
   sh "#{RbConfig.ruby.shellescape} test/crosswire/integration_test_runner.rb"
 end
 
+desc "Run only the Action Cable streams suite (boots test/dummy), with full output"
+task :streams do
+  sh "#{RbConfig.ruby.shellescape} test/crosswire/streams_test_runner.rb"
+end
+
 task default: %i[test]

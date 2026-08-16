@@ -72,6 +72,11 @@ module CrosswireIntegration
     Crosswire.component_names.each do |name|
       helper Crosswire.const_get(:"#{name.camelize}Helper")
     end
+
+    # `Crosswire::StreamsHelper` names no component (see its own docstring) — it
+    # cannot be discovered by looping `Crosswire.component_names` above, so it is added
+    # explicitly, exactly as `CrosswirePreviewController` adds it by hand.
+    helper Crosswire::StreamsHelper
   end
 
   # ---------------------------------------------------------------------------------
@@ -661,6 +666,49 @@ module CrosswireIntegration
 
       assert_equal "cw--reveal", el["data-controller"]
       assert_equal "false", el["data-cw--reveal-revealed-value"]
+    end
+  end
+
+  # ---------------------------------------------------------------------------------
+  # Crosswire::StreamsHelper — the Ruby-only helper with no matching controller. The
+  # channel behaviour itself (authorized?/reject/streamables) is covered by the
+  # `ActionCable::Channel::TestCase` suite in streams_test_runner.rb; this covers only
+  # what a HelperCase can: that the helper actually renders through real ERB and that
+  # its two guard raises fire.
+  # ---------------------------------------------------------------------------------
+  class OpenStreamChannel < Crosswire::AuthorizedStreamChannel
+    private
+
+    def authorized?(*) = true
+  end
+
+  class StreamsHelperTest < HelperCase
+    def test_crosswire_stream_from_renders_a_turbo_cable_stream_source
+      html = view.crosswire_stream_from("room", channel: OpenStreamChannel)
+      el = node(html, "turbo-cable-stream-source")
+
+      assert_equal "CrosswireIntegration::OpenStreamChannel", el["channel"]
+      refute_nil el["signed-stream-name"]
+    end
+
+    def test_crosswire_stream_from_requires_an_authorized_stream_channel_subclass
+      error = assert_raises(ArgumentError) { view.crosswire_stream_from("room", channel: String) }
+
+      assert_match(/AuthorizedStreamChannel/, error.message)
+    end
+
+    def test_crosswire_stream_from_raises_in_dev_test_on_the_fail_closed_default
+      error = assert_raises(Crosswire::Error) do
+        view.crosswire_stream_from("room", channel: Crosswire::AuthorizedStreamChannel)
+      end
+
+      assert_match(/authorized\?/, error.message)
+    end
+
+    def test_crosswire_stream_from_passes_extra_attributes_through
+      html = view.crosswire_stream_from("room", channel: OpenStreamChannel, data: {room_name: "room #1"})
+
+      assert_equal "room #1", node(html, "turbo-cable-stream-source")["data-room-name"]
     end
   end
 

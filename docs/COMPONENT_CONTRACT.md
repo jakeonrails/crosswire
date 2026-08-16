@@ -59,6 +59,86 @@ reading this table, because components are still being added.
 
 ---
 
+## Ruby-side primitives (outside the component shape)
+
+Not everything crosswire ships is a component. `Crosswire::AuthorizedStreamChannel` and
+its helper, `crosswire_stream_from`, are Action Cable subscription logic — there is no
+Stimulus behaviour to pair them with, so they deliberately do not follow the shape
+above: no `*_controller.js`, no `lib/crosswire/presenters/<name>.rb`, no entry in
+`Crosswire::COMPONENTS`, no `cw--*` Stimulus identifier. `contract_audit_test.rb`'s
+naming checks walk controller → presenter → helper in that direction and would never
+go looking for either of these; both are wired in by hand instead — see
+`test/dummy/app/controllers/crosswire_preview_controller.rb` and `HelperCase` in
+`test/crosswire/integration_test_runner.rb`, both of which add
+`Crosswire::StreamsHelper` explicitly, alongside a comment explaining why.
+
+### `Crosswire::AuthorizedStreamChannel`
+
+A `Turbo::StreamsChannel` subclass that authorizes the **subscriber**, not just the
+stream name. Read its class docstring in full before using it
+(`lib/crosswire/streams/authorized_stream_channel.rb`) — the short version:
+
+- Plain `turbo_stream_from` signs the stream **name**, which stops a client from
+  *inventing* one (typing `Board:99` into devtools). It does not expire, it is not
+  per-subscriber, and it says nothing about who should be allowed to hold it.
+- `Crosswire::AuthorizedStreamChannel` closes that gap by asking a subclass-defined
+  `authorized?(*streamables)` before ever confirming a subscription — and **fails
+  closed**: the shipped default is `authorized? = false`. A channel that forgets to
+  override it rejects every subscriber, the opposite of `Turbo::StreamsChannel`'s own
+  default of authorizing anyone holding a validly-signed name.
+- It cannot, and does not try to, make a stream's **payload** per-user — a channel is a
+  subscription gate, it never sees the broadcast HTML. A stream whose payload
+  legitimately differs by viewer must be **sharded per audience** (one stream per
+  user/role/tenant, not one shared stream everyone subscribes to), or replaced with
+  `broadcasts_refreshes` (piece 4), which pushes only a refetch signal over each
+  viewer's own already-authorized connection instead of pushing shared HTML at all.
+  Authorizing harder on a channel carrying a shared payload does not fix this — it is
+  the wrong layer.
+
+```ruby
+class BoardChannel < Crosswire::AuthorizedStreamChannel
+  private
+
+  def authorized?(board, *)
+    board.is_a?(Board) && current_user&.can_read?(board)
+  end
+end
+```
+
+`streamables` re-derives the located objects from the verified stream name on every
+subscribe attempt (`:`-separated segments; each is GlobalID-parsed if it is one,
+otherwise passed through as the original String) — memoized, `[]` if the name failed
+verification.
+
+### `crosswire_stream_from`
+
+`app/helpers/crosswire/streams_helper.rb` wraps `turbo_stream_from` with a **required**
+`channel:` keyword — there is no default, unlike `turbo_stream_from` itself defaulting
+to the unauthorized `Turbo::StreamsChannel`:
+
+```erb
+<%= crosswire_stream_from(@board, channel: BoardChannel) %>
+```
+
+Raises `ArgumentError` unless `channel` is a `Crosswire::AuthorizedStreamChannel`
+subclass, and — development/test only — raises `Crosswire::Error` if that subclass
+still carries the fail-closed default `authorized?` (i.e. was never actually given a
+rule), so the "reject everyone" outcome shows up immediately at dev time rather than
+as a silent production mystery.
+
+### Where it lives, and why it is not autoloaded
+
+`lib/crosswire/streams/` needs `actioncable` and `turbo-rails` — neither is a gem
+dependency (D5: the gemspec stays at railties + actionview) and neither may be a
+load-time requirement of the plain-Ruby core. It is required exactly once, from a
+`to_prepare` hook gated on `defined?(Turbo::Engine)`, in `lib/crosswire/engine.rb`'s
+`crosswire.streams` initializer — see that file for the full reasoning on why
+`to_prepare` specifically. `lib/crosswire/streams.rb`, required directly without
+turbo-rails present, raises a clear `Crosswire::Error` naming the missing gem instead
+of a bare `NameError`.
+
+---
+
 ## The rules
 
 ### R1 — Presenters take no view context

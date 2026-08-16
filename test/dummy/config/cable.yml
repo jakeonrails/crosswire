@@ -1,0 +1,14 @@
+development:
+  adapter: async
+
+# The `test` adapter is required for `ActionCable::Channel::TestCase` — it's what lets
+# `assert_broadcast_on`/`assert_broadcasts` observe broadcasts synchronously in-process
+# instead of round-tripping through a real pub/sub backend. `ActionCable::TestHelper`
+# (mixed into `ActionCable::Channel::TestCase`) actually swaps this in per-test
+# automatically regardless of what's configured here, but a real host app is expected
+# to ship a `config/cable.yml` of its own, so the dummy does too, both because
+# `test/dummy` is meant to look like an ordinary host app and because it's what
+# `test/crosswire/streams_test_runner.rb`'s test-adapter setup documents itself
+# against.
+test:
+  adapter: test

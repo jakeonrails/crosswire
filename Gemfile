@@ -20,4 +20,11 @@ group :development, :test do
   gem "importmap-rails"
   gem "puma"
   gem "lookbook"
+
+  # Pulls in `actioncable`. Needed only for `Crosswire::Streams` (the
+  # `AuthorizedStreamChannel` piece of the survivability tier) and its dummy-app
+  # cable wiring — `crosswire.gemspec` stays at railties + actionview (D5); neither
+  # `turbo-rails` nor `actioncable` is ever a load-time requirement of the plain-Ruby
+  # core (see lib/crosswire/streams.rb).
+  gem "turbo-rails"
 end

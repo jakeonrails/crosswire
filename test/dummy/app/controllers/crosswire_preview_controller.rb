@@ -33,6 +33,12 @@ class CrosswirePreviewController < Lookbook::PreviewController
     helper Crosswire.const_get(:"#{name.camelize}Helper")
   end
 
+  # `Crosswire::StreamsHelper` names no component — it wraps `turbo_stream_from` for
+  # `Crosswire::AuthorizedStreamChannel`, with no controller/presenter pair of its own —
+  # so it can never be found by looping `Crosswire.component_names` above. Added by
+  # hand, same as `test/crosswire/integration_test_runner.rb`'s `HelperCase` does.
+  helper Crosswire::StreamsHelper
+
   append_view_path Rails.root.join("app/views")
   append_view_path Crosswire::Engine.root.join("app/views")
 end
