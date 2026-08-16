@@ -69,7 +69,7 @@ combined. (`16`, `08`)
 
 ---
 
-## 4. The vocabulary — 38 primitives
+## 4. The vocabulary — 39 primitives
 
 Reconciled independently by two agents across ~95 patterns with **zero drift**: every one of
 the original 32 was used, no synonyms were invented, no banned name (`toggle`, `modal`,
@@ -175,7 +175,7 @@ it risks the "too much magic" failure mode Rails libraries die of. See decision 
 
 **Recommendation: C.** The corrections log and diagnosis pages are already 90% written *inside
 the research corpus* — they are nearly free. And ten primitives with real a11y is enough to
-prove the thesis without committing to 38 public APIs before we have a single consumer.
+prove the thesis without committing to 39 public APIs before we have a single consumer.
 
 ---
 

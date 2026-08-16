@@ -22,19 +22,51 @@ Missing, Stimulus controllers that won't connect, forms that submit but don't up
 reloads, JS libraries dying after morphs, frozen dialogs, and state that resets for every viewer when one
 person edits.
 
-Both pages cite the `research/notes/*.md` file they were extracted from, so you can follow a claim back
-to its primary source — a GitHub thread, a maintainer quote, a specific line of Turbo or Idiomorph
-source — rather than trusting the summary.
+### The recipes
+
+**[`frames-vs-streams.md`](./frames-vs-streams.md) — Which tool for this update?** The escalation ladder:
+plain link/redirect → Turbo Frame → Turbo Stream → `turbo_stream.replace(target, method: :morph)` → morph
+page refresh → drop to Stimulus. Organised around the only question that actually decides it — **who owns
+this region's state?** — rather than a feature comparison. Includes the fourth option most people miss
+(targeted render *with* morph semantics, which is what 37signals actually ships), when one frame is
+enough and when it genuinely isn't, and a decision table you can scan in fifteen seconds. **Start here if
+you're new to the collection**; it's the root cause of the most-repeated "Hotwire is convoluted"
+complaint.
+
+**[`form-response-contract.md`](./form-response-contract.md) — My form submits but nothing happens.** The
+303/422 contract, derived from Turbo's `form_submission.js`: why a `200` with HTML on a non-GET is
+discarded, why only `303` works for redirect-after-POST, why the 422 body must be a complete document,
+`:unprocessable_content` vs the deprecated `:unprocessable_entity`, rendering errors via Turbo Stream, and
+the morphing interaction — **422 responses do morph**, which is what kills Stimulus-wrapped JS libraries
+on the most ordinary flow in Rails.
+
+**[`nested-forms.md`](./nested-forms.md) — The cocoon replacement.** Sean Doyle's frame-powered nested
+attributes, shipping **zero custom Stimulus controllers**: `form.fields(index:)` plus add/remove buttons
+that *are* form fields, so there's no client-side counter to desync and validation state survives for
+free. Includes the implicit-submission hazard those `[formaction]` buttons create (with the one-line fix
+and a keyboard-only system test), and the `<template>` fallback for the two cases a GET round-trip can't
+serve.
+
+**[`frame-breakout.md`](./frame-breakout.md) — Redirect the whole page from inside a frame.**
+`redirect_to path, turbo_frame: "_top"` **does not exist** — and here's why it can't, in the maintainer's
+own words, plus the ~25-line `Turbo::FrameRedirectable` concern that does work, why its flash hop is
+necessary rather than a hack, and when `target="_top"` on the frame is the right answer instead (and when
+it breaks multi-step flows).
+
+Every page cites the `research/notes/*.md` file it was extracted from, so you can follow a claim back to
+its primary source — a GitHub thread, a maintainer quote, a specific line of Turbo or Idiomorph source —
+rather than trusting the summary. Where something couldn't be verified, the page says so instead of
+smoothing it over.
 
 ## What's not here yet
 
-**Pattern recipes are not written.** The 195 recipe candidates catalogued in
-`research/notes/07-problem-mining.md` (autosubmit, modals, infinite scroll, nested forms, broadcasting,
-and so on) are the next layer of this directory, and they don't exist yet — don't assume a
-`docs/recipes/patterns/` or similar exists just because this README describes the shape of the
-collection. When they land, most will point at a crosswire primitive rather than showing you the raw
-Turbo/Stimulus each time; where a primitive doesn't exist yet, they'll show you the underlying pattern
-directly, because most of what's true here is true for any Hotwire app, not just crosswire's.
+**The rest of the pattern recipes.** Four of the 195 recipe candidates catalogued in
+`research/notes/07-problem-mining.md` are written (above); the remainder — autosubmit, modals, infinite
+scroll, broadcasting, and so on — are not. Don't assume a `docs/recipes/patterns/` directory exists just
+because this README describes the shape of the collection. When they land, most will point at a crosswire
+primitive rather than showing you the raw Turbo/Stimulus each time; where a primitive doesn't exist yet,
+they'll show you the underlying pattern directly, because most of what's true here is true for any Hotwire
+app, not just crosswire's.
 
 ## House rules for this collection
 

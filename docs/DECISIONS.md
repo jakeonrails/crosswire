@@ -20,7 +20,7 @@ Initial ten (most load-bearing first, per `research/notes/08` build order):
 
 **Why:** the docs are ~free — the corrections log and diagnosis pages are already ~90%
 written inside the research corpus — and ten primitives prove the thesis without committing
-to 38 public APIs before a single consumer exists. Reddit says documentation is the #1
+to 39 public APIs before a single consumer exists. Reddit says documentation is the #1
 complaint about Hotwire by a wide margin (`07b`), so docs are not a consolation prize; they
 are the highest-leverage deliverable.
 
@@ -90,7 +90,7 @@ each cites the file that establishes it.
 | R8 | **Vitest two-tier** (jsdom + browser mode) + Minitest/Cuprite | 10 |
 | R9 | **APG-complete in the controller**, never opt-in consumer wiring — this is the moat | 10, 12, 19 |
 | R10 | Naming: `cw--` identifiers, `crosswire_*` helpers, `cw--name:verb` events | 17 |
-| R11 | **38-primitive vocabulary**, converged with zero drift across ~95 patterns. No `modal` controller | 08 |
+| R11 | **39-primitive vocabulary**, converged with zero drift across ~95 patterns. No `modal` controller | 08 |
 
 ---
 

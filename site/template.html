@@ -1,0 +1,611 @@
+<title>Crosswire</title>
+<style>
+  /* ============================================================
+     Crosswire — patch bay / exchange
+     Palette: technical-drawing paper, ink, enamelled copper, verdigris, oxide.
+     Type: serif for display AND body (long-form reading), system sans for
+     labels only, mono for code.
+     ============================================================ */
+
+  :root {
+    /* light — the complete palette lives here, unstamped */
+    --paper:        #EDF1F4;
+    --paper-raised: #F6F8FA;
+    --paper-sunk:   #E2E8ED;
+    --ink:          #0E1319;
+    --ink-soft:     #3D4956;
+    --ink-faint:    #6B7885;
+    --rule:         #CBD5DD;
+    --rule-strong:  #A9B7C3;
+
+    --copper:       #B0703C;
+    --copper-lit:   #C88A54;
+    --copper-wash:  #F0E2D4;
+    --verdigris:    #3D7B70;
+    --verdigris-wash:#DCE9E6;
+    --oxide:        #9E3B32;
+    --oxide-wash:   #F2DEDC;
+
+    --shadow: 0 1px 2px rgb(14 19 25 / .06), 0 8px 24px -12px rgb(14 19 25 / .18);
+
+    --display: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+    --body:    "Charter", "Iowan Old Style", Georgia, Cambria, serif;
+    --label:   ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 66ch;
+    --rail: 15rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:        #0E1319;
+      --paper-raised: #161C24;
+      --paper-sunk:   #0A0E13;
+      --ink:          #E4EAF0;
+      --ink-soft:     #A9B7C3;
+      --ink-faint:    #71808E;
+      --rule:         #232C36;
+      --rule-strong:  #35414E;
+
+      --copper:       #D18F5C;
+      --copper-lit:   #E5A874;
+      --copper-wash:  #2A1D13;
+      --verdigris:    #67AB9E;
+      --verdigris-wash:#12241F;
+      --oxide:        #D2726A;
+      --oxide-wash:   #2A1614;
+
+      --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:        #0E1319;
+    --paper-raised: #161C24;
+    --paper-sunk:   #0A0E13;
+    --ink:          #E4EAF0;
+    --ink-soft:     #A9B7C3;
+    --ink-faint:    #71808E;
+    --rule:         #232C36;
+    --rule-strong:  #35414E;
+
+    --copper:       #D18F5C;
+    --copper-lit:   #E5A874;
+    --copper-wash:  #2A1D13;
+    --verdigris:    #67AB9E;
+    --verdigris-wash:#12241F;
+    --oxide:        #D2726A;
+    --oxide-wash:   #2A1614;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ------------------------------------------------ */
+
+  .shell { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: 0; }
+  @media (max-width: 60rem) { .shell { grid-template-columns: 1fr; } }
+
+  .rail {
+    border-right: 1px solid var(--rule);
+    padding: 2rem 1.25rem 4rem;
+    position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto;
+  }
+  @media (max-width: 60rem) {
+    .rail { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+
+  .mark { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .25rem; }
+  .mark strong { font-family: var(--display); font-size: 1.3rem; font-weight: 600; letter-spacing: -.01em; }
+  .mark span {
+    font-family: var(--label); font-size: .625rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--copper); border: 1px solid var(--copper); border-radius: 2px; padding: .05rem .3rem;
+  }
+  .rail p.sub { margin: 0 0 1.75rem; font-size: .8125rem; color: var(--ink-faint); line-height: 1.45; }
+
+  .rail nav { display: flex; flex-direction: column; gap: .1rem; }
+  .rail nav a {
+    font-family: var(--label); font-size: .8125rem; color: var(--ink-soft);
+    text-decoration: none; padding: .3rem .5rem; border-radius: 3px; border-left: 2px solid transparent;
+  }
+  .rail nav a:hover { color: var(--ink); background: var(--paper-sunk); }
+  .rail nav a:focus-visible { outline: 2px solid var(--copper); outline-offset: 1px; }
+  .rail .navgroup {
+    font-family: var(--label); font-size: .625rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 1.25rem 0 .35rem .5rem;
+  }
+
+  main { padding: 0 0 6rem; min-width: 0; }
+  .col { max-width: var(--measure); padding-inline: 2rem; margin-inline: auto; }
+  @media (max-width: 40rem) { .col { padding-inline: 1.25rem; } }
+
+  /* ---- type ------------------------------------------------- */
+
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; letter-spacing: -.015em; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3rem); line-height: 1.1; margin: 0 0 1rem; }
+  h2 { font-size: 1.625rem; line-height: 1.2; margin: 0 0 .75rem; }
+  h3 { font-size: 1.125rem; line-height: 1.3; margin: 0 0 .4rem; }
+
+  .eyebrow {
+    font-family: var(--label); font-size: .6875rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--copper); margin: 0 0 .6rem;
+  }
+  .lede { font-size: 1.1875rem; line-height: 1.55; color: var(--ink-soft); }
+  p { margin: 0 0 1rem; }
+  a { color: var(--copper); text-underline-offset: 2px; }
+  code { font-family: var(--mono); font-size: .875em; background: var(--paper-sunk); padding: .1em .35em; border-radius: 3px; }
+  pre { font-family: var(--mono); font-size: .8125rem; line-height: 1.55; background: var(--paper-sunk);
+        border: 1px solid var(--rule); border-radius: 5px; padding: .9rem 1rem; overflow-x: auto; margin: 0 0 1rem; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  section { padding-block: 3.5rem; border-top: 1px solid var(--rule); }
+  section:first-of-type { border-top: 0; }
+
+  /* ---- hero ------------------------------------------------- */
+
+  .hero { padding-block: 4.5rem 3.5rem; }
+  .thesis {
+    font-family: var(--display); font-size: clamp(1.4rem, 3.2vw, 1.9rem); line-height: 1.3;
+    border-left: 3px solid var(--copper); padding-left: 1.1rem; margin: 2rem 0; text-wrap: balance;
+  }
+
+  .stat-row { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; margin-top: 2rem; }
+  .stat { flex: 1 1 7rem; padding: .9rem 1rem; border-right: 1px solid var(--rule); }
+  .stat:last-child { border-right: 0; }
+  .stat b { display: block; font-family: var(--display); font-size: 1.55rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { font-family: var(--label); font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+
+  /* ---- demo cards ------------------------------------------- */
+
+  .demo {
+    border: 1px solid var(--rule); border-radius: 6px; background: var(--paper-raised);
+    margin: 0 0 1.5rem; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .demo > header {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .6rem .9rem; border-bottom: 1px solid var(--rule); background: var(--paper-sunk);
+  }
+  .demo > header h3 { margin: 0; font-family: var(--mono); font-size: .8125rem; font-weight: 500; letter-spacing: 0; }
+  .demo > header .parts { font-family: var(--label); font-size: .6875rem; color: var(--ink-faint); }
+  .stage { padding: 1.5rem 1.25rem; }
+  .note { padding: .6rem .9rem; border-top: 1px solid var(--rule); font-size: .8125rem; color: var(--ink-faint); }
+
+  /* demo controls */
+  .btn {
+    font: inherit; font-family: var(--label); font-size: .875rem; cursor: pointer;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--rule-strong);
+    border-radius: 4px; padding: .4rem .8rem;
+  }
+  .btn:hover { border-color: var(--copper); color: var(--copper); }
+  .btn:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+  .btn-primary { background: var(--copper); border-color: var(--copper); color: #fff; }
+  .btn-primary:hover { background: var(--copper-lit); border-color: var(--copper-lit); color: #fff; }
+
+  /* ---- patch bay diagram ------------------------------------ */
+
+  .patchbay { border: 1px solid var(--rule); border-radius: 6px; padding: 1.25rem; background: var(--paper-raised); }
+  .patchbay figcaption { font-family: var(--label); font-size: .75rem; color: var(--ink-faint); margin-top: .85rem; }
+  .patchbay svg { width: 100%; height: auto; display: block; }
+  .pb-node { fill: var(--paper); stroke: var(--rule-strong); }
+  .pb-node-out { fill: var(--copper-wash); stroke: var(--copper); }
+  .pb-wire { stroke: var(--copper); fill: none; stroke-width: 1.25; }
+  .pb-label { font-family: var(--mono); font-size: 11px; fill: var(--ink-soft); }
+  .pb-label-out { font-family: var(--mono); font-size: 11.5px; fill: var(--copper); font-weight: 600; }
+
+  /* ---- tables ----------------------------------------------- */
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 5px; }
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; }
+  th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--label); font-size: .6875rem; letter-spacing: .08em; text-transform: uppercase;
+       color: var(--ink-faint); background: var(--paper-sunk); font-weight: 500; }
+  tr:last-child td { border-bottom: 0; }
+  td code { font-size: .8125rem; }
+
+  .chip {
+    font-family: var(--label); font-size: .6875rem; padding: .1rem .4rem; border-radius: 3px;
+    border: 1px solid currentColor; white-space: nowrap;
+  }
+  .chip-ship { color: var(--verdigris); background: var(--verdigris-wash); }
+  .chip-plan { color: var(--ink-faint); }
+
+  /* ---- corrections ------------------------------------------ */
+
+  .correction { border-left: 3px solid var(--oxide); padding-left: 1rem; margin-bottom: 1.75rem; }
+  .correction .claim { font-family: var(--mono); font-size: .8125rem; color: var(--oxide); margin-bottom: .3rem; }
+  .correction .claim s { text-decoration-color: var(--oxide); }
+  .correction p { margin: 0 0 .4rem; font-size: .9375rem; }
+
+  .honest { border: 1px solid var(--rule); border-left: 3px solid var(--verdigris); border-radius: 0 5px 5px 0;
+            padding: 1rem 1.1rem; background: var(--paper-raised); }
+  .honest ul { margin: .5rem 0 0; padding-left: 1.1rem; }
+  .honest li { margin-bottom: .25rem; font-size: .9375rem; }
+
+  footer { border-top: 1px solid var(--rule); padding: 2.5rem 0 4rem; color: var(--ink-faint); font-size: .875rem; }
+
+  /* demo-specific styling driven by the CSS Classes API — these are the classes a
+     consumer passes in, not anything the controllers hardcode. */
+  .cw-disclosure__panel { padding-top: .6rem; color: var(--ink-soft); font-size: .9375rem; }
+  .is-open .disclosure-caret { transform: rotate(90deg); }
+  .disclosure-caret { display: inline-block; transition: transform .18s ease; color: var(--copper); }
+  @media (prefers-reduced-motion: reduce) { .disclosure-caret { transition: none; } }
+
+  .toast { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+           border: 1px solid var(--rule-strong); border-left: 3px solid var(--verdigris);
+           border-radius: 4px; padding: .55rem .75rem; background: var(--paper); margin-bottom: .5rem; font-size: .9375rem; }
+
+  dialog {
+    border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper-raised); color: var(--ink);
+    padding: 1.25rem; max-width: 26rem; box-shadow: var(--shadow); font-family: var(--body);
+  }
+  dialog::backdrop { background: rgb(14 19 25 / .5); }
+
+  kbd { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--rule-strong);
+        border-bottom-width: 2px; border-radius: 3px; padding: .05rem .3rem; background: var(--paper); }
+
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 1rem; top: 1rem; z-index: 10; background: var(--paper-raised); padding: .5rem .75rem; border: 1px solid var(--copper); }
+</style>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="mark"><strong>Crosswire</strong> <span>alpha</span></div>
+    <p class="sub">Composable, accessible Hotwire primitives for Rails.</p>
+    <nav>
+      <div class="navgroup">Start</div>
+      <a href="#thesis">The thesis</a>
+      <a href="#demos">Live primitives</a>
+      <a href="#composition">Composition</a>
+      <div class="navgroup">Reference</div>
+      <a href="#vocabulary">Vocabulary</a>
+      <a href="#corrections">Corrections</a>
+      <a href="#limits">Where Hotwire loses</a>
+      <div class="navgroup">Repo</div>
+      <a href="#docs">Documentation</a>
+    </nav>
+  </aside>
+
+  <main id="main">
+    <section class="hero col">
+      <p class="eyebrow">Hotwire · Rails 8 · Turbo 8</p>
+      <h1>The primitives Hotwire never shipped.</h1>
+      <p class="lede">
+        Small, generic Stimulus controllers paired with ERB helpers — so rich UI stays
+        The Rails Way, and you can stop pricing in a React migration.
+      </p>
+
+      <p class="thesis">Stimulus is the wiring tier, not the component tier.</p>
+
+      <p>
+        A controller only stays generic if its classes, URLs, ids and bindings are injected
+        from outside. Doing that by hand in ERB is painful enough that people give up and
+        write one-off controllers instead. <strong>The helper layer is what makes generic
+        controllers survive contact with a real app</strong> — and six production codebases
+        invented it independently without ever writing it down.
+      </p>
+
+      <div class="stat-row">
+        <div class="stat"><b>41</b><span>of 119 UI patterns need no JS</span></div>
+        <div class="stat"><b>6</b><span>codebases invented the helper pairing</span></div>
+        <div class="stat"><b>0</b><span>maintained a11y Hotwire libraries</span></div>
+      </div>
+    </section>
+
+    <section id="thesis" class="col">
+      <p class="eyebrow">Why this exists</p>
+      <h2>The ecosystem doesn't lack knowledge. It lacks packaging.</h2>
+      <p>
+        37signals copy-paste fourteen primitives between Campfire, Writebook and Fizzy —
+        three of them byte-for-byte identical — because there is no way to ship them. A Turbo
+        maintainer built APG-accessible widgets and never published them. Searching GitHub for
+        a Hotwire library with ARIA support returns nothing at all.
+      </p>
+      <p>
+        So the claim here isn't novelty. It's that someone ships it, documents it, and keeps
+        it working.
+      </p>
+    </section>
+
+    <section id="demos" class="col">
+      <p class="eyebrow">Live primitives</p>
+      <h2>Running the real controllers</h2>
+      <p class="lede" style="margin-bottom:2rem">
+        Every demo below runs the gem's actual source, inlined at build time. Nothing here is a mock.
+      </p>
+
+      <!-- disclosure -->
+      <div class="demo">
+        <header>
+          <h3>cw--disclosure</h3>
+          <span class="parts">values · targets · CSS Classes API</span>
+        </header>
+        <div class="stage">
+          <div data-controller="cw--disclosure"
+               data-cw--disclosure-open-value="false"
+               data-cw--disclosure-open-class="is-open">
+            <button class="btn" type="button"
+                    data-cw--disclosure-target="trigger"
+                    data-action="click->cw--disclosure#toggle"
+                    aria-expanded="false" aria-controls="d1-panel" id="d1-trigger">
+              <span class="disclosure-caret">›</span> Why not just use <code>&lt;details&gt;</code>?
+            </button>
+            <div class="cw-disclosure__panel" id="d1-panel" data-cw--disclosure-target="panel" hidden
+                 role="region" aria-labelledby="d1-trigger">
+              You usually should — that's Rule 0, and every presenter's docstring says so.
+              Reach for this only when you need <code>aria-expanded</code> on a real button,
+              an animation hook, persistence, or an event other controllers can listen to.
+            </div>
+          </div>
+        </div>
+        <p class="note">The open state is server-rendered, so it is correct before JS loads and survives a Turbo morph.</p>
+      </div>
+
+      <!-- dismiss + composition -->
+      <div class="demo">
+        <header>
+          <h3>cw--dismiss</h3>
+          <span class="parts">cancelable events · focus guard</span>
+        </header>
+        <div class="stage">
+          <div id="toast-stack">
+            <div class="toast" data-controller="cw--dismiss" data-cw--dismiss-remove-value="true">
+              <span>Draft saved.</span>
+              <button class="btn" type="button" aria-label="Dismiss" data-action="click->cw--dismiss#dismiss">Dismiss</button>
+            </div>
+            <div class="toast" data-controller="cw--dismiss" data-cw--dismiss-remove-value="true">
+              <span>Invitation sent to ana@example.com.</span>
+              <button class="btn" type="button" aria-label="Dismiss" data-action="click->cw--dismiss#dismiss">Dismiss</button>
+            </div>
+          </div>
+          <p style="margin:.75rem 0 0;font-size:.875rem;color:var(--ink-faint)">
+            <button class="btn" type="button" id="add-toast">Add another</button>
+          </p>
+        </div>
+        <p class="note">
+          Dispatches a cancelable <code>cw--dismiss:dismissing</code> carrying a <code>complete()</code>
+          callback — that seam is where <code>cw--transition</code> hooks in to animate the exit.
+          <code>Node.remove()</code> is synchronous, so without it there is nothing left to animate.
+        </p>
+      </div>
+
+      <!-- clipboard -->
+      <div class="demo">
+        <header>
+          <h3>cw--clipboard</h3>
+          <span class="parts">live region · graceful failure</span>
+        </header>
+        <div class="stage" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <div data-controller="cw--clipboard" data-cw--clipboard-text-value="bundle add crosswire">
+            <button class="btn btn-primary" type="button" data-action="click->cw--clipboard#copy"
+                    data-cw--clipboard-target="button">Copy install command</button>
+          </div>
+          <code>bundle add crosswire</code>
+        </div>
+        <p class="note">
+          Announces into an <code>aria-live</code> region rather than relying on a purely visual
+          "Copied!" state — and the region must already exist in the DOM, because one inserted
+          alongside its content is never announced.
+        </p>
+      </div>
+
+      <!-- dialog -->
+      <div class="demo">
+        <header>
+          <h3>cw--dialog</h3>
+          <span class="parts">native &lt;dialog&gt; · scroll lock · morph guard</span>
+        </header>
+        <div class="stage">
+          <div data-controller="cw--dialog" data-cw--dialog-open-value="false" data-cw--dialog-modal-value="true">
+            <button class="btn" type="button" data-action="click->cw--dialog#open">Open dialog</button>
+            <dialog data-cw--dialog-target="panel" aria-labelledby="dlg-title">
+              <h3 id="dlg-title" style="margin-top:0">showModal() gives you more than you think</h3>
+              <p style="font-size:.9375rem;color:var(--ink-soft)">
+                Escape, inertness and the top layer are free — so delete your focus trap.
+                Scroll lock and focus restore are <em>not</em> free, and this controller adds them.
+              </p>
+              <button class="btn btn-primary" type="button" data-action="click->cw--dialog#close">Close</button>
+            </dialog>
+          </div>
+        </div>
+        <p class="note">
+          Guards <code>turbo:before-morph-element</code>: morphing strips <code>open</code>, and per
+          spec that does <em>not</em> call <code>close()</code> — it leaves the whole document inert
+          with <code>close()</code> a silent no-op. A page-freezing bug on the default happy path.
+        </p>
+      </div>
+    </section>
+
+    <section id="composition" class="col">
+      <p class="eyebrow">Composition</p>
+      <h2>There is no modal controller</h2>
+      <p>
+        A modal is five primitives patched together, each independently useful elsewhere. That
+        is the whole design: build a vocabulary, not a catalogue of features.
+      </p>
+
+      <figure class="patchbay">
+        <svg viewBox="0 0 560 190" role="img" aria-labelledby="pb-title pb-desc">
+          <title id="pb-title">A modal composed from five crosswire primitives</title>
+          <desc id="pb-desc">
+            Five primitives — dialog, focus-trap, scroll-lock, dismiss and transition — wire
+            into a single composed modal.
+          </desc>
+
+          <g class="pb-wire">
+            <path d="M150 26 C 250 26, 280 95, 390 95" />
+            <path d="M150 60 C 250 60, 280 95, 390 95" />
+            <path d="M150 94 C 250 94, 300 95, 390 95" />
+            <path d="M150 128 C 250 128, 280 95, 390 95" />
+            <path d="M150 162 C 250 162, 280 95, 390 95" />
+          </g>
+
+          <g>
+            <rect class="pb-node" x="8" y="12"  width="142" height="28" rx="4" />
+            <text class="pb-label" x="20" y="31">cw--dialog</text>
+            <rect class="pb-node" x="8" y="46"  width="142" height="28" rx="4" />
+            <text class="pb-label" x="20" y="65">cw--focus-trap</text>
+            <rect class="pb-node" x="8" y="80"  width="142" height="28" rx="4" />
+            <text class="pb-label" x="20" y="99">cw--scroll-lock</text>
+            <rect class="pb-node" x="8" y="114" width="142" height="28" rx="4" />
+            <text class="pb-label" x="20" y="133">cw--dismiss</text>
+            <rect class="pb-node" x="8" y="148" width="142" height="28" rx="4" />
+            <text class="pb-label" x="20" y="167">cw--transition</text>
+
+            <rect class="pb-node-out" x="390" y="78" width="162" height="34" rx="4" />
+            <text class="pb-label-out" x="404" y="100">your modal</text>
+          </g>
+        </svg>
+        <figcaption>
+          Inside a native <code>&lt;dialog&gt;</code>, <code>focus-trap</code> is redundant —
+          <code>showModal()</code> already inerts the document. The diagram shows what
+          <em>can</em> patch together, not what always should.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="vocabulary" class="col">
+      <p class="eyebrow">Vocabulary</p>
+      <h2>Thirty-nine primitives, reconciled</h2>
+      <p>
+        The vocabulary was derived by decomposing ~95 UI patterns and then reconciled across
+        them — every name was used at least once, no synonyms were invented, and six proposed
+        additions were rejected as library wrappers rather than shared vocabulary. The names
+        are stable even where the code isn't written yet.
+      </p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Group</th><th>Primitives</th></tr></thead>
+          <tbody id="vocab-body"><!--INJECT:VOCAB--></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="corrections" class="col">
+      <p class="eyebrow">Corrections</p>
+      <h2>Advice that is now wrong</h2>
+      <p>
+        Thirty-four entries, each verified against Turbo's own source rather than against
+        other blog posts. A sample:
+      </p>
+
+      <div class="correction">
+        <p class="claim"><s>redirect_to path, turbo_frame: "_top"</s></p>
+        <p><strong>Does not exist.</strong> <code>turbo-rails#367</code> has been open since 2022. Multiple
+        posts present it as shipped. A Turbo maintainer solved it properly in 2022 with a ~25-line
+        concern that stashes the frame in the flash — and it has sat unread in a branch ever since.</p>
+      </div>
+
+      <div class="correction">
+        <p class="claim"><s>data-turbo-cache="false"</s></p>
+        <p><strong>Removed</strong> in Turbo 8.0.21 — not deprecated, gone. Use
+        <code>data-turbo-temporary</code>, or the page-level <code>turbo-cache-control</code> meta.
+        <code>data-turbo-morph="false"</code> never existed at all.</p>
+      </div>
+
+      <div class="correction">
+        <p class="claim"><s>reconnect() { this.disconnect(); this.connect() }</s></p>
+        <p>Causes <strong>exponential listener growth</strong>. And the popular
+        <code>turbo:morph@window</code> listener fires page-wide — 188 Trix editors once hung a
+        browser. Use element-scoped <code>turbo:morph-element</code>.</p>
+      </div>
+
+      <div class="correction">
+        <p class="claim"><s>Hotwire ships less JavaScript than React</s></p>
+        <p>At framework level it does not: Turbo + Stimulus is <strong>60,715 bytes gzipped</strong>
+        against React + ReactDOM's <strong>45,131</strong>. The argument only holds at the
+        application-bundle level. Measured, not assumed.</p>
+      </div>
+    </section>
+
+    <section id="limits" class="col">
+      <p class="eyebrow">Honesty</p>
+      <h2>Where Hotwire genuinely loses</h2>
+      <p>
+        A library that only tells you what it's good at is selling you something. These came out
+        of the same research, and each has a named escape hatch.
+      </p>
+      <div class="honest">
+        <ul>
+          <li><strong>Virtualized long lists</strong> — windowing fights Turbo's DOM ownership; <code>content-visibility</code> covers ~5k rows, then fence off a JS grid.</li>
+          <li><strong>Spreadsheet-style grid editing</strong> — needs a client model with sub-100ms feedback, the inverse of Turbo's philosophy.</li>
+          <li><strong>Optimistic UI with rollback</strong> — Turbo's only reconciliation guarantee is dedupe-by-id on append.</li>
+          <li><strong>Character-level collaboration</strong> — CRDTs need a binary transport a <code>&lt;turbo-stream&gt;</code> can't express.</li>
+          <li><strong>Typing indicators</strong> — drop below Turbo Streams to raw ActionCable.</li>
+          <li><strong>Infinite-scroll back-button state</strong> — the snapshot cache is a 10-entry LRU that any successful non-GET submit clears entirely.</li>
+        </ul>
+      </div>
+      <p style="margin-top:1.25rem">
+        The best one-line heuristic came from a practitioner, not a maintainer:
+        <em>"try building a calculator with only turbo."</em> Turbo suits stateless interactions;
+        stateful ones fight it.
+      </p>
+    </section>
+
+    <section id="docs" class="col">
+      <p class="eyebrow">Documentation</p>
+      <h2>What to read</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Page</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td><code>recipes/corrections.md</code></td><td>34 pieces of Hotwire advice that are now wrong, with the reality and the fix</td></tr>
+            <tr><td><code>recipes/diagnosis.md</code></td><td>12 symptoms → how to confirm → root cause → fix</td></tr>
+            <tr><td><code>recipes/frames-vs-streams.md</code></td><td>The escalation rule nobody had written down</td></tr>
+            <tr><td><code>recipes/nested-forms.md</code></td><td>The cocoon replacement, with zero custom controllers</td></tr>
+            <tr><td><code>recipes/frame-breakout.md</code></td><td>Server-driven frame breakout, solved in 2022 and never published</td></tr>
+            <tr><td><code>COMPONENT_CONTRACT.md</code></td><td>The rules every primitive follows, each traced to the bug behind it</td></tr>
+            <tr><td><code>DECISIONS.md</code></td><td>Locked decisions and why — check before re-opening one</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:1.25rem">
+        The corrections and diagnosis pages are useful even if you never install the gem. That is
+        deliberate: documentation was the single most-cited complaint about Hotwire, ahead of any
+        missing feature.
+      </p>
+    </section>
+
+    <footer class="col">
+      <p>
+        Crosswire · MIT · built from a 50,000-line primary-source research corpus.
+        Component sources on this page are inlined from the gem at build time.
+      </p>
+    </footer>
+  </main>
+</div>
+
+<script type="module">
+<!--INJECT:STIMULUS-->
+
+<!--INJECT:CONTROLLERS-->
+
+const application = Application.start()
+<!--INJECT:REGISTER-->
+
+// Demo-only glue: the "Add another" button, so the toast stack can be refilled.
+let n = 0
+const names = ["Deploy finished.", "Comment posted.", "Export ready to download."]
+document.getElementById("add-toast")?.addEventListener("click", () => {
+  const el = document.createElement("div")
+  el.className = "toast"
+  el.setAttribute("data-controller", "cw--dismiss")
+  el.setAttribute("data-cw--dismiss-remove-value", "true")
+  el.innerHTML = `<span>${names[n++ % names.length]}</span>` +
+    `<button class="btn" type="button" aria-label="Dismiss" data-action="click->cw--dismiss#dismiss">Dismiss</button>`
+  document.getElementById("toast-stack").append(el)
+})
+</script>

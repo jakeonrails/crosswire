@@ -5,7 +5,7 @@ Composable, accessible Hotwire primitives for Rails.
 Small, generic Stimulus controllers paired with ERB helpers, so rich UI stays *The Rails
 Way* without reaching for React.
 
-> **Status: alpha.** Ten primitives of a planned 38. The API will change. It is being built
+> **Status: alpha.** Ten primitives of a planned 39. The API will change. It is being built
 > in the open from a 50,000-line research corpus (`research/`) rather than from vibes —
 > if a design decision here looks arbitrary, `docs/DECISIONS.md` says why, and cites the
 > evidence.
