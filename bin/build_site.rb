@@ -19,9 +19,9 @@ CONTROLLERS = File.join(ROOT, "app/assets/javascripts/crosswire/controllers")
 
 # Only the controllers the page actually demonstrates. Inlining all of them would
 # bloat the page with code no demo exercises.
-DEMOED = %w[disclosure dismiss clipboard dialog].freeze
+DEMOED = %w[disclosure dismiss clipboard dialog hotkey persist].freeze
 
-# The reconciled 38-primitive vocabulary, grouped as in research/notes/08. Shipped
+# The reconciled 39-primitive vocabulary, grouped as in research/notes/08. Shipped
 # status is derived from the filesystem, never hand-maintained, so the table cannot
 # drift from reality.
 VOCABULARY = {

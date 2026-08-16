@@ -427,6 +427,77 @@
           with <code>close()</code> a silent no-op. A page-freezing bug on the default happy path.
         </p>
       </div>
+      <!-- hotkey -->
+      <div class="demo">
+        <header>
+          <h3>cw--hotkey</h3>
+          <span class="parts">composes by clicking</span>
+        </header>
+        <div class="stage">
+          <div data-controller="cw--hotkey" data-cw--hotkey-key-value="mod+k">
+            <button class="btn" type="button" id="palette-btn">
+              Open the palette — or press <kbd>⌘</kbd> <kbd>K</kbd>
+            </button>
+          </div>
+          <p id="palette-out" style="margin:.75rem 0 0;font-size:.875rem;color:var(--ink-faint)" aria-live="polite">
+            Not opened yet.
+          </p>
+        </div>
+        <p class="note">
+          On match it dispatches its event and then a synthetic <code>click()</code> on its own
+          element — so it composes with whatever click action is already there instead of
+          needing to know about it. It parses the key spec itself rather than using Stimulus
+          key filters, which are exact-match on modifiers and would silently drop half the combos.
+        </p>
+      </div>
+
+      <!-- persist -->
+      <div class="demo">
+        <header>
+          <h3>cw--persist</h3>
+          <span class="parts">survives reload · survives morph</span>
+        </header>
+        <div class="stage">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.9375rem">
+            <input type="checkbox"
+                   data-controller="cw--persist"
+                   data-cw--persist-key-value="crosswire-site-demo"
+                   data-cw--persist-attribute-value="checked">
+            Remember this checkbox
+          </label>
+        </div>
+        <p class="note">
+          Tick it and reload the page — it comes back. It also re-applies on
+          <code>turbo:morph-element</code>, scoped to its own element rather than the page-wide
+          <code>turbo:morph@window</code> that once hung a browser with 188 Trix editors. Storage
+          failures (Safari private mode, quota) degrade to memory instead of breaking the page.
+        </p>
+      </div>
+
+      <!-- Rule 0 -->
+      <div class="demo">
+        <header>
+          <h3>no controller at all</h3>
+          <span class="parts">Rule 0</span>
+        </header>
+        <div class="stage">
+          <button class="btn" popovertarget="rule0-pop">What does Rule 0 mean?</button>
+          <div id="rule0-pop" popover
+               style="border:1px solid var(--rule-strong);border-radius:6px;background:var(--paper-raised);
+                      color:var(--ink);padding:1rem;max-width:22rem;box-shadow:var(--shadow);font-family:var(--body)">
+            <p style="margin:0;font-size:.9375rem">
+              This popover has <strong>no Stimulus controller</strong>. Light dismiss, Escape and
+              top-layer stacking are native <code>popover</code> behaviour. Ask whether the
+              platform already does it before writing a component — of 119 catalogued patterns,
+              41 need no JavaScript at all.
+            </p>
+          </div>
+        </div>
+        <p class="note">
+          Every presenter docstring opens with this question. A component library that never
+          tells you to skip it is selling you something.
+        </p>
+      </div>
     </section>
 
     <section id="composition" class="col">
@@ -595,6 +666,15 @@
 
 const application = Application.start()
 <!--INJECT:REGISTER-->
+
+// Demo-only glue: the hotkey demo reports that it fired.
+document.getElementById("palette-btn")?.addEventListener("click", (event) => {
+  // A synthetic click() from cw--hotkey carries detail 0 and isTrusted false; a real
+  // pointer click carries detail >= 1. That is how we can honestly label the source.
+  const viaKeyboard = !event.isTrusted || event.detail === 0
+  document.getElementById("palette-out").textContent =
+    `Opened via ${viaKeyboard ? "the ⌘K hotkey" : "a click"} at ${new Date().toLocaleTimeString()}`
+})
 
 // Demo-only glue: the "Add another" button, so the toast stack can be refilled.
 let n = 0
