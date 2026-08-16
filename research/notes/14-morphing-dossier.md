@@ -163,6 +163,8 @@ Three gotchas the official docs do not state:
 
 Add/remove-specific events (`turbo:before-morph-element-added` / `-removed`) are **proposed but not shipped** — issue #1477 (open, Dec 2025), PR #1482 (open, Jan 2026, unreviewed).
 
+**Verified during crosswire build (2026-08-16):** the table above documents every event a *full page or frame morph* dispatches, but calling the bare `morphElements()` export directly (PR #1319, Turbo ≥8.0.14 — see the status table below) does **not** get you all five. `morphElements` only runs `DefaultIdiomorphCallbacks`, so a direct call dispatches `turbo:before-morph-attribute`, `turbo:before-morph-element`, and `turbo:morph-element` — but not the document-level `turbo:morph` or the frame-scoped `turbo:before-frame-morph`. Those two are dispatched one layer up, by `MorphingPageRenderer`/`MorphingFrameRenderer` respectively (separately exported as `morphBodyElements`/`morphTurboFrameElements`), never by `morphElements` itself. Confirmed building crosswire's `preserve` primitive and `installDialogMorphGuard`, both of which call `morphElements` directly and had to scope their coalescing/guard logic to the three element-level events for exactly this reason (`docs/BUILD-LOG.md` "The bugs" #8).
+
 ### Rails-side plumbing
 
 ```erb

@@ -133,6 +133,64 @@ the only way that counts: reintroduce the bug, watch it fail, restore.
 **Lesson:** a guard written in a different execution mode than the bug does not guard
 anything. Test through the path the user actually takes.
 
+### 8. `morphElements` called directly dispatches three events, not five
+`preserve` and `installDialogMorphGuard` call `Turbo.morphElements()` — the function PR
+#1319 exported — directly, never through a full page or frame morph. The dossier's own
+event table (`research/notes/14-morphing-dossier.md`) lists five morph events, but two
+of them, the document-level `turbo:morph` and the frame-scoped `turbo:before-frame-
+morph`, are dispatched by `MorphingPageRenderer`/`MorphingFrameRenderer` — one layer
+above `morphElements` itself. Calling the bare function gets exactly the three events
+`DefaultIdiomorphCallbacks` wires (`turbo:before-morph-attribute`,
+`turbo:before-morph-element`, `turbo:morph-element`) and nothing document- or
+frame-level. `preserve`'s coalescing design already scopes to element-level events for
+this reason; had it used `turbo:morph` as a coalescing boundary instead, it would
+silently never fire outside a real page/frame morph.
+
+**Lesson:** an exported low-level function and the renderer that normally calls it are
+not interchangeable. Read which layer dispatches which event before designing around
+either.
+
+### 9. A form's `turbo:before-fetch-request` and `turbo:submit-start` are the same element, wrong order
+`cw--loading` listens for both as "start" events — the theory being a `<turbo-frame>`
+loading its own `src` needs `turbo:before-fetch-request` (it has no `turbo:submit-
+start` equivalent) while a `<form>` needs `turbo:submit-start`. Turbo's
+`FormSubmission` dispatches BOTH on the identical `formElement`,
+`turbo:before-fetch-request` first, `turbo:submit-start` second — so counting both as
+separate starts double-increments the ref count for every form submission whose
+response isn't itself a `<turbo-frame>` render (a Stream response has no
+`turbo:frame-render` to close the second count), and `data-loading` never clears.
+Fixed by skipping `turbo:before-fetch-request` whenever its target is a `<form>`.
+
+**Lesson:** two events that sound like they cover different cases can still fire on the
+same node for the same request. Check `event.target`, not just the event name, before
+treating two listeners as additive.
+
+### 10. A failed frame `src` load throws inside Turbo, not in caller code
+A `<turbo-frame src="…">` whose fetch fails produces an unhandled promise rejection
+with a stack trace inside `@hotwired/turbo` itself: `FetchRequest#perform` re-throws
+unconditionally and nothing in the frame controller catches it. `cw--fallback`'s
+`fail()` handler still receives `turbo:fetch-request-error` correctly (Turbo dispatches
+the event before the rejection propagates), so the failed state renders correctly; the
+rejection is cosmetic console noise, not a signal of a missing catch in crosswire's own
+code. Encoded as an expected/ignored rejection in the browser test rather than chased
+as a bug.
+
+**Lesson:** a red console in a passing test is not automatically a real failure. Trace
+the throw to its actual origin before assuming ownership of it.
+
+### 11. `<turbo-cable-stream-source connected>` is absent, not `false`, during the confirm window
+turbo-rails toggles a bare `connected` attribute on once its Action Cable subscription
+confirms; there is no `connected="false"` state, the attribute is simply absent both
+before the first confirmation and after a drop. `cw--fallback`'s stream-watching target
+treats the attribute's presence at connect-time as good news but deliberately does NOT
+treat its absence at that same moment as a failure — a subscription that hasn't
+confirmed yet (the ordinary, brief startup window) looks identical to one that dropped
+by inspecting state alone. Only an actually observed removal, via `MutationObserver`,
+counts as a disconnect.
+
+**Lesson:** an attribute with only one "on" value and no "off" value needs a
+transition, not a snapshot, to mean anything.
+
 ---
 
 ## Things the environment lies about
@@ -185,6 +243,15 @@ Recorded because negative results stop the next person re-investigating.
   paths exclude the engine's, so previews raise `MissingTemplate` even with the helper
   included. It needs `append_view_path` too — *append*, not prepend, so a consumer's
   shadowed copy still wins in their own Lookbook.
+- **`turbo-rails` 2.0.23 does NOT auto-pin `turbo.min.js` into the host app's importmap
+  at boot.** Assumed while scoping `Crosswire::Streams`'s `Turbo::Engine` gate —
+  expected the install-time pinning behaviour to happen automatically once turbo-rails
+  is merely in the bundle. It doesn't: only the `turbo:install:importmap` generator
+  writes the `pin`. At boot, turbo-rails only appends its own assets to
+  `config.assets.precompile`; Propshaft/Sprockets can then serve the file, but nothing
+  pins a specifier for `import`/`pin_all_from` to resolve on its own. Recorded here so
+  it isn't reassumed the next time a new piece needs to gate on turbo-rails being
+  merely present versus fully installed.
 
 ---
 
@@ -208,3 +275,13 @@ Recorded because negative results stop the next person re-investigating.
   codebases" (it was 10) and Doyle's frame-breakout concern "sitting unread since 2022"
   (`turbo-rails#367` has 49 comments and maintainer engagement — the *design conversation*
   stalled, not readership). Both are corrected in `research/README.md`.
+- **A registered-component audit that constructs every presenter with default arguments
+  needs an escape hatch for presenters that legitimately reject default arguments.**
+  `preserve`'s zero-arg form (`attributes: nil, element: false`) deliberately raises
+  `ArgumentError` ("nothing to preserve") rather than construct a silently-inert guard.
+  `test/crosswire/contract_audit_test.rb`'s `REQUIRED_ARG_FIXTURES` and
+  `test/crosswire/integration_test_runner.rb`'s `Layer0Test::REQUIRED_ARGS` both needed
+  an explicit `{ attributes: "aria-expanded" }` entry for it — in **both** files, since
+  each runs the same "construct every registered presenter" sweep independently. The
+  next presenter that raises on empty construction needs the same two entries, or the
+  audit fails before it audits anything.

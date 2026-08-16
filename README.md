@@ -5,10 +5,11 @@ Composable, accessible Hotwire primitives for Rails.
 Small, generic Stimulus controllers paired with ERB helpers, so rich UI stays *The Rails
 Way* without reaching for React.
 
-> **Status: alpha.** Twenty-one primitives of a planned 39. The API will change. It is being built
-> in the open from a 50,000-line research corpus (`research/`) rather than from vibes —
-> if a design decision here looks arbitrary, `docs/DECISIONS.md` says why, and cites the
-> evidence.
+> **Status: alpha.** Twenty-eight primitives of a planned 39, plus a separate
+> **survivability tier** (`preserve` · `loading` · `fallback` · `Crosswire::Streams`)
+> that sits outside that count. The API will change. It is being built in the open from
+> a 50,000-line research corpus (`research/`) rather than from vibes — if a design
+> decision here looks arbitrary, `docs/DECISIONS.md` says why, and cites the evidence.
 
 ---
 
@@ -43,6 +44,17 @@ And before any of it: **can the server do it?** Of 119 UI patterns we catalogued
 no JavaScript at all** and 38 need "tiny". `<details>`, `<dialog>`, `popover`,
 `field-sizing: content` and Turbo Frames have quietly eaten most of what component
 libraries still ship JS for. Every presenter's docstring says when *not* to use it.
+
+**The survivability tier is the layer that makes Hotwire safe to use.** Turbo 8 morphing
+and multi-worker broadcasts introduce failure modes Hotwire doesn't answer on its own:
+controller state clobbered mid-morph, an in-flight request with no visual signal, a
+broadcast that can arrive out of order. `preserve` keeps controller-owned state and
+attributes alive across a morph, `loading`/`fallback` give every request a declarative
+loading and failure state, and `Crosswire::Streams` (`AuthorizedStreamChannel` +
+`versioned_replace`) authorizes the subscriber, not just the stream name, and applies
+broadcasts in order. It ships in the core gem but sits outside the 39-primitive
+vocabulary above — see `docs/DECISIONS.md` D7 for why it's a separate category rather
+than primitives #40+.
 
 ## Install
 

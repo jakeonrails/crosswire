@@ -196,6 +196,53 @@ is scaffolding rather than a dependency and the maintenance story needs rethinki
 
 ---
 
+## D7 — Survivability tier: preserve, loading/fallback, Streams — in-core, outside the 39
+**Locked 2026-08-16 (Jake).**
+
+Four pieces — `preserve` (morph-state survival), `loading` + `fallback` (declarative
+in-flight/failure state), and `Crosswire::Streams` (`AuthorizedStreamChannel` +
+`versioned_replace`) — ship in the **core gem**, not in the deferred `crosswire-server`
+companion (`D2`). They sit **outside** the locked 39-primitive vocabulary (`R11`) as a
+distinct **survivability** group, not primitives #40–43: they answer a different
+question — "does the app survive Turbo 8 morphing and multi-worker broadcasts" — from
+the one the 39-primitive catalog answers ("what UI patterns need JS"), and folding them
+into that count would make "N of 39" mean two different kinds of thing.
+
+**Why in-core, not `crosswire-server`:** `D2` deferred the server companion because it
+costs API surface for a complaint ("I still have to write the endpoint") that a real
+consumer hadn't raised yet. This tier answers a different complaint — Turbo 8 morphing
+and `broadcast_replace_to` are silently unsafe by default, for every consumer, whether
+or not they've asked for server-side routes. That is a correctness gap in the client
+API's contract with Turbo, not a convenience layer on top of it.
+
+**Four API decisions, each locked separately:**
+
+a. **`data-loading` is bare, not `data-cw-loading`.** Livewire already owns this exact
+   attribute name; matching it means Tailwind v4's `data-loading:` variants work
+   verbatim, with zero config and zero CSS shipped.
+b. **The stream action is `versioned_replace`, not `cw_versioned_replace`.** It
+   productizes an existing community pattern (Radan Skorić's), and an unprefixed verb
+   reads naturally inside `turbo_stream.versioned_replace` / `<turbo-stream
+   action="versioned_replace">` in ERB the way every other stream action does.
+c. **The dialog morph-deadlock guard is always-on inside `cw--dialog`, not
+   configurable.** A deadlocking `<dialog>` is a bug, not a policy choice — there is no
+   scenario where a consumer would want it off, so there is nothing to make optional.
+d. **Version floors: `@hotwired/turbo` ^8.0.14, `turbo-rails` 2.0.23.** 8.0.14 is the
+   first Turbo release exporting `morphElements` (`preserve` and `installDialogMorphGuard`
+   call it directly); 2.0.23 is the version this tier was built and verified against.
+   Below either floor, the primitives this tier depends on are not exported/available.
+
+**Evidence base:** `research/notes/14-morphing-dossier.md` (the design brief, B1–B7,
+that `preserve` implements verbatim, and the turbo#1239 dialog fix) and
+`research/notes/02-turbo-deep-dive.md` §4.5 (`turbo_stream_from`'s name-only
+authentication, which `AuthorizedStreamChannel` closes).
+
+**Reopen if:** a consumer needs the survivability names folded into the primitive count
+for tooling/marketing reasons, or `crosswire-server` lands and it turns out these pieces
+belong there instead.
+
+---
+
 ## Open
 
 *(none currently blocking)*
@@ -204,6 +251,10 @@ is scaffolding rather than a dependency and the maintenance story needs rethinki
 Two are cheap and high-visibility: the 8-line `<dialog>`/morph deadlock fix a maintainer
 already wrote and never merged (`14`), and a stimulus-lsp CI linter (~40 lines; `stimulus-parser`
 and `@herb-tools/core` both exist, nobody has wired them together) (`13`). Not scheduled.
+**Update (`D7`, 2026-08-16):** the turbo#1239 half now ships in crosswire itself, as
+`installDialogMorphGuard` (exported from `crosswire/morph`, and wired always-on inside
+`cw--dialog`) — a working, in-production patch rather than a proposal, which strengthens
+the case for eventually contributing it upstream to Turbo. Still not scheduled.
 
 ### O3 — Declarative signals layer
 Stimulus has no reactive-state primitive; every derived-UI case is hand-rolled. Datastar shows
