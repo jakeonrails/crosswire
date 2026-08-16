@@ -83,11 +83,56 @@ Emit namespaced events (`cw--<name>:<past-tense-verb>`). Never declare a Stimulu
 cannot know. Verified: across stimulus-components (32), tailwindcss-stimulus-components (10)
 and stimulus-use (19), **not one** uses outlets. (notes/03)*
 
+### R5a — Stacking controllers on one element: values to drive, events to react, never a cross-controller method call
+When one primitive composes with another (`data-controller="cw--dialog cw--confirm"`),
+three different situations come up, and each has exactly one right mechanism:
+
+1. **A real DOM event already backs the moment** (a button click, say). Bind both
+   controllers' actions to that one event: `data-action="click->cw--confirm#confirm
+   click->cw--dialog#close"`. Ordinary Stimulus, no plumbing — Stimulus runs both
+   listeners, in the order they appear in the attribute.
+2. **No DOM event backs the moment** (a public method called programmatically, e.g.
+   `confirm.open(...)` from `Turbo.config.forms.confirm`). Write the other
+   controller's own value attribute directly —
+   `this.element.setAttribute("data-cw--dialog-open-value", "true")`. This is not a
+   workaround; it is the exact external-write path R4 already guarantees works (a
+   Turbo morph or a server-rendered value takes the identical path) — invoked by a
+   sibling controller instead of by Turbo.
+3. **Reacting to the other controller's state changes.** Listen for its
+   already-namespaced events with the presenter's `action()` pass-through — a spec
+   containing `#` is not auto-prefixed, so `action("cw--dialog:closed->closed")`
+   expands to `cw--dialog:closed->cw--confirm#closed` and wires straight to your own
+   method.
+
+**Never** reach for `application.getControllerForElementAndIdentifier` to call a
+method on a sibling *stacked* controller — that reintroduces the exact coupling R5
+bans an outlet for, just spelled with a different API. (That call is still the right
+tool for external app-integration code reaching INTO a crosswire controller — see the
+`Turbo.config.forms.confirm` wiring in the `confirm` presenter's docstring — the
+constraint is only on crosswire's own controllers composing with each other.)
+
+*Why: worked out building `confirm` on top of `dialog`. `confirm` has no DOM event to
+hang an "open the dialog" action off (it's invoked programmatically or from a trigger
+element that isn't even in `dialog`'s scope), so #2 was necessary; the Confirm/Cancel
+buttons DO have one, so #1 was both available and simpler than inventing a synthetic
+event for something a plain multi-action `data-action` already does.*
+
 ### R6 — Make destructive events cancelable
 Anything that removes, closes, or replaces DOM dispatches a cancelable event first and
 passes a `complete()` callback in `detail`.
 *Why: `Node.remove()` is synchronous — once it runs there is nothing left to animate. This
 is a spec-level limit that `@starting-style` cannot fix. (notes/18)*
+
+### R6a — Dispatch completion events while the node is still attached
+Emit `:dismissed` / `:removed` / `:closed` **before** `target.remove()`, not after.
+
+*Why: once a node is detached there is no parent chain, so a `bubbles: true` event
+dispatched on it never reaches a `document`-level listener. Document delegation is the
+ordinary way to observe crosswire events — it is how the test harness's own
+`captureEvents` works — so a completion event dispatched after removal is effectively
+undeliverable, visible only to a listener bound to that exact node reference. Worse than
+having no event, because it looks like it works. Shipped in `dismiss` as an exemplar and
+survived review; only caught when someone wrote tests for it.*
 
 ### R7 — Exhaustive teardown in `disconnect()`
 Unbind listeners, call the library's `destroy()`, null references, release object URLs,
@@ -101,6 +146,20 @@ sensible first.
 *Why: screen-reader focus otherwise falls back to `<body>` and the user loses their place.
 Turbo announces nothing on navigation and moves focus only for `[autofocus]` — turbo#774,
 open for years, with defaults explicitly rejected. (notes/10)*
+
+### R8a — A key filter with a modifier needs its own action descriptor
+Stimulus key filters are **exact-match on modifier state**. `keydown.tab->x#cycle`
+requires `shiftKey === false`, so it **silently drops Shift+Tab**. Wire both and read
+`event.shiftKey` to pick direction:
+
+```ruby
+action("keydown.tab->cycle", "keydown.shift+tab->cycle")
+```
+
+*Why: traced into `Action.keyFilterDissatisfied` in Stimulus's own dist while building
+`focus-trap`, where it meant backwards tabbing simply did not work, with no error. Single
+filters with no modifier variant (`keydown.esc` in `dismiss`) are unaffected; anything
+needing Shift/Ctrl/Alt/Meta needs the two-descriptor treatment.*
 
 ### R9 — Rule 0 goes in the docstring
 If a platform feature does most of the job, say so at the top of the presenter and say when
@@ -170,3 +229,18 @@ honestly, and a library that only tests what jsdom supports ends up with
 stimulus-components' accessibility record (`aria-expanded` as its only ARIA attribute
 across 32 packages). Cover: connect/disconnect teardown, every action, every event
 including cancelation, and the missing-class guard from R3.
+
+### Test-environment gotchas
+
+Each of these made a suite lie about what it was verifying. All were found by building, not
+by reading documentation.
+
+| Gotcha | Consequence | Handling |
+|---|---|---|
+| **`Application#stop()` does not call `disconnect()`** on still-connected controllers — it only stops observing future mutations | Every R7 teardown assertion passes **vacuously** for any test that leaves its element in the DOM | The shared `afterEach` in `test/js/setup.js` clears the DOM and awaits a tick *first*, letting Stimulus's MutationObserver fire `disconnect()` as a real Turbo navigation would, and only then stops the application. Do not reorder it. |
+| **Node 25's built-in Web Storage global shadows jsdom's** — `globalThis === window` in vitest's jsdom env, and without `--localstorage-file` the built-in has *no methods at all*, not even `getItem` | Any storage test fails with confusing errors that look like controller bugs | Assign a Map-backed stub per test (see `persist_controller.test.js`). Define methods as **own-properties**, not on a prototype, so a single one can be swapped for a throwing stand-in to test graceful degradation. |
+| **jsdom's `offsetParent` is unconditionally `null`** — it does no layout, so even a plainly visible `<button>` reports `null` | Visibility filtering and real tab order are not merely unreliable in jsdom, they are **categorically absent** | All real tab-order assertions go to the browser tier. Say so in a comment at the top of both files. |
+| **jsdom cannot evaluate `:modal`** — `nwsapi` throws `SyntaxError` on the pseudo-class | A controller's own `matches(":modal")` idempotency check always reads false and loops | Extend the `showModal`/`show`/`close` polyfill to track modal state and answer `matches(":modal")` honestly (see `dialog_controller.test.js`). This is stubbing what jsdom omits, not faking browser-only behaviour. |
+
+**The rule behind all four:** when a test cannot honestly verify what its name claims, move
+it to the browser tier and comment which tier covers what. Never soften the assertion.

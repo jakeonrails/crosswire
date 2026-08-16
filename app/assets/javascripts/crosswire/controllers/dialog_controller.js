@@ -64,6 +64,12 @@ export default class DialogController extends Controller {
   #ready = false
   #savedFocus = null
   #locked = false
+  // Set while #render calls panel.close() itself (the SSR-upgrade reopen below), so
+  // the native "close" event that call produces doesn't loop back through syncClosed
+  // and desync openValue out from under the showModal() call that follows it. Without
+  // this, a server-rendered `open` dialog would silently close itself right after
+  // being upgraded to a real modal — see syncClosed() and the SSR-upgrade test.
+  #syncSuppressed = false
 
   connect() {
     this.#render(this.openValue)
@@ -133,6 +139,7 @@ export default class DialogController extends Controller {
   // Native `close` — fires however the dialog actually closed. This keeps the value
   // truthful even for paths this controller did not initiate itself.
   syncClosed() {
+    if (this.#syncSuppressed) return
     if (this.openValue) this.openValue = false
   }
 
@@ -166,8 +173,12 @@ export default class DialogController extends Controller {
       if (panel.open && this.modalValue && typeof panel.showModal === "function" && !this.#isModal(panel)) {
         // Server-rendered `open` attribute made the dialog visible but not modal
         // (showModal() throws InvalidStateError on an already-open dialog) — reopen
-        // it properly so it gets the top layer, inertness and ::backdrop.
+        // it properly so it gets the top layer, inertness and ::backdrop. Suppress
+        // syncClosed for this call: it's an internal implementation detail, not a
+        // real close, and openValue must stay true straight through to showModal().
+        this.#syncSuppressed = true
         panel.close()
+        this.#syncSuppressed = false
       }
 
       if (!panel.open) {

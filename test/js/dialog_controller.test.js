@@ -3,28 +3,56 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import DialogController from "../../app/assets/javascripts/crosswire/controllers/dialog_controller.js"
 import { captureEvents, nextFrame } from "./setup.js"
 
-// jsdom (as of the version pinned in package.json) implements HTMLDialogElement's
-// `.open` attribute reflection but NOT showModal()/show()/close() at all — see
-// vitest.config.js: anything that genuinely needs those belongs in
-// dialog_controller.browser.test.js. Here we polyfill minimal, spec-shaped versions so
-// the *controller's* logic (value wiring, event sequencing, morph/cache defence, focus
-// bookkeeping) is exercised against real code paths rather than mocks of the controller
-// itself. The polyfill is installed BEFORE Stimulus connects (see `mountDialog` below),
-// matching what a real browser gives the controller from the start.
+// jsdom tier (docs/COMPONENT_CONTRACT.md R8). jsdom (as of the version pinned in
+// package.json) implements HTMLDialogElement's `.open` attribute reflection but NOT
+// showModal()/show()/close() at all, and has no top layer, no inertness, and no
+// backdrop. Here we polyfill minimal, spec-shaped versions of those three methods so
+// the *controller's* logic — value wiring, event sequencing, the SSR-upgrade path,
+// morph/cache defence, scroll-lock bookkeeping, teardown — is exercised against real
+// code paths rather than mocks of the controller itself. The polyfill is installed
+// BEFORE Stimulus connects (see `mountDialog` below), matching what a real browser
+// gives the controller from the start.
+//
+// What this file does NOT and cannot honestly test: real modality (the rest of the
+// page is not actually inert), real focus containment, a real backdrop click landing
+// on the dialog's padding box, and genuine `:modal` matching (jsdom's nwsapi throws on
+// that pseudo-class rather than just not matching it — our polyfill below tracks it by
+// hand purely so the controller's own idempotency check has *something* honest to ask).
+// Those all live in dialog_controller.browser.test.js instead, run against a real
+// browser via `npm run test:browser`.
 function polyfillDialog(panel) {
+  // Tracks real-browser `:modal` matching (true only between a successful showModal()
+  // and the dialog actually closing) so the controller's own `#isModal` check — which
+  // is how it decides the SSR-upgrade reopen is idempotent — gets an honest answer.
+  // jsdom's nwsapi throws on the `:modal` pseudo-class rather than just not matching
+  // it, so this is *our* stub's job, not something jsdom provides.
+  let modal = false
+
   panel.showModal = vi.fn(function showModal() {
     if (this.open) throw new DOMException("already open", "InvalidStateError")
     this.setAttribute("open", "")
+    modal = true
   })
   panel.show = vi.fn(function show() {
     this.setAttribute("open", "")
+    modal = false
   })
   panel.close = vi.fn(function close() {
     if (!this.open) return
     this.removeAttribute("open")
+    modal = false
     this.dispatchEvent(new Event("close"))
   })
-  panel.matches = panel.matches || (() => false)
+  const nativeMatches = typeof panel.matches === "function" ? panel.matches.bind(panel) : null
+  panel.matches = (selector) => {
+    if (selector === ":modal") return modal
+    if (!nativeMatches) return false
+    try {
+      return nativeMatches(selector)
+    } catch {
+      return false
+    }
+  }
   return panel
 }
 
@@ -70,7 +98,17 @@ function mountDialog(opts = {}) {
   }))
 }
 
-afterEach(() => {
+afterEach(async () => {
+  // Application#stop() does NOT call disconnect() on still-connected controllers —
+  // it only stops observing for *future* mutations — so a test that leaves a dialog
+  // open (never called close()) would otherwise skip R7 teardown (releasing the
+  // scroll lock) entirely: setup.js's global afterEach clears document.body.innerHTML
+  // AFTER this hook runs, by which point stop() has already torn down the observer
+  // that would have detected the removal. Clear the DOM ourselves first and await a
+  // tick so Stimulus's MutationObserver fires the real disconnect() naturally — the
+  // same thing a Turbo navigation does to a connected page — before stopping.
+  document.body.innerHTML = ""
+  await nextFrame()
   app?.stop()
   app = undefined
 })

@@ -1,0 +1,44 @@
+Description:
+    Eject a crosswire component out of the gem and into your own app, so you own and
+    can freely edit the copy. See docs/DECISIONS.md D6 for the full rationale.
+
+    Tiers:
+
+      --markup (default)   Copies the component's partial to
+                            app/views/crosswire/_<name>.html.erb. You still receive
+                            a11y wiring, controller fixes and presenter changes from
+                            the gem — only the markup shape is now yours.
+
+      --controller          Copies the partial (if the component has one) AND its
+                            Stimulus controller to
+                            app/javascript/controllers/<name>_controller.js, meant to
+                            be re-registered under your own identifier. Full
+                            ownership — you stop receiving fixes for the controller.
+
+      --all                 Copies every component's markup (markup tier only).
+
+    Not every component owns a partial. Behaviours that decorate existing elements
+    (dismiss, persist, transition, autosubmit, intersection, clipboard, focus-trap)
+    ship no markup of their own — only widgets like disclosure, dialog and confirm
+    do. Ejecting a partial-less component without --controller prints an explanation
+    instead of writing anything.
+
+    Never overwrites an existing ejected file without --force.
+
+Example:
+    rails generate crosswire:eject disclosure
+
+        Ejects app/views/crosswire/_disclosure.html.erb.
+
+    rails generate crosswire:eject disclosure --controller
+
+        Ejects the partial AND app/javascript/controllers/disclosure_controller.js.
+        Full ownership of both.
+
+    rails generate crosswire:eject --all
+
+        Ejects every component's partial.
+
+    rails generate crosswire:eject disclosure --force
+
+        Re-ejects, overwriting your existing copy.

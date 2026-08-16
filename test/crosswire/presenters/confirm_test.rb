@@ -69,13 +69,12 @@ module Crosswire
 
       def test_dialog_declares_the_controller_and_state
         attrs = presenter(title: "Delete?", destructive: true).dialog_attrs
-        assert_equal "cw--confirm", attrs["data-controller"]
+        assert_equal "cw--dialog cw--confirm", attrs["data-controller"]
         assert_equal "Delete?", attrs["data-cw--confirm-title-value"]
         assert_equal "true", attrs["data-cw--confirm-destructive-value"]
       end
 
       def test_targets_are_namespaced_to_the_identifier
-        assert_equal "dialog", presenter.dialog_attrs["data-cw--confirm-target"]
         assert_equal "title", presenter.title_attrs["data-cw--confirm-target"]
         assert_equal "body", presenter.body_attrs["data-cw--confirm-target"]
         assert_equal "confirmButton", presenter.confirm_attrs["data-cw--confirm-target"]
@@ -83,14 +82,43 @@ module Crosswire
       end
 
       def test_actions_expand_to_the_full_identifier
-        assert_equal "click->cw--confirm#confirm", presenter.confirm_attrs["data-action"]
-        assert_equal "click->cw--confirm#cancel", presenter.cancel_attrs["data-action"]
+        assert_equal "click->cw--confirm#confirm click->cw--dialog#close", presenter.confirm_attrs["data-action"]
+        assert_equal "click->cw--confirm#cancel click->cw--dialog#close", presenter.cancel_attrs["data-action"]
       end
 
-      def test_dialog_wires_native_cancel_and_close_events
+      # --- composes with cw--dialog, does not reimplement it ---------------------------
+
+      def test_dialog_attrs_stacks_cw_dialog_on_the_same_element
+        assert_equal "cw--dialog cw--confirm", presenter.dialog_attrs["data-controller"]
+      end
+
+      def test_dialog_open_value_always_starts_false
+        assert_equal "false", presenter.dialog_attrs["data-cw--dialog-open-value"]
+      end
+
+      def test_dialog_is_modal_and_never_dismissable
+        attrs = presenter.dialog_attrs
+        assert_equal "true", attrs["data-cw--dialog-modal-value"]
+        assert_equal "false", attrs["data-cw--dialog-dismissable-value"], "a confirmation must never light-dismiss"
+      end
+
+      def test_dialog_is_cw_dialogs_own_panel_target
+        assert_equal "panel", presenter.dialog_attrs["data-cw--dialog-target"]
+      end
+
+      def test_dialog_delegates_native_close_handling_to_cw_dialog
         actions = presenter.dialog_attrs["data-action"]
-        assert_includes actions, "cancel->cw--confirm#cancel"
-        assert_includes actions, "close->cw--confirm#closed"
+        assert_includes actions, "cancel->cw--dialog#cancel"
+        assert_includes actions, "close->cw--dialog#syncClosed"
+        assert_includes actions, "click->cw--dialog#backdropClick"
+        assert_includes actions, "turbo:before-morph-element->cw--dialog#beforeMorph"
+        assert_includes actions, "turbo:before-cache->cw--dialog#reset"
+      end
+
+      def test_dialog_listens_for_cw_dialog_lifecycle_events
+        actions = presenter.dialog_attrs["data-action"]
+        assert_includes actions, "cw--dialog:opened->cw--confirm#opened"
+        assert_includes actions, "cw--dialog:closed->cw--confirm#closed"
       end
 
       # --- destructive: default false, opt-in class -----------------------------------
@@ -110,12 +138,12 @@ module Crosswire
 
       def test_caller_controller_is_added_not_replaced
         attrs = presenter(data: { controller: "analytics" }).dialog_attrs
-        assert_equal "cw--confirm analytics", attrs["data-controller"]
+        assert_equal "cw--dialog cw--confirm analytics", attrs["data-controller"]
       end
 
       def test_caller_action_is_added_not_replaced
         attrs = presenter.confirm_attrs(data: { action: "click->analytics#track" })
-        assert_equal "click->cw--confirm#confirm click->analytics#track", attrs["data-action"]
+        assert_equal "click->cw--confirm#confirm click->cw--dialog#close click->analytics#track", attrs["data-action"]
       end
 
       def test_caller_can_force_replacement_with_bang

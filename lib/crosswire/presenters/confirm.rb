@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "crosswire/presenter"
+require "crosswire/presenters/dialog"
 
 module Crosswire
   module Presenters
@@ -32,18 +33,25 @@ module Crosswire
     # `open()` returns a `Promise<boolean>` because that is the exact contract
     # `Turbo.config.forms.confirm` requires.
     #
-    # TODO(compose): delegate to cw--dialog once both have landed. This presenter and
-    # its controller currently implement their own minimal `<dialog>` plumbing —
-    # open/close, focus save-and-restore — rather than composing with cw--dialog,
-    # because cw--dialog is being built in parallel and may not exist yet. Light
-    # dismiss is intentionally NOT offered either way: a confirmation should never be
-    # dismissible by an accidental backdrop click.
+    # COMPOSES WITH cw--dialog rather than reimplementing `<dialog>` plumbing:
+    # `dialog_attrs` stacks both controllers on the single `<dialog>` element
+    # (`data-controller="cw--dialog cw--confirm"`) by merging in a
+    # `Crosswire::Presenters::Dialog` instance's `root_attrs` + `panel_attrs` — so the
+    # native open/close, scroll lock, focus restore and `turbo:before-morph-element`
+    # guard all come from cw--dialog, not from us. `dismissable` is fixed `false`: a
+    # confirmation should never be dismissible by an accidental backdrop click. Confirm
+    # owns only the promise, the buttons and the alertdialog semantics on top of that —
+    # see the controller docstring for exactly how the two controllers talk to each
+    # other (stacked-element values for the open request, `cw--dialog:opened` /
+    # `cw--dialog:closed` events for the rest — never an outlet, per R5).
     #
-    # Unlike cw--dialog, open/closed is not modeled as a Stimulus value here: a
-    # confirmation is always triggered dynamically after the page has already loaded,
-    # never meaningfully part of the initial server-rendered HTML, so there is no
-    # morph-survival requirement (R4) to satisfy the way there is for a dialog that can
-    # legitimately start open on first paint.
+    # Unlike cw--dialog, open/closed is not modeled as a Stimulus *value on cw--confirm
+    # itself* here: a confirmation is always triggered dynamically after the page has
+    # already loaded, never meaningfully part of the initial server-rendered HTML, so
+    # there is no morph-survival requirement (R4) to satisfy the way there is for a
+    # dialog that can legitimately start open on first paint. (cw--dialog's own `open`
+    # value, which this delegates to, is always initialised `false` for the same
+    # reason.)
     class Confirm < Presenter
       attr_reader :id, :title, :body, :confirm_label, :cancel_label, :destructive
 
@@ -78,10 +86,21 @@ module Crosswire
       def title_id = "#{id}-title"
       def body_id  = "#{id}-body"
 
+      # The single `<dialog>` element carries BOTH controllers. `dialog.root_attrs`
+      # supplies `cw--dialog`'s own `data-controller` + open/modal/dismissable values;
+      # `dialog.panel_attrs` supplies its `panel` target, native `cancel`/`close`
+      # wiring and the Turbo morph/cache guards. `controller_attrs` unions `cw--confirm`
+      # into the same `data-controller`, so the result is
+      # `data-controller="cw--dialog cw--confirm"` — stacked controllers on one
+      # element, exactly per R5. `dismissable` is fixed `false`; `open` is always
+      # initialised `false` (see class docstring).
       def dialog_attrs(**extra)
+        dialog = Presenters::Dialog.new(id: id, open: false, modal: true, dismissable: false)
+
         merge(
+          dialog.root_attrs,
+          dialog.panel_attrs,
           controller_attrs,
-          target(:dialog),
           values(
             title: title,
             body: body,
@@ -90,14 +109,13 @@ module Crosswire
             destructive: destructive
           ),
           classes(destructive: @destructive_class),
-          # `close` fires for every dialog close regardless of cause (our own
-          # confirm()/cancel(), or the browser's default action after the native
-          # `cancel` event on Escape) — the single path that resolves the promise. The
-          # `cancel` event itself is only wired so Escape can be told apart from a
-          # normal close in that one shared handler.
-          action("cancel->cancel", "close->closed"),
+          # Inbound half of the composition: react to cw--dialog's own lifecycle
+          # events rather than to the dialog's native cancel/close (those already
+          # belong to cw--dialog, wired in via `panel_attrs` above). See the
+          # controller docstring for the outbound half (how confirm asks cw--dialog
+          # to open/close).
+          action("cw--dialog:opened->opened", "cw--dialog:closed->closed"),
           {
-            "id" => id,
             "role" => "alertdialog",
             "aria-labelledby" => title_id,
             "aria-describedby" => body_id
@@ -115,10 +133,15 @@ module Crosswire
         merge(target(:body), { "id" => body_id }, extra)
       end
 
+      # Each button fires cw--confirm's own action first (recording the intended
+      # result), then `cw--dialog#close` — the real close, with cw--dialog's own
+      # cancelable `closing` pre-check, triggered by the same click. This is the
+      # `action()` pass-through documented on `Presenter#action`: a spec containing
+      # `#` wires a different controller by name rather than being auto-prefixed.
       def confirm_attrs(**extra)
         merge(
           target(:confirmButton),
-          action("click->confirm"),
+          action("click->confirm", "click->cw--dialog#close"),
           { "type" => "button" },
           extra
         )
@@ -127,7 +150,7 @@ module Crosswire
       def cancel_attrs(**extra)
         merge(
           target(:cancelButton),
-          action("click->cancel"),
+          action("click->cancel", "click->cw--dialog#close"),
           { "type" => "button" },
           extra
         )

@@ -4,6 +4,33 @@ import { captureEvents, mount, nextFrame } from "./setup.js"
 
 const CONTROLLERS = { "cw--persist": PersistController }
 
+// In this project's Node + vitest jsdom setup, `globalThis === window`, and
+// `globalThis.localStorage`/`sessionStorage` resolve to Node's own built-in Web Storage
+// global (gated behind `--localstorage-file`) rather than jsdom's Storage implementation —
+// confirmed directly: with no path supplied it is a getter that returns an object with no
+// getItem/setItem/clear at all, not merely quirky behaviour of jsdom's own implementation.
+// jsdom's Storage works fine in isolation; the breakage is specific to this Node/vitest
+// combination claiming the global first. So this suite installs its own explicit,
+// Map-backed stub for both storages rather than trusting whichever implementation
+// happens to win that race — every assertion here is honest about testing the
+// controller's own read/write/fallback logic, not a platform storage implementation.
+//
+// The stub's methods are plain own-properties (not prototype methods), so the "degrades
+// silently when storage throws" test can swap `setItem` out for a throwing function on a
+// single instance, the same way it would on the real thing.
+function createStorageStub() {
+  const store = new Map()
+
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => { store.set(key, String(value)) },
+    removeItem: (key) => { store.delete(key) },
+    clear: () => { store.clear() },
+    key: (index) => Array.from(store.keys())[index] ?? null,
+    get length() { return store.size }
+  }
+}
+
 function markup({ tag = "input", key = "search-filter", attribute = null, storage = null,
   debounce = null, type = null, checked = null, open = null, extraAttrs = "" } = {}) {
   const attrs = [
@@ -30,8 +57,8 @@ async function waitFor(predicate, { timeout = 2000, interval = 5 } = {}) {
 
 describe("cw--persist", () => {
   beforeEach(() => {
-    window.localStorage.clear()
-    window.sessionStorage.clear()
+    globalThis.localStorage = createStorageStub()
+    globalThis.sessionStorage = createStorageStub()
   })
 
   test("restores a previously saved value on connect", async () => {

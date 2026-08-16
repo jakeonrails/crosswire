@@ -45,13 +45,18 @@ export default class DismissController extends Controller {
       fallback.focus?.({ preventScroll: true })
     }
 
+    // Dispatched while target is still attached to the document, so it bubbles to
+    // document-level listeners — the ordinary way to observe crosswire events by
+    // delegation, and how nothing but a listener bound directly to this exact node
+    // would ever hear it otherwise: once target.remove() runs there is no parent left
+    // for a bubbling event to travel through.
+    this.dispatch("dismissed", { target, detail: { removed: this.removeValue } })
+
     if (this.removeValue) {
       target.remove()
     } else {
       target.hidden = true
     }
-
-    this.dispatch("dismissed", { detail: { removed: this.removeValue } })
   }
 
   get #target() {

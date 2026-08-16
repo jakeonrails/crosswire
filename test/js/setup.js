@@ -44,10 +44,25 @@ beforeEach(() => {
   document.body.innerHTML = ""
 })
 
-afterEach(() => {
+afterEach(async () => {
+  // Order matters, and getting it wrong silently voids every R7 teardown assertion in
+  // the suite.
+  //
+  // `Application#stop()` does NOT call `disconnect()` on still-connected controllers —
+  // it only stops observing future mutations. So stopping first and clearing the DOM
+  // afterwards means `disconnect()` never runs for any test that left its element in
+  // place, and every "releases the listener / observer / lock on disconnect" test
+  // passes without exercising the code it names. (Found while fixing `dialog`, whose
+  // scroll lock leaked across tests through a deliberately shared counter.)
+  //
+  // Clearing the DOM first and awaiting a tick lets Stimulus's own MutationObserver
+  // fire `disconnect()` naturally — the same path a real Turbo navigation takes.
+  document.body.innerHTML = ""
+  await new Promise((resolve) => setTimeout(resolve, 0))
+
   application?.stop()
   application = undefined
+
   for (const [type, handler] of listeners) document.removeEventListener(type, handler)
   listeners = []
-  document.body.innerHTML = ""
 })
