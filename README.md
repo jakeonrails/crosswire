@@ -159,7 +159,8 @@ level. The "ships less JS" argument is only true at the application-bundle level
 | `docs/recipes/diagnosis.md` | 12 symptoms → confirm → root cause → fix |
 | `docs/COMPONENT_CONTRACT.md` | the rules every primitive follows, each traced to the bug that motivates it |
 | `docs/DECISIONS.md` | locked decisions and why; check before re-opening one |
-| `research/README.md` | index to the corpus, the 10 load-bearing findings, the corrections log |
+| `docs/BUILD-LOG.md` | what *building* it taught us — every bug found by first execution, and the environment lies that make suites assert nothing |
+| `research/README.md` | index to the 63k-line corpus, the 10 load-bearing findings, the corrections log |
 
 The corrections and diagnosis pages are useful even if you never install this gem.
 

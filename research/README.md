@@ -3,7 +3,7 @@
 Research conducted 2026-08-15 for **crosswire** — a library, recipe collection, and skills
 repo for building rich UI "The Rails Way" with Hotwire, without React.
 
-**50,547 lines / 2.6 MB across 18 files.** Every file was produced by a dedicated agent
+**63,410 lines across 21 files.** Every file was produced by a dedicated agent
 reading primary sources: cloned repo source over documentation, live APIs over recalled
 facts, maintainer comments over blog posts.
 
@@ -20,11 +20,11 @@ facts, maintainer comments over blog posts.
 | 05 | `05-ecosystem-survey.md` | 1,556 | 47 packages verified live via GitHub/RubyGems/npm APIs, each with adopt/study/avoid verdict |
 | 06 | `06-blog-corpus.md` | 9,656 | 196 annotated articles, 300 URLs, grouped by theme |
 | 07 | `07-problem-mining.md` | 1,951 | **60 ranked questions, 18 pain points, 195 recipe candidates.** SO API (238 answers), Discourse (90 threads), GitHub (115 threads), HN |
-| 07b | *(pending)* | — | Reddit via PullPush archive API |
-| 08 | *(pending)* | — | UI pattern catalog (~90 patterns) |
+| 07b | `07b-reddit-mining.md` | 450 | Reddit via the Arctic Shift archive (reddit.com blocks everything else). 94 threads, ~1,090 comments, plus the sentiment read |
+| 08 | `08-ui-pattern-catalog.md` | 11,528 | **119 UI patterns**, each decomposed into primitives. 41 need no JS at all. The reconciled 39-primitive vocabulary lives here |
 | 09 | `09-books-and-courses.md` | 193 | Books/courses with real prices and buy/skip verdicts |
 | 10 | `10-testing-a11y-perf-tooling.md` | 2,713 | Testing stack, a11y audit of existing libs, perf, debugging |
-| 11 | `11-production-codebases.md` | 1,427 | **210 controllers censused** across 11 real codebases, classified generic vs one-off |
+| 11 | `11-production-codebases.md` | 1,427 | **210 controllers censused** across 10 real codebases, classified generic vs one-off |
 | 12 | `12-cross-framework-and-the-case.md` | 1,872 | HTMX/Unpoly/LiveView/Livewire ideas to steal + the honest anti-Hotwire case |
 | 13 | `13-marcoroth-ecosystem.md` | 1,252 | Marco Roth's complete works, verified |
 | 14 | `14-morphing-dossier.md` | 1,262 | Morphing consolidated: mechanism, the values conflict, 8 breakages, decision rubric |
@@ -33,6 +33,11 @@ facts, maintainer comments over blog posts.
 | 17 | `17-helper-layer-design.md` | 1,715 | **The architecture decision**: helpers + partials, tested merge implementation, naming |
 | 18 | `18-platform-primitives.md` | 382 | CSS/HTML features that obsolete Stimulus controllers — every claim verified |
 | 19 | `19-stimulus-aria-widgets-assessment.md` | 306 | Assessment of the one real prior-art counterexample |
+| 20 | `20-view-layer-reconsidered.md` | 876 | Re-litigation of the ViewComponent/Phlex call, with all five renderers built and measured |
+
+**See also `docs/BUILD-LOG.md`** — the findings that came out of *building* the library
+rather than researching it. Different failure mode, different lessons: research errors are
+wrong claims, build errors are code that never ran.
 
 ---
 
@@ -104,7 +109,7 @@ material — each one is someone's lost afternoon.
 
 | Claim | Reality | Src |
 |---|---|---|
-| `redirect_to path, turbo_frame: "_top"` | **Does not exist.** `turbo-rails#367` open since 2022. Sean Doyle's `Turbo::FrameRedirectable` (~25 lines, flash-hop) is the working answer, unread in a branch since 2022 | 07, 15 |
+| `redirect_to path, turbo_frame: "_top"` | **Does not exist.** `turbo-rails#367` open since 2022 (49 comments; dhh rejected the original approach in 2023 — the *design conversation* stalled, not readership). Sean Doyle's `Turbo::FrameRedirectable` (~25 lines, flash-hop) is the working answer, unpublished outside a demo branch | 07, 15 |
 | `Turbo.clearCache()` | Removed → `Turbo.cache.clear()` | 07, 10 |
 | `data-turbo-cache="false"` | **Does not exist** in Turbo 8 → `turbo-cache-control` meta / `data-turbo-temporary` | 07, 10 |
 | `reconnect() { this.disconnect(); this.connect() }` | Causes **exponential listener growth** | 07, 14 |
