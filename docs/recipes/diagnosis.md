@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # Why isn't this working?
 
 This is a triage guide, organized by symptom — because a symptom is what you actually have. Each entry

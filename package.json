@@ -11,14 +11,18 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:browser": "vitest run --project browser"
+    "test:browser": "vitest run --config vitest.browser.config.js",
+    "test:all": "npm run test && npm run test:browser"
   },
   "peerDependencies": {
     "@hotwired/stimulus": ">=3.2"
   },
   "devDependencies": {
     "@hotwired/stimulus": "^3.2.2",
+    "@vitest/browser": "^4.1.10",
+    "@vitest/browser-playwright": "^4.1.10",
     "jsdom": "^25.0.1",
-    "vitest": "^2.1.8"
+    "playwright": "^1.62.1",
+    "vitest": "^4.1.10"
   }
 }

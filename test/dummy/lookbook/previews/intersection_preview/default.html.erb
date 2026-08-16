@@ -1,0 +1,11 @@
+<div style="height: 8rem; overflow: auto; border: 1px solid currentColor;">
+  <div style="height: 12rem;">Scroll down…</div>
+
+  <%= crosswire_intersection_for once: once, threshold: threshold, root_margin: root_margin do |i| %>
+    <div <%= cw_attrs(i.root_attrs,
+                      data: { action: "cw--intersection:entered->demo#seen" },
+                      class: "sentinel") %>>
+      Sentinel — dispatches <code>cw--intersection:entered</code>.
+    </div>
+  <% end %>
+</div>

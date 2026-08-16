@@ -1,0 +1,11 @@
+<%= crosswire_dialog_for id: "rename", title: "Rename project" do |d| %>
+  <div <%= cw_attrs(d.root_attrs) %>>
+    <button <%= cw_attrs(d.trigger_attrs) %>>Rename…</button>
+
+    <dialog <%= cw_attrs(d.panel_attrs) %>>
+      <h2 <%= cw_attrs(d.title_attrs) %>>Rename project</h2>
+      <label>New name <input type="text"></label>
+      <button <%= cw_attrs(d.close_attrs) %>>&times;</button>
+    </dialog>
+  </div>
+<% end %>

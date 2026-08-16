@@ -1,0 +1,13 @@
+<form action="/lookbook/preview/autosubmit/select_and_scope" method="get" id="filters"></form>
+
+<%# `scope:` points the field at a form it is not nested inside. %>
+<%= crosswire_autosubmit_for event: "change", scope: "#filters" do |a| %>
+  <label>
+    Status
+    <select <%= cw_attrs(a.root_attrs, name: "status") %>>
+      <option>Any</option>
+      <option>Open</option>
+      <option>Closed</option>
+    </select>
+  </label>
+<% end %>

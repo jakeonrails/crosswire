@@ -99,6 +99,27 @@ module Crosswire
       MSG
     end
 
+    # R10, inverted. The contract marker is an ERB comment that ShadowCheck reads out
+    # of *partials*. Anywhere else it is meaningless — and in a Markdown file it is
+    # worse than meaningless, because it renders as literal text at the top of the page.
+    # An agent applied it to all seven recipe pages by over-generalising R10.
+    def test_contract_markers_appear_only_in_partials
+      # Only a BARE marker on its own line is the bug. Prose that documents the marker —
+      # as README and this contract both legitimately do — mentions it inline, and must
+      # not trip the check. Getting this wrong in the first draft is itself the lesson:
+      # a lint that flags correct usage gets disabled, and then catches nothing.
+      docs = Dir[File.join(ROOT, "docs/**/*.md")] + Dir[File.join(ROOT, "*.md")]
+      violations = docs.select { |path| File.read(path).match?(/^\s*<%#\s*crosswire:contract\s+v\d+\s*%>\s*$/) }
+                       .map { |path| path.delete_prefix("#{ROOT}/") }
+
+      assert_empty violations, <<~MSG
+        The `<%# crosswire:contract vN %>` marker belongs only in shipped ERB partials,
+        where ShadowCheck reads it. In Markdown it renders as literal text:
+
+        #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+
     # Naming — the component name appears exactly once per artifact, in the same
     # position, so everything is derivable. Drift here breaks the generator, which
     # discovers components from the filesystem.

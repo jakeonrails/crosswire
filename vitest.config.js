@@ -8,8 +8,14 @@ import { defineConfig } from "vitest/config"
 // jsdom supports ends up with stimulus-components' accessibility record (aria-expanded
 // as its only ARIA attribute across 32 packages).
 //
-// Browser-tier files are named *.browser.test.js. Run with `npm run test:browser`
-// after `npx playwright install chromium`.
+// This file is the DEFAULT config vitest auto-discovers, so plain `npx vitest run` /
+// `npm test` stays jsdom-only — deliberately. The browser tier lives in
+// vitest.browser.config.js as a fully separate config (not a `test.projects` entry in
+// this file) because Vitest's project mechanism runs every declared project by default
+// unless `--project <name>` is passed; putting both tiers in one projects array would
+// make plain `vitest run` execute the browser tests too, which is exactly what must
+// NOT happen here. Run the browser tier with `npm run test:browser` (or both with
+// `npm run test:all`) after `npx playwright install chromium`.
 export default defineConfig({
   test: {
     environment: "jsdom",

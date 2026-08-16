@@ -1,0 +1,9 @@
+<%= crosswire_dialog title,
+      id: "confirm-delete",
+      trigger_label: trigger_label,
+      open: open,
+      modal: modal,
+      dismissable: dismissable do %>
+  <p>This cannot be undone. Every task and attachment goes with it.</p>
+  <form method="dialog"><button>Cancel</button></form>
+<% end %>

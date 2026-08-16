@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # Which tool for this update?
 
 **"I need to update part of the page after a click. Do I use a Turbo Frame, a Turbo Stream, morphing, or
@@ -434,7 +433,7 @@ wrong by hand.
 ---
 
 *Sources: research/notes/14-morphing-dossier.md (decision rubric, the 41-row breakage inventory and its
-top-8 ranking); research/notes/11-production-codebases.md (census of 210 controllers across 11 codebases;
+top-8 ranking); research/notes/11-production-codebases.md (census of 210 controllers across 10 codebases;
 the 37signals morph split); research/notes/13-marcoroth-ecosystem.md (Marco Roth's granularity critique,
 verified across every channel); research/notes/07-problem-mining.md Q4, Q28, Q41, P2, P13, recipe candidate
 #1; research/notes/08-ui-pattern-catalog.md (Tabs, Inline editing, Form errors via Turbo Streams,

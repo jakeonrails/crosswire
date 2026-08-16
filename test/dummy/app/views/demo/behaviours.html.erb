@@ -1,0 +1,83 @@
+<h2>Behaviours — no markup of their own</h2>
+
+<section id="dismiss">
+  <h3>dismiss (+ transition on the same element — the R6 cancelable seam)</h3>
+  <%= crosswire_dismiss_for label: "Dismiss notice", escape: true do |d| %>
+    <div <%= cw_attrs(d.root_attrs,
+                      crosswire_transition_attrs(leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0"),
+                      Crosswire::Presenters::Transition.new.leave_on,
+                      class: "flash", role: "status") %>>
+      Saved.
+      <button <%= cw_attrs(d.trigger_attrs) %>>&times;</button>
+    </div>
+  <% end %>
+</section>
+
+<section id="dismiss-attrs">
+  <h3>dismiss — bare attribute builder</h3>
+  <div <%= cw_attrs(crosswire_dismiss_attrs(remove: false, selector: ".banner")) %> class="banner">
+    Hidden rather than removed.
+  </div>
+</section>
+
+<section id="persist">
+  <h3>persist</h3>
+  <input <%= cw_attrs(crosswire_persist_attrs(key: "search-filter", debounce: 200)) %> type="text" placeholder="Type, then reload">
+  <details <%= cw_attrs(crosswire_persist_attrs(key: "faq-1-open", attribute: "open", storage: "session")) %>>
+    <summary>Remembers whether it was open</summary>
+    <p>Stored in sessionStorage.</p>
+  </details>
+</section>
+
+<section id="intersection">
+  <h3>intersection</h3>
+  <%= crosswire_intersection_for once: true, root_margin: "200px", threshold: 0.25 do |i| %>
+    <div <%= cw_attrs(i.root_attrs, data: { action: "cw--intersection:entered->window#console" }) %>>
+      Fires <code>cw--intersection:entered</code> once, 200px early.
+    </div>
+  <% end %>
+</section>
+
+<section id="transition">
+  <h3>transition</h3>
+  <div <%= cw_attrs(crosswire_transition_attrs(
+                      enter: "fade", enter_from: "opacity-0", enter_to: "opacity-100",
+                      leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0")) %>>
+    Enter/leave classes only — no design-system opinion in the controller.
+  </div>
+</section>
+
+<section id="focus-trap">
+  <h3>focus-trap</h3>
+  <%= crosswire_focus_trap_for active: true, initial: "#drawer-heading", active_class: "is-trapped" do |t| %>
+    <div <%= cw_attrs(t.root_attrs) %>>
+      <h4 id="drawer-heading" tabindex="-1">Filters</h4>
+      <button>First</button>
+      <button>Last</button>
+    </div>
+  <% end %>
+</section>
+
+<section id="clipboard">
+  <h3>clipboard</h3>
+  <%= crosswire_clipboard_for success_class: "is-copied", success_duration: 1500 do |c| %>
+    <div <%= cw_attrs(c.root_attrs) %>>
+      <input <%= cw_attrs(c.source_attrs) %> value="https://example.com/invite/abc" readonly>
+      <button <%= cw_attrs(c.button_attrs) %>>Copy link</button>
+      <span class="sr-only" <%= cw_attrs(c.status_attrs) %>></span>
+    </div>
+  <% end %>
+</section>
+
+<section id="autosubmit">
+  <h3>autosubmit</h3>
+  <form action="/" method="get">
+    <input <%= cw_attrs(crosswire_autosubmit(delay: 300), type: "search", name: "q", id: "q") %> data-turbo-permanent>
+  </form>
+  <%= crosswire_autosubmit_for(event: "change", scope: "#filters") do |a| %>
+    <select <%= cw_attrs(a.root_attrs, name: "status") %>>
+      <option>Any</option>
+      <option>Open</option>
+    </select>
+  <% end %>
+</section>

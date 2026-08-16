@@ -23,13 +23,31 @@ module Crosswire
     # A single bundle CANNOT be lazy-loaded: stimulus-loading registers via a dynamic
     # `import("${under}/${name}_controller")`, which needs one module per controller.
     # See docs/DECISIONS.md R2.
-    initializer "crosswire.importmap", before: "importmap" do |app|
-      next unless app.respond_to?(:importmap)
+    # Runs AFTER importmap-rails' own "importmap" initializer, not before it, because
+    # that is the initializer that assigns `app.importmap` in the first place:
+    #
+    #   initializer "importmap" do |app|
+    #     app.importmap = Importmap::Map.new
+    #     …
+    #   end
+    #
+    # `app.respond_to?(:importmap)` is not a usable guard for this — importmap-rails
+    # installs the accessor with `Rails::Application.send(:attr_accessor, :importmap)`
+    # at require time, so it answers true long before the map exists. Running `before:`
+    # therefore always hit `nil.draw`. Drawing afterwards is safe: `Importmap::Map#draw`
+    # accumulates, and the reloader only re-draws the app's own config paths, so our
+    # directory pin survives a reload.
+    initializer "crosswire.importmap", after: "importmap" do |app|
+      next unless app.respond_to?(:importmap) && app.importmap
 
       app.importmap.draw do
         pin_all_from Crosswire::Engine.root.join("app/assets/javascripts/crosswire/controllers"),
                      under: "crosswire/controllers"
       end
+
+      # Sprockets needs this; Propshaft serves everything on `config.assets.paths` and
+      # keeps `precompile` only as a compatibility shim, so appending is a harmless
+      # no-op there.
       app.config.assets.precompile << "crosswire/index.js" if app.config.respond_to?(:assets)
     end
 

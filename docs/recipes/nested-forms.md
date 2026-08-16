@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # The cocoon replacement
 
 You need add/remove rows on a nested form — line items, personal references, links — the thing `cocoon`

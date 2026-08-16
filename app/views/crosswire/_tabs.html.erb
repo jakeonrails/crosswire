@@ -1,0 +1,24 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision — tablist/tab/tabpanel roles,
+  aria-selected, aria-controls, aria-labelledby, and the roving tabindex wiring
+  shared with cw--roving-focus — lives in Crosswire::Presenters::Tabs, so this file
+  is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Locals:
+    tabs    Crosswire::Presenters::Tabs
+    panels  Array<{id:, label:, body:}> — body already captured per tab
+%>
+<div <%= cw_attrs(tabs.tablist_attrs, class: "cw-tabs__tablist") %>>
+  <% panels.each do |panel| %>
+    <button <%= cw_attrs(tabs.tab_attrs(tab_id: panel[:id]), class: "cw-tabs__tab") %>>
+      <%= panel[:label] %>
+    </button>
+  <% end %>
+</div>
+
+<% panels.each do |panel| %>
+  <div <%= cw_attrs(tabs.panel_attrs(tab_id: panel[:id]), class: "cw-tabs__panel") %>>
+    <%= panel[:body] %>
+  </div>
+<% end %>

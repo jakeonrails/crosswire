@@ -14,8 +14,16 @@ module Crosswire
     # Note the element structure there is completely different from what our partial
     # renders, and the controller still works — it only ever knew targets and values,
     # never markup. That is the whole composability argument in one example.
+    #
+    # Note the POSITIONAL argument to `tag.attributes`, not a `**` splat.
+    # `TagBuilder#attributes` takes one positional hash and accepts no keywords, so
+    # under Ruby 3 an empty `**{}` passes NO arguments at all and raises
+    # `ArgumentError: wrong number of arguments (given 0, expected 1)`. An empty result
+    # is legitimate — `Attributes.merge` documents an explicit `nil` as *deleting* a
+    # key, so `cw_attrs(class: nil)` correctly produces `{}` — and must render as an
+    # empty string, not blow up the page.
     def cw_attrs(*sources)
-      tag.attributes(**Crosswire::Attributes.merge(*sources))
+      tag.attributes(Crosswire::Attributes.merge(*sources))
     end
 
     # Build a component's presenter without rendering anything.

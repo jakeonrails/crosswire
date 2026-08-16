@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # Recipes
 
 Documentation is the biggest complaint about Hotwire, by a wide margin — not a niche gap, the top
@@ -28,8 +27,9 @@ person edits.
 plain link/redirect → Turbo Frame → Turbo Stream → `turbo_stream.replace(target, method: :morph)` → morph
 page refresh → drop to Stimulus. Organised around the only question that actually decides it — **who owns
 this region's state?** — rather than a feature comparison. Includes the fourth option most people miss
-(targeted render *with* morph semantics, which is what 37signals actually ships), when one frame is
-enough and when it genuinely isn't, and a decision table you can scan in fifteen seconds. **Start here if
+(targeted render *with* morph semantics — the only form of morphing that appears in 37signals' own shipped
+code), when one frame is enough and when it genuinely isn't, the evidence for that default graded honestly
+rather than oversold, and a decision table you can scan in fifteen seconds. **Start here if
 you're new to the collection**; it's the root cause of the most-repeated "Hotwire is convoluted"
 complaint.
 

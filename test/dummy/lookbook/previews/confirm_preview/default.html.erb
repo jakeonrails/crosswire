@@ -1,0 +1,24 @@
+<%# Mount ONCE — normally in your application layout, not on the page. %>
+<%= crosswire_confirm id: "confirm",
+      title: title,
+      body: body,
+      confirm_label: confirm_label,
+      cancel_label: cancel_label,
+      destructive: destructive,
+      destructive_class: "is-destructive" %>
+
+<button type="button" id="demo-trigger">Delete project…</button>
+<p>Result: <output id="demo-result">—</output></p>
+
+<script type="module">
+  // In your app this is `Turbo.config.forms.confirm`, wired once at boot — see
+  // Crosswire::Presenters::Confirm's docstring. `open()` returns Promise<boolean>
+  // precisely because that is the contract Turbo requires.
+  document.getElementById("demo-trigger").addEventListener("click", async () => {
+    const controller = window.Stimulus.getControllerForElementAndIdentifier(
+      document.getElementById("confirm"), "cw--confirm"
+    )
+    const confirmed = await controller.open({ body: "Delete “Design system”? This cannot be undone." })
+    document.getElementById("demo-result").textContent = confirmed ? "confirmed" : "cancelled"
+  })
+</script>

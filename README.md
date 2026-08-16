@@ -164,9 +164,19 @@ The corrections and diagnosis pages are useful even if you never install this ge
 bundle install && npm install
 
 bundle exec rake test    # Ruby: presenters + Attributes, deliberately without booting Rails
-npx vitest run           # JS: jsdom tier
-npx vitest run --project browser   # JS: browser tier (needs `npx playwright install chromium`)
+npx playwright install chromium   # once, before the browser tier below
+
+npm test                 # JS: jsdom tier (test/js/**/*.test.js)
+npm run test:browser     # JS: browser tier, headless Chromium (test/js/**/*.browser.test.js)
+npm run test:all         # both
 ```
+
+The two tiers are two separate Vitest config files — `vitest.config.js` (jsdom, the
+default `vitest run` picks up automatically) and `vitest.browser.config.js` (real
+Chromium via `@vitest/browser` + Playwright) — rather than one config with two
+`test.projects` entries, because Vitest runs every declared project by default unless
+`--project <name>` is passed. Splitting the tiers into separate files keeps plain
+`npx vitest run` / `npm test` scoped to jsdom only.
 
 The Ruby suite **must not boot Rails** — a test asserts it. That is the guarantee presenters
 stay usable, and unit-testable, without it. The generator suite needs Rails, so it runs in a

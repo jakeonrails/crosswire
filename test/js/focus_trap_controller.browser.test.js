@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { Application } from "@hotwired/stimulus"
+import { userEvent } from "vitest/browser"
 import FocusTrapController from "../../app/assets/javascripts/crosswire/controllers/focus_trap_controller.js"
+import { mount } from "./setup.js"
 
 // Browser tier (docs/COMPONENT_CONTRACT.md: "Browser mode for anything touching
 // focus, <dialog>, IntersectionObserver, or positioning — jsdom cannot test those
@@ -17,21 +18,31 @@ import FocusTrapController from "../../app/assets/javascripts/crosswire/controll
 // which are honestly testable there. Everything below is not: it needs a real
 // rendering engine, so it lives here.
 //
-// Run with `npm run test:browser` after `npx playwright install chromium`. As of this
-// writing vitest.config.js does not yet define the `browser` project the package.json
-// script points at — wiring that up is tracked separately from this primitive's
-// implementation, same as every other crosswire controller's browser tier (see
-// intersection_controller.browser.test.js). The assertions below are written against
-// real browser APIs (real layout, real focus/blur, a real offsetParent) so they are
-// correct the day that project exists, not aspirational pseudocode.
+// Run with `npm run test:browser` after `npx playwright install chromium` — wired up
+// in vitest.browser.config.js. The assertions below are written against real browser
+// APIs (real layout, real focus/blur, a real offsetParent).
 //
-// Every keydown here is dispatched synthetically (`element.dispatchEvent`) rather
-// than via a simulated native key press. That is deliberate, not a shortcut: this
-// controller never relies on the browser's own native Tab-traversal to move focus —
-// it reads the key, decides the target itself, and calls `.focus()` explicitly. A
-// dispatched KeyboardEvent exercises exactly the same code path a real key press
-// would drive through Stimulus's action system, while keeping these tests runnable
-// as ordinary scripted DOM assertions rather than OS-level input simulation.
+// Uses the shared `mount()` helper from setup.js rather than a hand-rolled
+// Application.start()/register() — mount() awaits a tick after registering, so
+// connect() (which does this controller's initial focus move) has actually run
+// before a test makes any assertion. Without that tick, `document.activeElement`
+// reads whatever was focused (or nothing) before Stimulus finished connecting.
+//
+// Most keydowns here are dispatched synthetically (`element.dispatchEvent`) rather
+// than via a simulated native key press. That is deliberate, not a shortcut, for the
+// BOUNDARY cases (wrap, skip-disabled, skip-hidden, initial): this controller never
+// relies on the browser's own native Tab-traversal to move focus at a boundary — it
+// reads the key, decides the target itself, and calls `.focus()` explicitly, and a
+// plain DOM `.focus()` call always works regardless of the triggering event's `
+// isTrusted` flag. A dispatched KeyboardEvent exercises exactly the same code path a
+// real key press would drive through Stimulus's action system there.
+//
+// The one exception is the "re-queries…" test below, which specifically needs to
+// observe the browser's OWN native tab-order advancement (proving the controller
+// correctly declined to intercept, rather than merely checking that it declined) — and
+// native default actions like tab-order advancement are wired to *trusted* input only,
+// which `dispatchEvent` can never produce. That test uses `userEvent.tab()` instead,
+// which drives a real key press through the Playwright provider.
 
 function markup({ active = true, initial = null, inner = "" } = {}) {
   return `
@@ -49,33 +60,23 @@ function tab({ shiftKey = false } = {}) {
   return new KeyboardEvent("keydown", { key: "Tab", shiftKey, bubbles: true, cancelable: true })
 }
 
-function start(html) {
-  document.body.innerHTML = html
-  const application = Application.start()
-  application.register("cw--focus-trap", FocusTrapController)
-  return application
-}
-
-function stop(application) {
-  application.stop()
-  document.body.innerHTML = ""
+async function start(html) {
+  await mount(html, { "cw--focus-trap": FocusTrapController })
 }
 
 describe("cw--focus-trap (real browser layout and focus)", () => {
   test("focuses the first focusable child on activate when no initial is given", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button>`
       })
     )
 
     expect(document.activeElement.id).toBe("first")
-
-    stop(application)
   })
 
   test("Tab from the last focusable child wraps to the first", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button><button id="third">Third</button>`
       })
@@ -87,12 +88,10 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
 
     expect(event.defaultPrevented).toBe(true)
     expect(document.activeElement.id).toBe("first")
-
-    stop(application)
   })
 
   test("Shift+Tab from the first focusable child wraps to the last", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button><button id="third">Third</button>`
       })
@@ -104,12 +103,10 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
 
     expect(event.defaultPrevented).toBe(true)
     expect(document.activeElement.id).toBe("third")
-
-    stop(application)
   })
 
   test("Tab in the interior is left to the browser's own order, not intercepted", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button><button id="third">Third</button>`
       })
@@ -122,12 +119,27 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
     // Not at a boundary — the controller must not preventDefault here, or it would
     // strand every browser at the second-to-last element forever.
     expect(event.defaultPrevented).toBe(false)
-
-    stop(application)
   })
 
+  // Genuine bug in this test as first written, caught only by actually running it: it
+  // expected `event.defaultPrevented` to be `true` and focus to land on the newly
+  // inserted element after a SYNTHETIC Tab dispatch. Neither premise survives contact
+  // with the real controller. "second" was the last focusable child at activation, but
+  // after the append it no longer is — the controller re-queries fresh on every Tab
+  // (that's the behaviour under test), sees a THIRD child now exists, and correctly
+  // concludes "second" is not a boundary, so it does NOT preventDefault and leaves
+  // advancement to the browser's native tab order, same as the "left to the browser's
+  // own order" test above. A stale cached list is what would have wrongly intercepted
+  // and wrapped back to "first" here. But native tab-order advancement is a default
+  // action the UA wires to a *trusted* keydown, which `dispatchEvent(new
+  // KeyboardEvent(...))` never produces (isTrusted is always false) — so the original
+  // assertion that `document.activeElement` ends up on "inserted" could never pass via
+  // synthetic dispatch even with a correct controller. Fixed by driving a real Tab
+  // press through `userEvent.tab()` (real input via the Playwright provider) and
+  // asserting on the end state only, since a real key press yields no Event object to
+  // inspect `defaultPrevented` on.
   test("re-queries focusable children on every Tab — an element inserted after activation is honoured immediately", async () => {
-    const application = start(
+    await start(
       markup({ inner: `<button id="first">First</button><button id="second">Second</button>` })
     )
 
@@ -139,17 +151,13 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
     document.getElementById("trap").appendChild(inserted)
 
     document.getElementById("second").focus()
-    const event = tab()
-    document.getElementById("second").dispatchEvent(event)
+    await userEvent.tab()
 
-    expect(event.defaultPrevented).toBe(true)
     expect(document.activeElement.id).toBe("inserted")
-
-    stop(application)
   })
 
   test("skips a descendant that became disabled while the trap is active", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button><button id="third">Third</button>`
       })
@@ -165,12 +173,10 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
     // browser's default order — which, with "second" disabled and thus unfocusable,
     // lands natively on "third".
     expect(event.defaultPrevented).toBe(false)
-
-    stop(application)
   })
 
   test("skips a descendant that became hidden (display: none) while the trap is active, wrapping past it", async () => {
-    const application = start(
+    await start(
       markup({
         inner: `<button id="first">First</button><button id="second">Second</button>`
       })
@@ -186,12 +192,10 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
     // last — Tab from it must wrap right back to itself rather than escaping the trap.
     expect(event.defaultPrevented).toBe(true)
     expect(document.activeElement.id).toBe("first")
-
-    stop(application)
   })
 
   test("focuses the initial selector on activate when given", async () => {
-    const application = start(
+    await start(
       markup({
         initial: "#second",
         inner: `<button id="first">First</button><button id="second">Second</button>`
@@ -199,7 +203,5 @@ describe("cw--focus-trap (real browser layout and focus)", () => {
     )
 
     expect(document.activeElement.id).toBe("second")
-
-    stop(application)
   })
 })

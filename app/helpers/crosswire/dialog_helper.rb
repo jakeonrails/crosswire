@@ -24,11 +24,14 @@ module Crosswire
     def crosswire_dialog(title = nil, trigger_label: nil, **options, &body)
       presenter = Crosswire::Presenters::Dialog.new(title: title, **options)
 
+      # The block is genuinely optional — a dialog can be title-only, or have its body
+      # streamed in later. `capture(&nil)` yields with no block and raises
+      # LocalJumpError, so guard rather than assume.
       render("crosswire/dialog",
              dialog: presenter,
              title: title,
              trigger_label: trigger_label,
-             body: capture(&body))
+             body: (capture(&body) if body))
     end
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.

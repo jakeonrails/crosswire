@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # Advice that is now wrong
 
 Hotwire's documentation problem isn't just gaps — it's that a lot of what's out there was true once

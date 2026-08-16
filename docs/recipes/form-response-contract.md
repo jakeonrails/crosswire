@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # My form submits but nothing happens
 
 You submit a form. The network tab shows a request. The server logs a response. And the page just... sits

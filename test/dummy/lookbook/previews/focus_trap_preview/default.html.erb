@@ -1,0 +1,12 @@
+<%= crosswire_focus_trap_for active: active,
+      initial: "#drawer-heading",
+      active_class: "is-trapped" do |t| %>
+  <div <%= cw_attrs(t.root_attrs) %>>
+    <h3 id="drawer-heading" tabindex="-1">Filters</h3>
+    <label>Query <input type="text"></label>
+    <button>Apply</button>
+    <button>Reset</button>
+  </div>
+<% end %>
+
+<p><button>Outside the trap — Tab should never reach me while it is active.</button></p>

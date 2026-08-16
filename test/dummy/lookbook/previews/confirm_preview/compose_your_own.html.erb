@@ -1,0 +1,24 @@
+<%# One <dialog> element carries BOTH controllers — data-controller="cw--dialog cw--confirm".
+    There is no wrapper element anywhere in this markup. %>
+<%= crosswire_confirm_for id: "inline-confirm",
+      title: "Discard draft?",
+      body: "Your changes are not saved.",
+      destructive: true,
+      destructive_class: "is-destructive" do |c| %>
+  <dialog <%= cw_attrs(c.dialog_attrs) %>>
+    <h2 <%= cw_attrs(c.title_attrs) %>><%= c.title %></h2>
+    <p <%= cw_attrs(c.body_attrs) %>><%= c.body %></p>
+    <button <%= cw_attrs(c.cancel_attrs) %>><%= c.cancel_label %></button>
+    <button <%= cw_attrs(c.confirm_attrs) %>><%= c.confirm_label %></button>
+  </dialog>
+<% end %>
+
+<button type="button" id="demo-trigger">Discard draft…</button>
+
+<script type="module">
+  document.getElementById("demo-trigger").addEventListener("click", () => {
+    window.Stimulus.getControllerForElementAndIdentifier(
+      document.getElementById("inline-confirm"), "cw--confirm"
+    ).open()
+  })
+</script>

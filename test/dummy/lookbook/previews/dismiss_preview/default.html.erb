@@ -1,0 +1,6 @@
+<%= crosswire_dismiss_for remove: remove, escape: escape, label: label do |d| %>
+  <div <%= cw_attrs(d.root_attrs, class: "flash", role: "status") %>>
+    Your changes were saved.
+    <button <%= cw_attrs(d.trigger_attrs) %>>&times;</button>
+  </div>
+<% end %>

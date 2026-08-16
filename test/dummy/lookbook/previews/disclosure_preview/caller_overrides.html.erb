@@ -1,0 +1,10 @@
+<%= crosswire_disclosure "Shipping details",
+      id: "faq-3",
+      class: "card card--tight",
+      data: { controller: "analytics", action: "click->analytics#track" } do %>
+  <p>
+    Rendered root element carries
+    <code>data-controller="cw--disclosure analytics"</code> —
+    both controllers, neither lost.
+  </p>
+<% end %>

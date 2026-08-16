@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>crosswire dummy host</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= javascript_importmap_tags %>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font: 16px/1.5 ui-sans-serif, system-ui, sans-serif; margin: 0 auto; max-width: 52rem; padding: 2rem 1rem 6rem; }
+      nav a { margin-right: 1rem; }
+      section { border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); padding: 1.25rem 0; }
+      h2 { font-size: 1rem; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
+      button { font: inherit; padding: .35rem .75rem; }
+      #stimulus-status { display: inline-block; font-size: .8rem; padding: .2rem .5rem; border: 1px dashed currentColor; }
+      .cw-disclosure__panel[hidden] { display: none; }
+      .cw-dialog__panel::backdrop { background: rgb(0 0 0 / .4); }
+      .is-copied { outline: 2px solid green; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>crosswire</h1>
+      <p><span id="stimulus-status">Stimulus not started</span></p>
+      <nav>
+        <%= link_to "Widgets", root_path %>
+        <%= link_to "Behaviours", behaviours_path %>
+        <%= link_to "Layer 0", layer0_path %>
+        <%= link_to "Caller overrides", overrides_path %>
+        <a href="/lookbook">Lookbook</a>
+      </nav>
+    </header>
+
+    <main><%= yield %></main>
+
+    <%# Mounted once, per the presenter docstring — one dialog serves every confirmation. %>
+    <%= crosswire_confirm id: "app-confirm", title: "Are you sure?", body: "This cannot be undone." %>
+  </body>
+</html>

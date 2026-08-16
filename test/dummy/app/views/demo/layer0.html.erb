@@ -1,0 +1,35 @@
+<h2>Layer 0 — <code>cw_attrs</code> / <code>cw_presenter</code>, bring your own markup</h2>
+
+<p>
+  The only helper crosswire includes globally. Note the element structure below is
+  completely different from what the shipped partial renders and the controller still
+  works — it only ever knew targets and values, never markup.
+</p>
+
+<section id="layer0-disclosure">
+  <% d = cw_presenter(:disclosure, id: "layer0", open: true, region: true) %>
+  <details <%= cw_attrs(d.root_attrs) %> open>
+    <summary <%= cw_attrs(d.trigger_attrs) %>>Native details, crosswire wiring</summary>
+    <div <%= cw_attrs(d.panel_attrs) %>>
+      Same presenter, no partial, no helper beyond <code>cw_attrs</code>.
+    </div>
+  </details>
+</section>
+
+<section id="layer0-merge">
+  <h3>Merging several presenters onto one element</h3>
+  <% dismiss = cw_presenter(:dismiss, escape: true) %>
+  <% transition = cw_presenter(:transition, leave: "fade", leave_to: "opacity-0") %>
+  <div <%= cw_attrs(dismiss.root_attrs, transition.root_attrs, transition.leave_on, class: "flash") %>>
+    Two controllers, one element, one merged <code>data-controller</code>.
+    <button <%= cw_attrs(dismiss.trigger_attrs) %>>&times;</button>
+  </div>
+</section>
+
+<section id="layer0-escaping">
+  <h3>Escaping</h3>
+  <%# `->` in a data-action is HTML-escaped to `-&gt;` on the way out and decoded by
+      the parser on the way in. Correct, and the reason the integration suite asserts
+      on parsed DOM attributes rather than on raw markup. %>
+  <button <%= cw_attrs(cw_presenter(:dialog, id: "escaping-demo").trigger_attrs) %>>Open</button>
+</section>

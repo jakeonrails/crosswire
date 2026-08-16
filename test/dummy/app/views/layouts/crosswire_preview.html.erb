@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>crosswire preview</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%# The previews are LIVE: the same importmap the host app uses is loaded here, so
+        every component in Lookbook is a real, connected Stimulus controller. %>
+    <%= javascript_importmap_tags %>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font: 16px/1.5 ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 1.5rem; }
+      button { font: inherit; padding: .35rem .75rem; }
+      .cw-disclosure__panel[hidden], [hidden] { display: none; }
+      .cw-dialog__panel::backdrop, .cw-confirm::backdrop { background: rgb(0 0 0 / .4); }
+      .cw-disclosure__panel, .cw-dialog__body { padding: .5rem 0; }
+      .is-open > .cw-disclosure__trigger { font-weight: 700; }
+      .is-copied { outline: 2px solid green; }
+      .fade { transition: opacity .2s ease; }
+      .opacity-0 { opacity: 0; }
+      .opacity-100 { opacity: 1; }
+      .is-trapped { outline: 2px dashed currentColor; padding: .5rem; }
+    </style>
+  </head>
+  <body><%= yield %></body>
+</html>

@@ -1,3 +1,9 @@
 .DS_Store
 /tmp/
 /node_modules/
+
+# test/dummy is a checked-in Rails host app; its runtime droppings are not.
+/test/dummy/log/*.log
+/test/dummy/tmp/
+/test/dummy/public/assets/
+/test/dummy/storage/

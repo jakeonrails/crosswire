@@ -1,4 +1,3 @@
-<%# crosswire:contract v1 %>
 # Redirect the whole page from inside a frame
 
 **"I have a form in a modal. It lives in a Turbo Frame. On success I want the whole page to navigate. On

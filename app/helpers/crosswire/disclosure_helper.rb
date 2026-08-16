@@ -19,10 +19,13 @@ module Crosswire
     def crosswire_disclosure(summary = nil, **options, &panel)
       presenter = Crosswire::Presenters::Disclosure.new(**options)
 
+      # The block is genuinely optional (a disclosure whose panel content is rendered
+      # elsewhere, or is empty until a Turbo Frame fills it). `capture(&nil)` yields
+      # with no block and raises LocalJumpError, so guard rather than assume.
       render("crosswire/disclosure",
              disclosure: presenter,
              summary: summary,
-             panel: capture(&panel))
+             panel: (capture(&panel) if panel))
     end
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
