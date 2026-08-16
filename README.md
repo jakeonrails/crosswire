@@ -5,7 +5,7 @@ Composable, accessible Hotwire primitives for Rails.
 Small, generic Stimulus controllers paired with ERB helpers, so rich UI stays *The Rails
 Way* without reaching for React.
 
-> **Status: alpha.** Ten primitives of a planned 39. The API will change. It is being built
+> **Status: alpha.** Eighteen primitives of a planned 39. The API will change. It is being built
 > in the open from a 50,000-line research corpus (`research/`) rather than from vibes —
 > if a design decision here looks arbitrary, `docs/DECISIONS.md` says why, and cites the
 > evidence.
@@ -104,12 +104,17 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 ## What ships today
 
 **Behaviours** (decorate an existing element, no markup)
-`dismiss` · `transition` · `persist` · `intersection` · `focus-trap` · `clipboard` · `autosubmit`
+`dismiss` · `transition` · `persist` · `intersection` · `focus-trap` · `roving-focus` ·
+`hotkey` · `click-outside` · `scroll-lock` · `timeout` · `sync` · `clipboard` · `autosubmit`
 
 **Widgets** (own markup, ship an ejectable partial)
-`disclosure` · `dialog` · `confirm`
+`disclosure` · `dialog` · `confirm` · `tabs` · `popover`
 
-28 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
+Every component exposes `crosswire_<name>_for` (yields the presenter) and
+`crosswire_<name>_attrs` (returns the merged attribute hash); widgets additionally get the
+bare `crosswire_<name>` render form.
+
+21 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
 reconciled across ~95 UI patterns with zero drift, so the names are stable even where the
 code isn't written.
 

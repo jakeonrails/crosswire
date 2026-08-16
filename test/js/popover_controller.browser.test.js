@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
-import { Application } from "@hotwired/stimulus"
 import PopoverController from "../../app/assets/javascripts/crosswire/controllers/popover_controller.js"
+import { mount } from "./setup.js"
 
 // Browser tier (docs/COMPONENT_CONTRACT.md: "Browser mode for anything touching …
 // positioning — jsdom cannot test those honestly; jsdom has no layout;
@@ -12,13 +12,29 @@ import PopoverController from "../../app/assets/javascripts/crosswire/controller
 // covers everything that doesn't need real layout: event wiring, show/hide/toggle
 // delegation, and listener add/remove on open/close.
 //
-// Run with `npm run test:browser` after `npx playwright install chromium`. As of
-// this writing vitest.config.js does not yet define the `browser` project the
-// package.json script points at — wiring that up is tracked separately, same as
-// every other crosswire controller's browser tier (see
-// intersection_controller.browser.test.js and dialog_controller.browser.test.js).
-// The assertions below are written against real browser APIs (real layout, a
-// real getBoundingClientRect) so they are correct the day that project exists.
+// Run with `npm run test:browser` after `npx playwright install chromium` — wired up
+// in vitest.browser.config.js.
+//
+// This file originally hand-rolled `Application.start()`/`register()` and dispatched
+// the `toggle` event in the same synchronous tick, before Stimulus's MutationObserver
+// had actually connected the controller — so `toggled()` was never bound and
+// `#position()` never ran, leaving the panel at its default (0,0) top-layer position.
+// That's the connect-tick gotcha documented in docs/COMPONENT_CONTRACT.md's
+// "Test-environment gotchas" table. Fixed by using the shared `mount()` helper from
+// setup.js, which awaits a tick after registering, and by relying on setup.js's own
+// afterEach for teardown — same idiom as dialog_controller.browser.test.js and
+// focus_trap_controller.browser.test.js.
+//
+// Which placement path is actually live matters here: `CSS.supports("anchor-name",
+// "--cw-x")` is `true` in the Chromium this suite runs against (verified directly —
+// anchor positioning shipped by default well before the pinned Playwright/Chromium
+// version), so on this engine the controller's default `strategy: "anchor"` takes the
+// native CSS-anchor-positioning path and `#position()` (the JS fallback math this file
+// exists to test) never runs at all. Every markup below sets
+// `data-cw--popover-strategy-value="js"` explicitly, which forces `#usesFallback()` to
+// return `true` regardless of anchor support — so these tests do exercise the JS
+// fallback's real geometry, on purpose, rather than accidentally asserting on a code
+// path this browser would never actually take.
 
 function toggleEvent(newState) {
   const event = new Event("toggle")
@@ -42,21 +58,9 @@ function markup(placement) {
          data-action="toggle->cw--popover#toggled">Panel content</div>`
 }
 
-function start(html) {
-  document.body.innerHTML = html
-  const application = Application.start()
-  application.register("cw--popover", PopoverController)
-  return application
-}
-
-function stop(application) {
-  application.stop()
-  document.body.innerHTML = ""
-}
-
 describe("cw--popover (real browser layout)", () => {
-  test("bottom-start places the panel below and left-aligned with the trigger, offset by the gap", () => {
-    const application = start(markup("bottom-start"))
+  test("bottom-start places the panel below and left-aligned with the trigger, offset by the gap", async () => {
+    await mount(markup("bottom-start"), { "cw--popover": PopoverController })
     const trigger = document.getElementById("trigger")
     const panel = document.getElementById("panel")
 
@@ -71,12 +75,10 @@ describe("cw--popover (real browser layout)", () => {
 
     expect(panelRect.top).toBeCloseTo(triggerRect.bottom + 8, 0)
     expect(panelRect.left).toBeCloseTo(triggerRect.left, 0)
-
-    stop(application)
   })
 
-  test("top-end places the panel above and right-aligned with the trigger", () => {
-    const application = start(markup("top-end"))
+  test("top-end places the panel above and right-aligned with the trigger", async () => {
+    await mount(markup("top-end"), { "cw--popover": PopoverController })
     const trigger = document.getElementById("trigger")
     const panel = document.getElementById("panel")
 
@@ -88,12 +90,10 @@ describe("cw--popover (real browser layout)", () => {
 
     expect(panelRect.top).toBeCloseTo(triggerRect.top - panelRect.height - 8, 0)
     expect(panelRect.left).toBeCloseTo(triggerRect.right - panelRect.width, 0)
-
-    stop(application)
   })
 
-  test("repositions on window resize while the JS fallback is active", () => {
-    const application = start(markup("bottom-start"))
+  test("repositions on window resize while the JS fallback is active", async () => {
+    await mount(markup("bottom-start"), { "cw--popover": PopoverController })
     const trigger = document.getElementById("trigger")
     const panel = document.getElementById("panel")
 
@@ -106,7 +106,5 @@ describe("cw--popover (real browser layout)", () => {
     const triggerRect = trigger.getBoundingClientRect()
     const panelRect = panel.getBoundingClientRect()
     expect(panelRect.top).toBeCloseTo(triggerRect.bottom + 8, 0)
-
-    stop(application)
   })
 })

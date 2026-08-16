@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
-import { Application } from "@hotwired/stimulus"
 import RovingFocusController from "../../app/assets/javascripts/crosswire/controllers/roving_focus_controller.js"
+import { mount } from "./setup.js"
 
 // Browser tier (docs/COMPONENT_CONTRACT.md: "Browser mode for anything touching
 // focus … jsdom cannot test those honestly"). Being honest about the split, unlike
@@ -18,12 +18,29 @@ import RovingFocusController from "../../app/assets/javascripts/crosswire/contro
 // (an item's ancestor re-rendering) combined with real layout, so a "removed and
 // re-added" item is a genuinely different node, not a coincidentally-matching one.
 //
-// Run with `npm run test:browser` after `npx playwright install chromium`. As of this
-// writing vitest.config.js does not yet define the `browser` project the package.json
-// script points at — wiring that up is tracked separately, same as every other
-// crosswire controller's browser tier (see intersection_controller.browser.test.js).
-// The assertions below are written against real browser APIs so they are correct the
-// day that project exists, not aspirational pseudocode.
+// Run with `npm run test:browser` after `npx playwright install chromium` — wired up
+// in vitest.browser.config.js.
+//
+// This file originally hand-rolled `Application.start()`/`register()` and interacted
+// with the DOM in the same synchronous tick, before Stimulus's MutationObserver had
+// actually connected the controller — so the very first ArrowDown/sequence tests
+// dispatched their keydowns into a DOM with no `navigate` action bound yet, and
+// nothing happened. That's the connect-tick gotcha documented in
+// docs/COMPONENT_CONTRACT.md's "Test-environment gotchas" table. Fixed by using the
+// shared `mount()` helper from setup.js, which awaits a tick after registering — same
+// idiom as dialog_controller.browser.test.js and focus_trap_controller.browser.test.js
+// — and by relying on setup.js's own afterEach for teardown rather than a hand-rolled
+// stop()/innerHTML reset (whose ordering would silently skip disconnect() — see the
+// gotchas table).
+//
+// The keydowns themselves are still dispatched synthetically (`element.dispatchEvent`)
+// rather than through `userEvent.keyboard`, and that is deliberate, not a shortcut:
+// this controller's `navigate` action has no key filter at all (R8a) — it is a plain
+// `keydown->navigate` listener that reads `event.key` itself and moves focus via an
+// explicit `.focus()` call. It never relies on the browser's own native arrow-key
+// default action (there isn't one to intercept here, unlike native Tab order or
+// Escape-closes-<dialog>), so a dispatched, untrusted KeyboardEvent exercises exactly
+// the same code path a real key press would drive through Stimulus's action system.
 
 function markup(items = ["One", "Two", "Three"]) {
   const itemsHtml = items
@@ -40,21 +57,9 @@ function key(k) {
   return new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true })
 }
 
-function start(html) {
-  document.body.innerHTML = html
-  const application = Application.start()
-  application.register("cw--roving-focus", RovingFocusController)
-  return application
-}
-
-function stop(application) {
-  application.stop()
-  document.body.innerHTML = ""
-}
-
 describe("cw--roving-focus (real browser focus)", () => {
-  test("ArrowDown moves real document.activeElement between real buttons", () => {
-    const application = start(markup())
+  test("ArrowDown moves real document.activeElement between real buttons", async () => {
+    await mount(markup(), { "cw--roving-focus": RovingFocusController })
     const first = document.getElementById("item-0")
     const second = document.getElementById("item-1")
 
@@ -66,12 +71,10 @@ describe("cw--roving-focus (real browser focus)", () => {
     expect(document.activeElement).toBe(second)
     expect(first.getAttribute("tabindex")).toBe("-1")
     expect(second.getAttribute("tabindex")).toBe("0")
-
-    stop(application)
   })
 
-  test("only one item is ever reachable via tabindex=0 after a sequence of real moves", () => {
-    const application = start(markup(["One", "Two", "Three", "Four"]))
+  test("only one item is ever reachable via tabindex=0 after a sequence of real moves", async () => {
+    await mount(markup(["One", "Two", "Three", "Four"]), { "cw--roving-focus": RovingFocusController })
     const items = () => Array.from(document.querySelectorAll("[data-cw--roving-focus-target='item']"))
 
     items()[0].focus()
@@ -82,12 +85,10 @@ describe("cw--roving-focus (real browser focus)", () => {
     const zeroTabindex = items().filter((el) => el.getAttribute("tabindex") === "0")
     expect(zeroTabindex).toHaveLength(1)
     expect(zeroTabindex[0]).toBe(document.activeElement)
-
-    stop(application)
   })
 
   test("a real node swap (remove + re-add, as a re-render would produce) keeps exactly one roving stop", async () => {
-    const application = start(markup(["One", "Two"]))
+    await mount(markup(["One", "Two"]), { "cw--roving-focus": RovingFocusController })
     const container = document.querySelector("[data-controller='cw--roving-focus']")
     const first = document.getElementById("item-0")
 
@@ -106,7 +107,5 @@ describe("cw--roving-focus (real browser focus)", () => {
     await Promise.resolve()
 
     expect(replacement.getAttribute("tabindex")).toBe("-1")
-
-    stop(application)
   })
 })

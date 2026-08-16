@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { Application } from "@hotwired/stimulus"
+import { userEvent } from "vitest/browser"
 import ScrollLockController from "../../app/assets/javascripts/crosswire/controllers/scroll_lock_controller.js"
+import { mount } from "./setup.js"
 
 // Browser tier (docs/COMPONENT_CONTRACT.md: "Browser mode for anything touching
 // focus, <dialog>, IntersectionObserver, or positioning — jsdom cannot test those
@@ -12,58 +13,74 @@ import ScrollLockController from "../../app/assets/javascripts/crosswire/control
 // prove (the reference-counted lock/unlock wiring, event dispatch, R7 teardown, and
 // the iOS position:fixed style-property logic); this file proves the rest.
 //
-// Run with `npm run test:browser` after `npx playwright install chromium`. As of this
-// writing vitest.config.js does not yet define the `browser` project the
-// package.json script points at — wiring that up is tracked separately from this
-// primitive's implementation, same as every other crosswire controller's browser
-// tier (see intersection_controller.browser.test.js). The assertions below are
-// written against real browser scroll behaviour so they are correct the day that
-// project exists, not aspirational pseudocode.
+// Run with `npm run test:browser` after `npx playwright install chromium` — wired up
+// in vitest.browser.config.js.
+//
+// Two real bugs in this file as first written, neither in the controller:
+//
+// 1. `window.scrollTo()` does not test scroll locking. CSS `overflow: hidden` blocks
+//    USER-driven scroll (wheel, touch, keyboard, dragging the scrollbar) but
+//    explicitly still permits programmatic `scrollTo`/`scrollBy`/`scrollTop =` per the
+//    CSS Overflow spec. So `window.scrollTo(0, 500)` while "locked" was always going to
+//    move the page regardless of whether the lock worked at all — the assertion could
+//    never honestly prove the claim in its name. Fixed by driving a real trusted wheel
+//    gesture via `userEvent.wheel`, which is exactly the kind of input `overflow:
+//    hidden` is documented to block. (Same fix already shipped in
+//    dialog_controller.browser.test.js for the same reason — see its comment for the
+//    full writeup.)
+//
+// 2. Hand-rolled `Application.start()`/`register()` with `application.stop()` called
+//    BEFORE clearing the DOM at the end of each test. `Application#stop()` does not
+//    call `disconnect()` on still-connected controllers — so every lock instance
+//    left active at teardown never runs `disconnect()`, never calls the module-level
+//    `release()`, and leaks a held reference into the NEXT test via the shared
+//    `lockCount` counter (see the controller's own docstring on why that counter is
+//    module-scoped). That leak was largely invisible here because bug #1 already made
+//    the "stays locked" assertions pass or fail for the wrong reason regardless of
+//    real lock state — but it's exactly the kind of latent cross-test contamination
+//    the contract's gotchas table warns about. Fixed by using the shared `mount()`
+//    helper from setup.js, which clears the DOM and awaits a tick BEFORE stopping the
+//    application, letting Stimulus's own MutationObserver fire `disconnect()` (and
+//    thus `release()`) naturally for every test, every time.
 
-function tallPageMarkup() {
+function tallPageMarkup(active = false) {
   return `
     <div style="height: 4000px;">
-      <div id="lock" data-controller="cw--scroll-lock" data-cw--scroll-lock-active-value="false"></div>
+      <div id="lock" data-controller="cw--scroll-lock" data-cw--scroll-lock-active-value="${active}"></div>
     </div>`
+}
+
+async function settle() {
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
 
 describe("cw--scroll-lock (real browser layout)", () => {
   test("prevents the document from scrolling while active", async () => {
-    document.body.innerHTML = tallPageMarkup()
-    const application = Application.start()
-    application.register("cw--scroll-lock", ScrollLockController)
+    await mount(tallPageMarkup(), { "cw--scroll-lock": ScrollLockController })
 
     window.scrollTo(0, 0)
     document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "true")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await settle()
 
-    window.scrollTo(0, 500)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await userEvent.wheel(document.body, { delta: { y: 500 } })
+    await settle()
 
     expect(window.scrollY).toBe(0)
-
-    application.stop()
-    document.body.innerHTML = ""
   })
 
   test("releasing the lock allows scrolling again", async () => {
-    document.body.innerHTML = tallPageMarkup()
-    const application = Application.start()
-    application.register("cw--scroll-lock", ScrollLockController)
+    await mount(tallPageMarkup(), { "cw--scroll-lock": ScrollLockController })
 
-    document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "true")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-    document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "false")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-
-    window.scrollTo(0, 500)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-
-    expect(window.scrollY).toBe(500)
-
-    application.stop()
-    document.body.innerHTML = ""
     window.scrollTo(0, 0)
+    document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "true")
+    await settle()
+    document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "false")
+    await settle()
+
+    await userEvent.wheel(document.body, { delta: { y: 500 } })
+    await settle()
+
+    expect(window.scrollY).toBeGreaterThan(0)
   })
 
   // The detail everyone gets wrong, per the presenter's docstring: without scrollbar
@@ -73,51 +90,40 @@ describe("cw--scroll-lock (real browser layout)", () => {
   // honest way to verify that claim — jsdom cannot report a real scrollbar width at
   // all.
   test("does not shift page content width when the scrollbar disappears", async () => {
-    document.body.innerHTML = tallPageMarkup()
-    const application = Application.start()
-    application.register("cw--scroll-lock", ScrollLockController)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await mount(tallPageMarkup(), { "cw--scroll-lock": ScrollLockController })
 
     const widthBefore = document.documentElement.clientWidth
 
     document.getElementById("lock").setAttribute("data-cw--scroll-lock-active-value", "true")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await settle()
 
     const widthDuring = document.documentElement.clientWidth
 
     expect(widthDuring).toBe(widthBefore)
-
-    application.stop()
-    document.body.innerHTML = ""
   })
 
   test("two stacked instances: releasing the inner one leaves the page locked until the outer releases too", async () => {
-    document.body.innerHTML = `
-      <div style="height: 4000px;">
+    await mount(
+      `<div style="height: 4000px;">
         <div id="outer" data-controller="cw--scroll-lock" data-cw--scroll-lock-active-value="true"></div>
         <div id="inner" data-controller="cw--scroll-lock" data-cw--scroll-lock-active-value="true"></div>
-      </div>`
-    const application = Application.start()
-    application.register("cw--scroll-lock", ScrollLockController)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+      </div>`,
+      { "cw--scroll-lock": ScrollLockController }
+    )
 
     window.scrollTo(0, 0)
     document.getElementById("inner").setAttribute("data-cw--scroll-lock-active-value", "false")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await settle()
 
-    window.scrollTo(0, 500)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await userEvent.wheel(document.body, { delta: { y: 500 } })
+    await settle()
     expect(window.scrollY).toBe(0) // outer still holds the lock
 
     document.getElementById("outer").setAttribute("data-cw--scroll-lock-active-value", "false")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await settle()
 
-    window.scrollTo(0, 500)
-    await new Promise((resolve) => requestAnimationFrame(resolve))
-    expect(window.scrollY).toBe(500)
-
-    application.stop()
-    document.body.innerHTML = ""
-    window.scrollTo(0, 0)
+    await userEvent.wheel(document.body, { delta: { y: 500 } })
+    await settle()
+    expect(window.scrollY).toBeGreaterThan(0)
   })
 })
