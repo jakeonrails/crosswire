@@ -2,7 +2,7 @@
 real, synthetic click, which is why the counter increments through the button's own
 click handler rather than through any code of <code>cw--hotkey</code>'s own.</p>
 
-<%= crosswire_hotkey_for key: key, scope: scope, prevent_default: prevent_default do |h| %>
+<%= cw.hotkey_for key: key, scope: scope, prevent_default: prevent_default do |h| %>
   <button type="button" id="hotkey-demo-trigger" <%= cw_attrs(h.root_attrs) %>>Open search…</button>
 <% end %>
 

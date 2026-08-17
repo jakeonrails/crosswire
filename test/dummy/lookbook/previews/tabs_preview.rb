@@ -20,7 +20,7 @@
 # tier (c) — only when panels are small, already on the page, and must switch with zero
 # latency, which is also why its default `activation` is "automatic".
 class TabsPreview < Lookbook::Preview
-  # The shipped partial, via `crosswire_tabs`. `tabs:` is an ordered array of
+  # The shipped partial, via `cw.tabs`. `tabs:` is an ordered array of
   # `{ id:, label: }`; the block is called once per tab (via `capture`) to render that
   # tab's panel content.
   #
@@ -33,7 +33,7 @@ class TabsPreview < Lookbook::Preview
     )
   end
 
-  # `crosswire_tabs_for` yields the presenter and renders none of our markup. The root
+  # `cw.tabs_for` yields the presenter and renders none of our markup. The root
   # `<div>` below carries `data-controller="cw--roving-focus cw--tabs"` — both
   # controllers stacked on one element, exactly what `Crosswire::Presenters::Tabs#root_attrs`
   # builds, visible here with nothing hidden inside a partial.

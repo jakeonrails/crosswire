@@ -5,7 +5,7 @@
   form[data-dirty="true"] .dirty-status::after { content: "Unsaved changes"; color: #b35900; }
 </style>
 
-<%= crosswire_dirty_form_for guard: guard do |d| %>
+<%= cw.dirty_form_for guard: guard do |d| %>
   <form action="/" method="get" <%= cw_attrs(d.root_attrs) %>>
     <p>
       <label>Title<br><input type="text" name="title" value="Draft title"></label>

@@ -245,12 +245,16 @@ module Crosswire
     end
 
     # The standard (docs/COMPONENT_CONTRACT.md "Files per component" / Naming table):
-    # every component's helper module defines `crosswire_<name>_for` and
-    # `crosswire_<name>_attrs`; widgets (components that own markup — i.e. ship a
-    # partial) additionally define the bare `crosswire_<name>` batteries-included
-    # render form. This is what a consumer relies on to predict the API without
-    # reading the source — landed after four agents built the helper layer in
-    # parallel and drifted into three different naming schemes across components.
+    # every component's helper module defines `<name>_for` and `<name>_attrs`; widgets
+    # (components that own markup — i.e. ship a partial) additionally define the bare
+    # `<name>` batteries-included render form. Since D8 (docs/DECISIONS.md), these are
+    # the method names as they exist on the MODULE — reached by a consumer as
+    # `cw.<name>_for` etc. once the module is included into `Crosswire::Builder` (see
+    # `test_every_component_helper_is_included_into_the_builder` below), never with a
+    # `crosswire_` prefix on the method itself. This is what a consumer relies on to
+    # predict the API without reading the source — landed after four agents built the
+    # helper layer in parallel and drifted into three different naming schemes across
+    # components.
     def test_every_helper_follows_the_standard_naming
       widgets = widget_names
 
@@ -265,19 +269,59 @@ module Crosswire
         mod = Object.const_get(mod_name)
         defined_methods = mod.instance_methods(false).map(&:to_s)
 
-        expected = ["crosswire_#{name}_for", "crosswire_#{name}_attrs"]
-        expected << "crosswire_#{name}" if widgets.include?(name)
+        expected = ["#{name}_for", "#{name}_attrs"]
+        expected << name if widgets.include?(name)
 
         expected.filter_map { |m| "#{mod_name}##{m} is missing" unless defined_methods.include?(m) }
       end
 
       assert_empty violations, <<~MSG
         Helper API standard violation (docs/COMPONENT_CONTRACT.md "Files per
-        component" / Naming): every component gets crosswire_<name>_for and
-        crosswire_<name>_attrs; widgets additionally get the bare crosswire_<name>
-        batteries-included form:
+        component" / Naming): every component's helper module defines <name>_for and
+        <name>_attrs; widgets additionally define the bare <name> batteries-included
+        form — reached by a consumer as cw.<name>_for, cw.<name>_attrs, cw.<name>:
 
         #{violations.map { |v| "  #{v}" }.join("\n")}
+      MSG
+    end
+
+    # D8 (docs/DECISIONS.md) moved every per-component helper module OFF views and INTO
+    # `Crosswire::Builder` — a consumer no longer `helper Crosswire::DisclosureHelper`s
+    # anything; they call `cw.disclosure_for`, reached through the `crosswire`/`cw`
+    # facade. This is the naming check above's necessary companion: defining the right
+    # method NAMES on a module nobody ever `include`s would be silently inert.
+    #
+    # `Crosswire::Builder` itself is deliberately dependency-free enough to load here
+    # (see its own docstring on why it avoids `ActiveSupport#camelize`) — every helper
+    # module is `load`ed by hand first, exactly as the naming check above does, so the
+    # constants `Crosswire::Builder`'s own `include` loop looks up already exist.
+    def test_every_component_helper_is_included_into_the_builder
+      # `facade_helper.rb` itself `require`s `lib/crosswire/builder.rb` at its top (see
+      # that file's docstring for why) — loading it here, before every OTHER helper
+      # module is loaded, would trigger Builder's own `include` loop too early and blow
+      # up with a NameError on whichever module sorts after "facade" alphabetically.
+      # It plays no part in this check anyway (it defines `cw`/`crosswire`, not a
+      # per-component helper), so skip it and load the builder file ourselves, after.
+      Dir[File.join(HELPER_DIR, "*_helper.rb")].each do |path|
+        load path unless File.basename(path) == "facade_helper.rb"
+      end
+      load File.join(ROOT, "lib/crosswire/builder.rb")
+
+      missing = Crosswire.component_names.filter_map do |name|
+        mod = Object.const_get("Crosswire::#{camelize(name)}Helper")
+        "Crosswire::Builder does not include #{mod}" unless Crosswire::Builder.ancestors.include?(mod)
+      end
+
+      unless Crosswire::Builder.ancestors.include?(Crosswire::StreamsHelper)
+        missing << "Crosswire::Builder does not include Crosswire::StreamsHelper"
+      end
+
+      assert_empty missing, <<~MSG
+        Every per-component helper module (and Crosswire::StreamsHelper) must be
+        `include`d into Crosswire::Builder (lib/crosswire/builder.rb) — that is what
+        makes its methods reachable as cw.<name>/cw.<name>_for/cw.<name>_attrs:
+
+        #{missing.map { |v| "  #{v}" }.join("\n")}
       MSG
     end
 

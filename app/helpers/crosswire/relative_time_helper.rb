@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::RelativeTimeHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.relative_time_for`,
+  # `cw.relative_time_attrs` (and `cw.relative_time` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   #
   # `relative_time` is a behaviour, not a widget — it decorates an element you
   # already have (typically a `<time>`), so it ships no batteries-included
@@ -20,10 +19,10 @@ module Crosswire
   module RelativeTimeHelper
     # Yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_relative_time_for datetime: comment.created_at.utc.iso8601 do |rt| %>
+    #   <%= cw.relative_time_for datetime: comment.created_at.utc.iso8601 do |rt| %>
     #     <time <%= cw_attrs(rt.root_attrs) %>><%= time_ago_in_words(comment.created_at) %> ago</time>
     #   <% end %>
-    def crosswire_relative_time_for(**options, &block)
+    def relative_time_for(**options, &block)
       capture(Crosswire::Presenters::RelativeTime.new(**options), &block)
     end
 
@@ -32,10 +31,10 @@ module Crosswire
     # is `cw_attrs`' job. `datetime:` is required and passed straight through to
     # the presenter.
     #
-    #   <time <%= cw_attrs(crosswire_relative_time_attrs(datetime: comment.created_at.utc.iso8601)) %>>
+    #   <time <%= cw_attrs(cw.relative_time_attrs(datetime: comment.created_at.utc.iso8601)) %>>
     #     <%= time_ago_in_words(comment.created_at) %> ago
     #   </time>
-    def crosswire_relative_time_attrs(**options)
+    def relative_time_attrs(**options)
       Crosswire::Presenters::RelativeTime.new(**options).root_attrs
     end
   end

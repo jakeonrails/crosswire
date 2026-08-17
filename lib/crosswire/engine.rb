@@ -68,11 +68,14 @@ module Crosswire
       end
     end
 
-    # Helpers are opt-in per component rather than blanket-included, so crosswire adds
-    # nothing to a consumer's helper surface until they ask for it.
+    # Only two names land in every view's helper surface: `crosswire`/`cw` (the builder
+    # facade — every per-component helper is reached THROUGH it, not mixed in
+    # separately, docs/DECISIONS.md D8) and `cw_attrs`/`cw_presenter` (the attribute-merge
+    # utility, which stays a view-level primitive rather than folding into the builder).
     initializer "crosswire.helpers" do
       ActiveSupport.on_load(:action_view) do
         include Crosswire::AttributesHelper
+        include Crosswire::FacadeHelper
       end
     end
 

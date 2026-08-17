@@ -2,7 +2,7 @@
     JS runs. `indeterminate` cannot be rendered this way (it is a DOM property, not an
     attribute) — watch the select-all box in the header flip from plain-checked to
     indeterminate the instant cw--selection connects and recomputes it. %>
-<%= crosswire_selection_for do |s| %>
+<%= cw.selection_for do |s| %>
   <div <%= cw_attrs(s.root_attrs) %>>
     <table>
       <thead>

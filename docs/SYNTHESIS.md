@@ -61,7 +61,7 @@ These are decided by evidence, not preference. Reopening any of them needs a new
 | Morph default | **`turbo_stream.replace(target, method: :morph)`**, not page-level morphing | Three independent convergences: Marco Roth's granularity critique, Fizzy's actual usage, the morphing dossier's rubric. Most morph pain is people reaching for page morph when they wanted a morphing stream. | 11, 13, 14 |
 | Testing | **Vitest two-tier** (jsdom + browser mode/Playwright) + Minitest/Cuprite | stimulus-components is jsdom-only *and* has the worst a11y in the ecosystem — `aria-expanded` is its only ARIA attribute. The tooling choice caused the failure. | 10 |
 | A11y bar | **APG-complete in the controller**, never opt-in consumer wiring | No maintained accessible Hotwire library exists. This is the moat. | 10, 12, 19 |
-| Naming | `cw--` identifiers, `crosswire_*` helpers, `cw--name:verb` events | The `__`→`--` dasherization makes namespaced identifiers writable in plain Ruby hash syntax. 37signals use this exact trick. | 17 |
+| Naming | `cw--` identifiers, `cw--name:verb` events, helpers reached via the `cw`/`crosswire` builder facade (superseded by D8 — originally proposed as flat `crosswire_*` helpers) | The `__`→`--` dasherization makes namespaced identifiers writable in plain Ruby hash syntax. 37signals use this exact trick. | 17 |
 
 **Rule 0, above all of it:** *can the server do it?* Turbo Frame/Stream, `<dialog>`,
 `popover`, `<details>`, CSS. This kills more component candidates than every other rule

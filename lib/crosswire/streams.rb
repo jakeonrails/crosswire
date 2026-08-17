@@ -3,9 +3,9 @@
 require "crosswire"
 
 # `Crosswire::Streams` — the Ruby-side half of the survivability tier's stream pieces:
-# authorization (`Crosswire::AuthorizedStreamChannel` + `crosswire_stream_from`) and
+# authorization (`Crosswire::AuthorizedStreamChannel` + `cw.stream_from`) and
 # monotonic-version ordering (`Crosswire::Streams::Versioned` +
-# `crosswire_version_attrs` / `crosswire_versioned_replace`, in `streams_helper.rb`).
+# `cw.version_attrs` / `cw.versioned_replace`, in `streams_helper.rb`).
 #
 # NOT required by lib/crosswire.rb, NOT in the engine's autoload/eager-load paths.
 # `Crosswire::AuthorizedStreamChannel < Turbo::StreamsChannel` needs turbo-rails (and,

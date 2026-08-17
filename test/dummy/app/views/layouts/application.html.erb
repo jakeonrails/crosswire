@@ -34,6 +34,6 @@
     <main><%= yield %></main>
 
     <%# Mounted once, per the presenter docstring — one dialog serves every confirmation. %>
-    <%= crosswire_confirm id: "app-confirm", title: "Are you sure?", body: "This cannot be undone." %>
+    <%= cw.confirm id: "app-confirm", title: "Are you sure?", body: "This cannot be undone." %>
   </body>
 </html>

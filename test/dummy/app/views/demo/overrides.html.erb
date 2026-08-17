@@ -9,7 +9,7 @@
 
 <section id="override-disclosure">
   <h3>disclosure with a caller controller, action and class</h3>
-  <%= crosswire_disclosure "Shipping", id: "ov-disclosure",
+  <%= cw.disclosure "Shipping", id: "ov-disclosure",
         class: "card card--tight",
         data: { controller: "analytics", action: "click->analytics#track" } do %>
     <p>Both controllers are on the root element.</p>
@@ -18,7 +18,7 @@
 
 <section id="override-dialog">
   <h3>dialog with caller overrides</h3>
-  <%= crosswire_dialog "Invite", id: "ov-dialog", trigger_label: "Invite…",
+  <%= cw.dialog "Invite", id: "ov-dialog", trigger_label: "Invite…",
         class: "modal", data: { controller: "analytics", action: "keydown->analytics#key" } do %>
     <p>Body.</p>
   <% end %>
@@ -26,7 +26,7 @@
 
 <section id="override-confirm">
   <h3>confirm with caller overrides</h3>
-  <%= crosswire_confirm id: "ov-confirm", title: "Delete?", body: "Gone for good.",
+  <%= cw.confirm id: "ov-confirm", title: "Delete?", body: "Gone for good.",
         class: "modal modal--danger", data: { controller: "analytics" } %>
 </section>
 

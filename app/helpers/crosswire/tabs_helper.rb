@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::TabsHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.tabs_for`,
+  # `cw.tabs_attrs` (and `cw.tabs` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   module TabsHelper
     # Batteries-included form — renders the shipped partial.
     #
-    #   <%= crosswire_tabs id: "settings", selected: "profile",
+    #   <%= cw.tabs id: "settings", selected: "profile",
     #         tabs: [{ id: "profile", label: "Profile" }, { id: "billing", label: "Billing" }] do |tab_id| %>
     #     <% if tab_id == "profile" %>
     #       <p>Profile fields…</p>
@@ -26,7 +25,7 @@ module Crosswire
     # The partial is overridable by creating app/views/crosswire/_tabs.html.erb, or
     # ejectable with `rails g crosswire:eject tabs`. Accessibility comes from the
     # presenter, so a restyled copy stays correct.
-    def crosswire_tabs(id:, selected:, tabs:, **options, &panel_content)
+    def tabs(id:, selected:, tabs:, **options, &panel_content)
       presenter = Crosswire::Presenters::Tabs.new(id: id, selected: selected, **options)
 
       panels = tabs.map do |tab|
@@ -39,7 +38,7 @@ module Crosswire
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_tabs_for id: "settings", selected: @tab do |t| %>
+    #   <%= cw.tabs_for id: "settings", selected: @tab do |t| %>
     #     <div <%= cw_attrs(t.root_attrs) %>>
     #       <div <%= cw_attrs(t.tablist_attrs) %>>
     #         <button <%= cw_attrs(t.tab_attrs(tab_id: "profile")) %>>Profile</button>
@@ -52,7 +51,7 @@ module Crosswire
     #
     # The root element must wrap the tablist AND every panel — see
     # Crosswire::Presenters::Tabs#root_attrs.
-    def crosswire_tabs_for(**options, &block)
+    def tabs_for(**options, &block)
       capture(Crosswire::Presenters::Tabs.new(**options), &block)
     end
 
@@ -62,10 +61,10 @@ module Crosswire
     # The root element must wrap the tablist AND every panel — see
     # Crosswire::Presenters::Tabs#root_attrs.
     #
-    #   <div <%= cw_attrs(crosswire_tabs_attrs(id: "settings", selected: @tab)) %>>
+    #   <div <%= cw_attrs(cw.tabs_attrs(id: "settings", selected: @tab)) %>>
     #     …
     #   </div>
-    def crosswire_tabs_attrs(**options)
+    def tabs_attrs(**options)
       Crosswire::Presenters::Tabs.new(**options).root_attrs
     end
   end

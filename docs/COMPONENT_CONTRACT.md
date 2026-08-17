@@ -15,7 +15,7 @@ Reference implementations: **`disclosure`** (widget with markup) and **`dismiss`
 |---|---|---|
 | `lib/crosswire/presenters/<name>.rb` | **always** | attribute contract + a11y. Pure PORO. |
 | `app/assets/javascripts/crosswire/controllers/<name>_controller.js` | **always** | behaviour |
-| `app/helpers/crosswire/<name>_helper.rb` | **always** | `crosswire_<name>_for` + `crosswire_<name>_attrs`; widgets additionally `crosswire_<name>` — see "Helper API" below |
+| `app/helpers/crosswire/<name>_helper.rb` | **always** | defines `<name>_for` + `<name>_attrs`; widgets additionally `<name>` — included into `Crosswire::Builder`, reached as `cw.<name>_for` etc. — see "Helper API" below |
 | `app/views/crosswire/_<name>.html.erb` | only if it owns markup | ejectable default markup |
 | `test/crosswire/presenters/<name>_test.rb` | **always** | plain Minitest, no Rails |
 | `test/js/<name>_controller.test.js` | **always** | Vitest |
@@ -28,15 +28,19 @@ their own. Widgets that own markup (`dialog`, `confirm`) ship one.
 
 Every component's helper module exposes the same shape, so a consumer can predict the
 API without reading the source. Which forms a component gets is entirely determined by
-whether it owns markup (i.e. ships a partial):
+whether it owns markup (i.e. ships a partial). As of D8 (docs/DECISIONS.md), the module
+defines the bare method name (`disclosure_for`, never `crosswire_disclosure_for`) and is
+`include`d into `Crosswire::Builder` (lib/crosswire/builder.rb) rather than into any
+view — a consumer reaches it as `cw.<name>_for` (or the canonical `crosswire.<name>_for`),
+never by calling the module's method directly:
 
-| Component kind | Helpers | Purpose |
-|---|---|---|
-| **Widget** (owns markup: `confirm`, `dialog`, `disclosure`, `popover`, `tabs`) | `crosswire_<name>` | renders the shipped partial (batteries included) |
-| | `crosswire_<name>_for` | yields the presenter, renders no markup of ours |
-| | `crosswire_<name>_attrs` | returns the merged root attribute hash |
-| **Behaviour** (no markup: everything else) | `crosswire_<name>_for` | yields the presenter — for multi-element components |
-| | `crosswire_<name>_attrs` | returns the merged root attribute hash — the common single-element case |
+| Component kind | Helpers (as defined on the module) | Reached as | Purpose |
+|---|---|---|---|
+| **Widget** (owns markup: `confirm`, `dialog`, `disclosure`, `popover`, `tabs`) | `<name>` | `cw.<name>` | renders the shipped partial (batteries included) |
+| | `<name>_for` | `cw.<name>_for` | yields the presenter, renders no markup of ours |
+| | `<name>_attrs` | `cw.<name>_attrs` | returns the merged root attribute hash |
+| **Behaviour** (no markup: everything else) | `<name>_for` | `cw.<name>_for` | yields the presenter — for multi-element components |
+| | `<name>_attrs` | `cw.<name>_attrs` | returns the merged root attribute hash — the common single-element case |
 
 So: **every** component gets `_for` and `_attrs`; **widgets additionally** get the bare
 render form. `_attrs` returns a plain Hash suitable for `cw_attrs(...)` or
@@ -51,8 +55,9 @@ defaults — a hotkey with no key is meaningless and should raise.
 A component that owns markup but has no single element to call "the root" (`popover`'s
 trigger and panel share no common ancestor; `confirm`'s single root is a `<dialog>`, not
 a wrapping `<div>`) documents which presenter method `_attrs` actually returns — see
-`Crosswire::PopoverHelper#crosswire_popover_attrs` and
-`Crosswire::ConfirmHelper#crosswire_confirm_attrs` for the worked examples. The widget
+`Crosswire::PopoverHelper#popover_attrs` (reached as `cw.popover_attrs`) and
+`Crosswire::ConfirmHelper#confirm_attrs` (reached as `cw.confirm_attrs`) for the worked
+examples. The widget
 list itself is never hardcoded — derive it from which components have a partial in
 `app/views/crosswire/`, both in code (`test/crosswire/contract_audit_test.rb`) and when
 reading this table, because components are still being added.
@@ -62,15 +67,19 @@ reading this table, because components are still being added.
 ## Ruby-side primitives (outside the component shape)
 
 Not everything crosswire ships is a component. `Crosswire::AuthorizedStreamChannel` and
-its helper, `crosswire_stream_from`, are Action Cable subscription logic — there is no
+its helper, `cw.stream_from`, are Action Cable subscription logic — there is no
 Stimulus behaviour to pair them with, so they deliberately do not follow the shape
 above: no `*_controller.js`, no `lib/crosswire/presenters/<name>.rb`, no entry in
 `Crosswire::COMPONENTS`, no `cw--*` Stimulus identifier. `contract_audit_test.rb`'s
 naming checks walk controller → presenter → helper in that direction and would never
-go looking for either of these; both are wired in by hand instead — see
-`test/dummy/app/controllers/crosswire_preview_controller.rb` and `HelperCase` in
-`test/crosswire/integration_test_runner.rb`, both of which add
-`Crosswire::StreamsHelper` explicitly, alongside a comment explaining why.
+go looking for either of these — `Crosswire::StreamsHelper` is registered by hand
+instead, `include`d directly into `Crosswire::Builder` (lib/crosswire/builder.rb)
+alongside every per-component helper module. As of D8 that is the ONLY place it needs
+registering: since `Crosswire::Builder` is what every consumer reaches through `cw`/
+`crosswire`, `cw.stream_from` comes for free with no separate per-controller wiring —
+unlike before D8, when `test/dummy/app/controllers/crosswire_preview_controller.rb` and
+`HelperCase` in `test/crosswire/integration_test_runner.rb` each had to add
+`Crosswire::StreamsHelper` by hand.
 
 ### `Crosswire::AuthorizedStreamChannel`
 
@@ -110,14 +119,14 @@ subscribe attempt (`:`-separated segments; each is GlobalID-parsed if it is one,
 otherwise passed through as the original String) — memoized, `[]` if the name failed
 verification.
 
-### `crosswire_stream_from`
+### `cw.stream_from`
 
 `app/helpers/crosswire/streams_helper.rb` wraps `turbo_stream_from` with a **required**
 `channel:` keyword — there is no default, unlike `turbo_stream_from` itself defaulting
 to the unauthorized `Turbo::StreamsChannel`:
 
 ```erb
-<%= crosswire_stream_from(@board, channel: BoardChannel) %>
+<%= cw.stream_from(@board, channel: BoardChannel) %>
 ```
 
 Raises `ArgumentError` unless `channel` is a `Crosswire::AuthorizedStreamChannel`
@@ -315,7 +324,7 @@ First line: `<%# crosswire:contract v1 %>`. `ShadowCheck` reads it at boot.
 |---|---|---|
 | Stimulus identifier | `cw--<kebab>` | `cw--focus-trap` |
 | Presenter | `Crosswire::Presenters::<CamelCase>` | `Crosswire::Presenters::FocusTrap` |
-| Helper | `crosswire_<name>_for` / `crosswire_<name>_attrs` (widgets also `crosswire_<name>`) | `crosswire_dialog_for`, `crosswire_dialog_attrs`, `crosswire_dialog` |
+| Helper | `cw.<name>_for` / `cw.<name>_attrs` (widgets also `cw.<name>`) | `cw.dialog_for`, `cw.dialog_attrs`, `cw.dialog` |
 | Partial | `app/views/crosswire/_<name>.html.erb` | overridable by path |
 | Target | `camelCase` **noun** | `data-cw--dialog-target="panel"` |
 | Action method | `camelCase` **verb** | `#toggle`, `#dismiss` |

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # `crosswire_stream_from` — a `turbo_stream_from` wrapper that requires an explicit,
-  # already-authorizing channel.
+  # `stream_from` (reached as `cw.stream_from` / `crosswire.stream_from`) — a
+  # `turbo_stream_from` wrapper that requires an explicit, already-authorizing channel.
   #
   # This is the one Ruby-only helper crosswire ships with no matching controller or
   # presenter: `Crosswire::AuthorizedStreamChannel` is Action Cable subscription logic,
@@ -10,17 +10,18 @@ module Crosswire
   # `lib/crosswire/presenters/streams.rb` for it to pair with. That also means it is
   # invisible to `contract_audit_test.rb`'s naming checks, which walk controller ->
   # presenter -> helper in that direction and would never go looking for a helper that
-  # names no controller. It is registered by hand instead, in two places: explicitly
-  # added to `HelperCase` in `test/crosswire/integration_test_runner.rb` (component-
-  # name-derived inclusion would never find it), and explicitly `helper`-included in
-  # `test/dummy/app/controllers/crosswire_preview_controller.rb`.
+  # names no controller. It is registered by hand instead: included into
+  # `Crosswire::Builder` (lib/crosswire/builder.rb) alongside every per-component helper
+  # module, and explicitly added to `HelperCase` in
+  # `test/crosswire/integration_test_runner.rb` for the same reason — component-name-
+  # derived inclusion would never find it.
   #
   # Guarded at CALL time, not load time — this file is only ever loaded once
   # `Crosswire::Streams` itself has been (see `lib/crosswire/streams.rb`), so `Turbo`
   # and `Crosswire::AuthorizedStreamChannel` are already defined by the time any app
-  # code can reach `crosswire_stream_from`. The `defined?` check exists only so a
-  # caller who somehow bypasses that load path gets a crosswire-flavoured error instead
-  # of a bare `NameError` three frames deep.
+  # code can reach `stream_from`. The `defined?` check exists only so a caller who
+  # somehow bypasses that load path gets a crosswire-flavoured error instead of a bare
+  # `NameError` three frames deep.
   module StreamsHelper
     # Wrap `turbo_stream_from` with a REQUIRED explicit `channel:`. Plain
     # `turbo_stream_from` defaults to `Turbo::StreamsChannel`, which authorizes anyone
@@ -32,8 +33,8 @@ module Crosswire
     # rule is loud immediately rather than silently rejecting every subscriber in
     # production.
     #
-    #   <%= crosswire_stream_from(@board, channel: BoardChannel) %>
-    #   <%= crosswire_stream_from(Current.account, :entries, channel: AccountChannel) %>
+    #   <%= cw.stream_from(@board, channel: BoardChannel) %>
+    #   <%= cw.stream_from(Current.account, :entries, channel: AccountChannel) %>
     #
     # Any extra `attributes:` pass straight through to `turbo_stream_from` (`data:`
     # attributes are the documented way to hand a channel additional subscribe
@@ -47,14 +48,14 @@ module Crosswire
     #   subclass
     # @raise [Crosswire::Error] in development/test only, if `channel` still uses the
     #   fail-closed default `authorized?` — i.e. was never actually given a rule
-    def crosswire_stream_from(*streamables, channel:, **attributes)
+    def stream_from(*streamables, channel:, **attributes)
       unless defined?(Turbo::StreamsChannel)
-        raise Crosswire::Error, "crosswire_stream_from needs turbo-rails (Turbo::StreamsChannel " \
+        raise Crosswire::Error, "cw.stream_from needs turbo-rails (Turbo::StreamsChannel " \
                                  "is not defined). Add `gem \"turbo-rails\"` to your Gemfile."
       end
 
       unless channel.is_a?(Class) && channel <= Crosswire::AuthorizedStreamChannel
-        raise ArgumentError, "crosswire_stream_from requires channel: to be a " \
+        raise ArgumentError, "cw.stream_from requires channel: to be a " \
                               "Crosswire::AuthorizedStreamChannel subclass, got #{channel.inspect}"
       end
 
@@ -72,18 +73,18 @@ module Crosswire
     # `crosswire/stream_actions.js`) reads on both sides: `{ "data-cw-version" => "42" }`.
     # Spread it onto whatever tag builder you already render the partial's root
     # element with — this is not a Stimulus component, so unlike every
-    # `crosswire_<name>_attrs` elsewhere in this gem it is not meant for `cw_attrs`
+    # `cw.<name>_attrs` elsewhere in this gem it is not meant for `cw_attrs`
     # specifically, just for the version to appear on the root element by whatever
     # means the partial already uses:
     #
-    #   <div id="<%= dom_id(widget) %>" <%= cw_attrs(crosswire_version_attrs(widget)) %>>
-    #   <%= tag.div id: dom_id(widget), **crosswire_version_attrs(widget) %>
+    #   <div id="<%= dom_id(widget) %>" <%= cw_attrs(cw.version_attrs(widget)) %>>
+    #   <%= tag.div id: dom_id(widget), **cw.version_attrs(widget) %>
     #
     # @param versionable [Integer, #crosswire_stream_version] an already-resolved
     #   version, or an object mixing in `Crosswire::Streams::Versioned` (or otherwise
     #   responding to `crosswire_stream_version`).
     # @return [Hash{String => String}]
-    def crosswire_version_attrs(versionable)
+    def version_attrs(versionable)
       version = versionable.is_a?(Integer) ? versionable : versionable.crosswire_stream_version
       { "data-cw-version" => version.to_s }
     end
@@ -96,7 +97,7 @@ module Crosswire
     # primitive `turbo_stream.replace`/`.update`/etc. are themselves built on
     # (`Turbo::Streams::TagBuilder#action`) — not a reimplementation of it.
     #
-    #   <%= crosswire_versioned_replace dom_id(widget), partial: "widgets/widget", locals: { widget: widget } %>
+    #   <%= cw.versioned_replace dom_id(widget), partial: "widgets/widget", locals: { widget: widget } %>
     #
     # RULE 0 and the self-echo caveat are documented on
     # `crosswire/stream_actions.js` — read that first; this helper (and the model
@@ -107,7 +108,7 @@ module Crosswire
     #   String, or an object `ActionView::RecordIdentifier.dom_id` accepts
     # @param rendering [Hash] `partial:`, `locals:`, `html:`, `method: :morph`, …
     # @return [ActiveSupport::SafeBuffer]
-    def crosswire_versioned_replace(target, **rendering, &block)
+    def versioned_replace(target, **rendering, &block)
       turbo_stream.action(:versioned_replace, target, **rendering, &block)
     end
   end

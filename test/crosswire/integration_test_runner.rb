@@ -57,35 +57,29 @@ module CrosswireIntegration
     end
   end
 
-  # Every helper module, mixed into one view context. Mirrors what a consumer's
-  # ApplicationController does.
-  #
-  # Derived from `Crosswire.component_names` rather than one hardcoded `helper` line
-  # per component, same reasoning as `ApplicationController`/`CrosswirePreviewController`
-  # in the dummy app: a hardcoded list here would silently leave a newly shipped
-  # component's helper uncallable from every test in this file that renders through
-  # `HelperCase`, rather than failing loudly.
+  # Mirrors what a consumer's ApplicationController gets automatically, post-D8: the
+  # engine's own `crosswire.helpers` initializer includes exactly these two modules
+  # into `ActionView::Base` globally (`AttributesHelper` for `cw_attrs`/`cw_presenter`,
+  # `FacadeHelper` for `cw`/`crosswire`). Every per-component helper module is reached
+  # THROUGH the builder — `view.cw.disclosure_for`, never `view.disclosure_for` — so
+  # there is no longer a `Crosswire.component_names.each { helper ... }` loop here, and
+  # no separate hand-added `Crosswire::StreamsHelper` line either: `Crosswire::Builder`
+  # includes both directly (lib/crosswire/builder.rb).
   class HelperCase < ActionView::TestCase
     include Dom
 
     helper Crosswire::AttributesHelper
-    Crosswire.component_names.each do |name|
-      helper Crosswire.const_get(:"#{name.camelize}Helper")
-    end
-
-    # `Crosswire::StreamsHelper` names no component (see its own docstring) — it
-    # cannot be discovered by looping `Crosswire.component_names` above, so it is added
-    # explicitly, exactly as `CrosswirePreviewController` adds it by hand.
-    helper Crosswire::StreamsHelper
+    helper Crosswire::FacadeHelper
   end
 
   # ---------------------------------------------------------------------------------
   # The helper half of the component contract. `contract_audit_test.rb` already machine-
-  # checks controllers, presenters and partials without Rails; helpers cannot be checked
-  # there, because they are `app/` constants that only exist once an engine is loaded.
-  # This is the test that would have caught `Crosswire::DismissHelper` simply not
-  # existing — `dismiss` is a shipped component and one of the two reference
-  # implementations, and its helper file was missing.
+  # checks controllers, presenters and partials without Rails, and (as of D8) that every
+  # per-component helper module is `include`d into `Crosswire::Builder`; what it cannot
+  # check without Rails is that the resulting `cw.<name>...` methods are actually
+  # reachable from a real view. This is the test that would have caught
+  # `Crosswire::DismissHelper` simply not existing — `dismiss` is a shipped component
+  # and one of the two reference implementations, and its helper file was missing.
   # ---------------------------------------------------------------------------------
   class HelperContractTest < ActiveSupport::TestCase
     def test_every_component_ships_a_helper_module
@@ -102,18 +96,27 @@ module CrosswireIntegration
         methods = mod.public_instance_methods(false)
 
         refute_empty methods, "#{mod} defines no helper methods"
-        assert methods.all? { |m| m.to_s.start_with?("crosswire_#{name}") },
-               "#{mod} methods #{methods.inspect} do not follow crosswire_#{name}*"
+        assert methods.all? { |m| m.to_s.start_with?(name) },
+               "#{mod} methods #{methods.inspect} do not follow #{name}*"
       end
     end
 
-    def test_every_helper_method_is_callable_from_a_host_app_controller
-      helpers = ApplicationController.helpers
+    def test_every_component_helper_module_is_included_into_the_builder
+      Crosswire.component_names.each do |name|
+        mod = Crosswire.const_get(:"#{name.camelize}Helper")
 
+        assert_includes Crosswire::Builder.ancestors, mod,
+                        "Crosswire::Builder does not include #{mod}"
+      end
+
+      assert_includes Crosswire::Builder.ancestors, Crosswire::StreamsHelper
+    end
+
+    def test_every_helper_method_is_callable_through_the_cw_builder
       Crosswire.component_names.each do |name|
         Crosswire.const_get(:"#{name.camelize}Helper").public_instance_methods(false).each do |method|
-          assert_respond_to helpers, method,
-                            "#{method} is not available after `helper Crosswire::#{name.camelize}Helper`"
+          assert Crosswire::Builder.method_defined?(method),
+                 "#{method} is not defined on Crosswire::Builder, so cw.#{method} would not work"
         end
       end
     end
@@ -237,7 +240,7 @@ module CrosswireIntegration
   class DisclosureRenderTest < HelperCase
     def render_default(**options, &block)
       block ||= proc { "<p>panel body</p>".html_safe }
-      view.crosswire_disclosure("Shipping details", **{id: "faq"}.merge(options), &block)
+      view.cw.disclosure("Shipping details", **{id: "faq"}.merge(options), &block)
     end
 
     def test_partial_renders_the_full_widget
@@ -287,21 +290,21 @@ module CrosswireIntegration
     end
 
     def test_summary_is_optional
-      html = view.crosswire_disclosure(nil, id: "faq") { "only a panel".html_safe }
+      html = view.cw.disclosure(nil, id: "faq") { "only a panel".html_safe }
 
       assert_nil dom(html).at_css("button")
       assert_includes html, "only a panel"
     end
 
     def test_panel_block_is_optional
-      html = view.crosswire_disclosure("Summary", id: "faq")
+      html = view.cw.disclosure("Summary", id: "faq")
 
       assert_equal "cw--disclosure", node(html, "div")["data-controller"]
     end
 
     def test_for_form_yields_the_presenter_and_renders_none_of_our_markup
       yielded = nil
-      view.crosswire_disclosure_for(id: "faq") { |d| yielded = d }
+      view.cw.disclosure_for(id: "faq") { |d| yielded = d }
 
       assert_instance_of Crosswire::Presenters::Disclosure, yielded
       assert_equal "faq-panel", yielded.panel_id
@@ -311,7 +314,7 @@ module CrosswireIntegration
   class DialogRenderTest < HelperCase
     def render_default(title = "Delete this project?", **options, &block)
       block ||= proc { "<p>body</p>".html_safe }
-      view.crosswire_dialog(title, **{id: "confirm-delete", trigger_label: "Delete…"}.merge(options), &block)
+      view.cw.dialog(title, **{id: "confirm-delete", trigger_label: "Delete…"}.merge(options), &block)
     end
 
     def test_partial_renders_root_trigger_and_native_dialog
@@ -372,7 +375,7 @@ module CrosswireIntegration
     end
 
     def test_trigger_label_and_title_are_both_optional
-      html = view.crosswire_dialog(nil, id: "bare") { "body".html_safe }
+      html = view.cw.dialog(nil, id: "bare") { "body".html_safe }
 
       assert_nil dom(html).at_css("button")
       assert_nil dom(html).at_css("h2")
@@ -380,14 +383,14 @@ module CrosswireIntegration
     end
 
     def test_body_block_is_optional
-      html = view.crosswire_dialog("Title", id: "bare", trigger_label: "Open")
+      html = view.cw.dialog("Title", id: "bare", trigger_label: "Open")
 
       assert_equal "cw--dialog", node(html, "div")["data-controller"]
     end
 
     def test_for_form_yields_the_presenter
       yielded = nil
-      view.crosswire_dialog_for(id: "d") { |d| yielded = d }
+      view.cw.dialog_for(id: "d") { |d| yielded = d }
 
       assert_instance_of Crosswire::Presenters::Dialog, yielded
     end
@@ -395,7 +398,7 @@ module CrosswireIntegration
 
   class ConfirmRenderTest < HelperCase
     def render_default(**options)
-      view.crosswire_confirm(**{id: "confirm", title: "Sure?", body: "No undo."}.merge(options))
+      view.cw.confirm(**{id: "confirm", title: "Sure?", body: "No undo."}.merge(options))
     end
 
     def test_partial_stacks_both_controllers_on_one_dialog_element
@@ -464,7 +467,7 @@ module CrosswireIntegration
 
     def test_for_form_yields_the_presenter
       yielded = nil
-      view.crosswire_confirm_for(id: "c") { |c| yielded = c }
+      view.cw.confirm_for(id: "c") { |c| yielded = c }
 
       assert_instance_of Crosswire::Presenters::Confirm, yielded
     end
@@ -475,7 +478,7 @@ module CrosswireIntegration
   # ---------------------------------------------------------------------------------
   class BehaviourRenderTest < HelperCase
     def test_dismiss_attrs_helper
-      el = attrs(view.cw_attrs(view.crosswire_dismiss_attrs(remove: false, selector: ".banner", escape: true)))
+      el = attrs(view.cw_attrs(view.cw.dismiss_attrs(remove: false, selector: ".banner", escape: true)))
 
       assert_equal "cw--dismiss", el["data-controller"]
       assert_equal "false", el["data-cw--dismiss-remove-value"]
@@ -486,7 +489,7 @@ module CrosswireIntegration
 
     def test_dismiss_for_yields_a_presenter_with_a_labelled_trigger
       trigger = nil
-      view.crosswire_dismiss_for(label: "Dismiss notice") { |d| trigger = attrs(view.cw_attrs(d.trigger_attrs)) }
+      view.cw.dismiss_for(label: "Dismiss notice") { |d| trigger = attrs(view.cw_attrs(d.trigger_attrs)) }
 
       assert_equal "button", trigger["type"]
       assert_equal "Dismiss notice", trigger["aria-label"]
@@ -494,7 +497,7 @@ module CrosswireIntegration
     end
 
     def test_transition_attrs_helper_emits_only_classes_api_attributes
-      el = attrs(view.cw_attrs(view.crosswire_transition_attrs(
+      el = attrs(view.cw_attrs(view.cw.transition_attrs(
                                  enter: "fade", enter_from: "opacity-0", enter_to: "opacity-100",
                                  leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0")))
 
@@ -506,7 +509,7 @@ module CrosswireIntegration
     end
 
     def test_transition_omits_classes_that_were_not_given
-      el = attrs(view.cw_attrs(view.crosswire_transition_attrs(leave: "fade")))
+      el = attrs(view.cw_attrs(view.cw.transition_attrs(leave: "fade")))
 
       assert_equal "fade", el["data-cw--transition-leave-class"]
       refute el.key?("data-cw--transition-enter-class"),
@@ -514,8 +517,8 @@ module CrosswireIntegration
     end
 
     def test_transition_composes_with_dismiss_on_one_element
-      el = attrs(view.cw_attrs(view.crosswire_dismiss_attrs,
-                               view.crosswire_transition_attrs(leave: "fade"),
+      el = attrs(view.cw_attrs(view.cw.dismiss_attrs,
+                               view.cw.transition_attrs(leave: "fade"),
                                Crosswire::Presenters::Transition.new.leave_on))
 
       assert_equal %w[cw--dismiss cw--transition], tokens(el, "data-controller")
@@ -523,7 +526,7 @@ module CrosswireIntegration
     end
 
     def test_persist_attrs_helper
-      el = attrs(view.cw_attrs(view.crosswire_persist_attrs(key: "faq", attribute: "open",
+      el = attrs(view.cw_attrs(view.cw.persist_attrs(key: "faq", attribute: "open",
                                                             storage: "session", debounce: 250)))
 
       assert_equal "cw--persist", el["data-controller"]
@@ -534,13 +537,13 @@ module CrosswireIntegration
     end
 
     def test_persist_validates_its_options_at_render_time
-      assert_raises(ArgumentError) { view.crosswire_persist_attrs(key: "") }
-      assert_raises(ArgumentError) { view.crosswire_persist_attrs(key: "k", storage: "cookie") }
+      assert_raises(ArgumentError) { view.cw.persist_attrs(key: "") }
+      assert_raises(ArgumentError) { view.cw.persist_attrs(key: "k", storage: "cookie") }
     end
 
     def test_intersection_for_yields_a_presenter_carrying_the_observer_options
       el = nil
-      view.crosswire_intersection_for(once: true, threshold: 0.25, root_margin: "200px") do |i|
+      view.cw.intersection_for(once: true, threshold: 0.25, root_margin: "200px") do |i|
         el = attrs(view.cw_attrs(i.root_attrs))
       end
 
@@ -552,7 +555,7 @@ module CrosswireIntegration
 
     def test_focus_trap_for_wires_both_tab_descriptors
       el = nil
-      view.crosswire_focus_trap_for(active: true, initial: "#h", active_class: "is-trapped") do |t|
+      view.cw.focus_trap_for(active: true, initial: "#h", active_class: "is-trapped") do |t|
         el = attrs(view.cw_attrs(t.root_attrs))
       end
 
@@ -567,7 +570,7 @@ module CrosswireIntegration
 
     def test_clipboard_for_yields_all_four_element_attribute_sets
       root = source = button = status = nil
-      view.crosswire_clipboard_for(success_class: "is-copied", success_duration: 1500) do |c|
+      view.cw.clipboard_for(success_class: "is-copied", success_duration: 1500) do |c|
         root = attrs(view.cw_attrs(c.root_attrs))
         source = attrs(view.cw_attrs(c.source_attrs))
         button = attrs(view.cw_attrs(c.button_attrs))
@@ -588,7 +591,7 @@ module CrosswireIntegration
     end
 
     def test_autosubmit_helper_returns_attrs_ready_for_cw_attrs
-      el = attrs(view.cw_attrs(view.crosswire_autosubmit_attrs(delay: 300, event: "change", scope: "#filters"),
+      el = attrs(view.cw_attrs(view.cw.autosubmit_attrs(delay: 300, event: "change", scope: "#filters"),
                                type: "search", name: "q"))
 
       assert_equal "cw--autosubmit", el["data-controller"]
@@ -600,13 +603,13 @@ module CrosswireIntegration
 
     def test_autosubmit_for_yields_the_presenter
       yielded = nil
-      view.crosswire_autosubmit_for(delay: 100) { |a| yielded = a }
+      view.cw.autosubmit_for(delay: 100) { |a| yielded = a }
 
       assert_instance_of Crosswire::Presenters::Autosubmit, yielded
     end
 
     def test_dirty_form_attrs_helper
-      el = attrs(view.cw_attrs(view.crosswire_dirty_form_attrs(guard: false)))
+      el = attrs(view.cw_attrs(view.cw.dirty_form_attrs(guard: false)))
 
       assert_equal "cw--dirty-form", el["data-controller"]
       assert_equal "false", el["data-cw--dirty-form-guard-value"]
@@ -615,14 +618,14 @@ module CrosswireIntegration
 
     def test_dirty_form_for_yields_the_presenter
       yielded = nil
-      view.crosswire_dirty_form_for { |d| yielded = d }
+      view.cw.dirty_form_for { |d| yielded = d }
 
       assert_instance_of Crosswire::Presenters::DirtyForm, yielded
     end
 
     def test_char_count_for_yields_input_and_output_attrs
       input = output = nil
-      view.crosswire_char_count_for(max: 280) do |c|
+      view.cw.char_count_for(max: 280) do |c|
         input = attrs(view.cw_attrs(c.input_attrs))
         output = attrs(view.cw_attrs(c.output_attrs))
       end
@@ -634,7 +637,7 @@ module CrosswireIntegration
     end
 
     def test_char_count_attrs_helper_requires_max
-      el = attrs(view.cw_attrs(view.crosswire_char_count_attrs(max: 280)))
+      el = attrs(view.cw_attrs(view.cw.char_count_attrs(max: 280)))
 
       assert_equal "cw--char-count", el["data-controller"]
       assert_equal "280", el["data-cw--char-count-max-value"]
@@ -642,7 +645,7 @@ module CrosswireIntegration
 
     def test_reveal_for_yields_trigger_and_input_attrs
       trigger = input = nil
-      view.crosswire_reveal_for(revealed: true) do |r|
+      view.cw.reveal_for(revealed: true) do |r|
         trigger = attrs(view.cw_attrs(r.trigger_attrs))
         input = attrs(view.cw_attrs(r.input_attrs))
       end
@@ -656,13 +659,13 @@ module CrosswireIntegration
 
     def test_reveal_input_type_is_password_server_side_by_default
       input = nil
-      view.crosswire_reveal_for { |r| input = attrs(view.cw_attrs(r.input_attrs)) }
+      view.cw.reveal_for { |r| input = attrs(view.cw_attrs(r.input_attrs)) }
 
       assert_equal "password", input["type"]
     end
 
     def test_reveal_attrs_helper
-      el = attrs(view.cw_attrs(view.crosswire_reveal_attrs(revealed: false)))
+      el = attrs(view.cw_attrs(view.cw.reveal_attrs(revealed: false)))
 
       assert_equal "cw--reveal", el["data-controller"]
       assert_equal "false", el["data-cw--reveal-revealed-value"]
@@ -683,30 +686,30 @@ module CrosswireIntegration
   end
 
   class StreamsHelperTest < HelperCase
-    def test_crosswire_stream_from_renders_a_turbo_cable_stream_source
-      html = view.crosswire_stream_from("room", channel: OpenStreamChannel)
+    def test_cw_stream_from_renders_a_turbo_cable_stream_source
+      html = view.cw.stream_from("room", channel: OpenStreamChannel)
       el = node(html, "turbo-cable-stream-source")
 
       assert_equal "CrosswireIntegration::OpenStreamChannel", el["channel"]
       refute_nil el["signed-stream-name"]
     end
 
-    def test_crosswire_stream_from_requires_an_authorized_stream_channel_subclass
-      error = assert_raises(ArgumentError) { view.crosswire_stream_from("room", channel: String) }
+    def test_cw_stream_from_requires_an_authorized_stream_channel_subclass
+      error = assert_raises(ArgumentError) { view.cw.stream_from("room", channel: String) }
 
       assert_match(/AuthorizedStreamChannel/, error.message)
     end
 
-    def test_crosswire_stream_from_raises_in_dev_test_on_the_fail_closed_default
+    def test_cw_stream_from_raises_in_dev_test_on_the_fail_closed_default
       error = assert_raises(Crosswire::Error) do
-        view.crosswire_stream_from("room", channel: Crosswire::AuthorizedStreamChannel)
+        view.cw.stream_from("room", channel: Crosswire::AuthorizedStreamChannel)
       end
 
       assert_match(/authorized\?/, error.message)
     end
 
-    def test_crosswire_stream_from_passes_extra_attributes_through
-      html = view.crosswire_stream_from("room", channel: OpenStreamChannel, data: {room_name: "room #1"})
+    def test_cw_stream_from_passes_extra_attributes_through
+      html = view.cw.stream_from("room", channel: OpenStreamChannel, data: {room_name: "room #1"})
 
       assert_equal "room #1", node(html, "turbo-cable-stream-source")["data-room-name"]
     end
@@ -718,7 +721,7 @@ module CrosswireIntegration
   # ---------------------------------------------------------------------------------
   class CallerOverrideTest < HelperCase
     def test_disclosure_partial_unions_a_caller_controller_action_and_class
-      html = view.crosswire_disclosure("Shipping", id: "faq",
+      html = view.cw.disclosure("Shipping", id: "faq",
                                        class: "card",
                                        data: {controller: "analytics", action: "click->analytics#track"}) { "".html_safe }
       root = node(html, "div")
@@ -732,7 +735,7 @@ module CrosswireIntegration
     end
 
     def test_dialog_partial_unions_caller_attributes
-      html = view.crosswire_dialog("T", id: "d", trigger_label: "Open",
+      html = view.cw.dialog("T", id: "d", trigger_label: "Open",
                                    class: "modal",
                                    data: {controller: "analytics", action: "keydown->analytics#key"}) { "".html_safe }
       root = node(html, "div")
@@ -743,7 +746,7 @@ module CrosswireIntegration
     end
 
     def test_confirm_partial_unions_caller_attributes_without_losing_the_stack
-      html = view.crosswire_confirm(id: "c", class: "modal modal--danger",
+      html = view.cw.confirm(id: "c", class: "modal modal--danger",
                                     data: {controller: "analytics"})
       dialog = node(html, "dialog")
 
@@ -778,7 +781,7 @@ module CrosswireIntegration
     end
 
     def test_behaviour_helpers_accept_caller_overrides_too
-      el = attrs(view.cw_attrs(view.crosswire_persist_attrs(key: "k", class: "field",
+      el = attrs(view.cw_attrs(view.cw.persist_attrs(key: "k", class: "field",
                                                             data: {controller: "analytics"})))
 
       assert_equal %w[cw--persist analytics], tokens(el, "data-controller")
@@ -835,13 +838,20 @@ module CrosswireIntegration
       assert_includes app.config.assets.precompile, "crosswire/index.js"
     end
 
-    def test_helpers_initializer_included_attributes_helper_into_action_view
+    def test_helpers_initializer_included_attributes_and_facade_helpers_into_action_view
       assert_includes ActionView::Base.ancestors, Crosswire::AttributesHelper
+      assert_includes ActionView::Base.ancestors, Crosswire::FacadeHelper
     end
 
-    def test_component_helpers_are_not_included_globally
+    # D8: per-component helpers are no longer opt-in view mixins at all — they are
+    # `include`d into `Crosswire::Builder` (see `HelperContractTest` above), never into
+    # any view or `ActionView::Base`. Installing the gem adds exactly two names to a
+    # view's method surface (`cw_attrs`/`cw_presenter` and `cw`/`crosswire`); every
+    # component hangs off the second of those, not off `ActionView::Base` itself.
+    def test_component_helpers_are_not_included_into_action_view
       refute_includes ActionView::Base.ancestors, Crosswire::DisclosureHelper,
-                      "per-component helpers are opt-in; installing the gem must not add them"
+                      "per-component helpers must only be included into Crosswire::Builder"
+      assert_includes Crosswire::Builder.ancestors, Crosswire::DisclosureHelper
     end
 
     def test_presenter_directory_is_registered_with_the_app_autoloader
@@ -1076,13 +1086,15 @@ module CrosswireIntegration
     def test_engine_helpers_are_callable_in_previews
       helpers = CrosswirePreviewController.helpers
 
-      assert_respond_to helpers, :crosswire_disclosure
+      assert_respond_to helpers, :cw
+      assert_respond_to helpers, :crosswire
       assert_respond_to helpers, :cw_attrs
+      assert_respond_to helpers.cw, :disclosure
       Crosswire.component_names.each do |name|
         assert Crosswire.const_get(:"#{name.camelize}Helper")
                         .public_instance_methods(false)
-                        .all? { |m| helpers.respond_to?(m) },
-               "#{name} helper methods are not available in previews"
+                        .all? { |m| helpers.cw.respond_to?(m) },
+               "#{name} helper methods are not available in previews (through cw.)"
       end
     end
 
@@ -1135,7 +1147,7 @@ module CrosswireIntegration
   #
   # With a bare yield, the documented form
   #
-  #   <%= crosswire_disclosure_for id: "x" do |d| %>…<% end %>
+  #   <%= cw.disclosure_for id: "x" do |d| %>…<% end %>
   #
   # renders the block TWICE — once as the block writes into the shared buffer, then
   # again when `<%=` outputs the block's return value, HTML-escaped, as visible text on
@@ -1145,8 +1157,8 @@ module CrosswireIntegration
   class ForHelperCaptureTest < HelperCase
     def test_every_for_helper_captures_its_block_exactly_once
       violations = Crosswire.component_names.filter_map do |name|
-        method = "crosswire_#{name}_for"
-        next unless respond_to?(method)
+        method = "#{name}_for"
+        next unless Crosswire::Builder.method_defined?(method)
 
         args = Layer0Test::REQUIRED_ARGS.fetch(name, {})
 
@@ -1155,7 +1167,7 @@ module CrosswireIntegration
         # through `<%=` interacting with the shared output buffer. The first version of
         # this test called the helper directly, passed with the bug deliberately
         # reintroduced, and was therefore worthless.
-        erb = "<%= #{method}(**args) do |c| %><div>SENTINEL</div><% end %>"
+        erb = "<%= cw.#{method}(**args) do |c| %><div>SENTINEL</div><% end %>"
         rendered = render(inline: erb, locals: { args: args }).to_s
 
         count = rendered.scan("SENTINEL").size

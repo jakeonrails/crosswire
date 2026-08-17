@@ -7,7 +7,7 @@
 # (`broadcasts_refreshes` first) and the self-echo caveat.
 #
 # **What it composes from.** `Crosswire::Streams::Versioned#broadcast_versioned_replace_to`
-# on the model side; `crosswire_version_attrs`/`crosswire_versioned_replace` in
+# on the model side; `cw.version_attrs`/`cw.versioned_replace` in
 # `Crosswire::StreamsHelper`; `registerCrosswireStreamActions` on the client. This
 # preview skips the model/broadcast layer entirely and drives
 # `Turbo.renderStreamMessage` directly with hand-built `<turbo-stream

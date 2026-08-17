@@ -1,4 +1,4 @@
-<%= crosswire_sync_for target: "#char-count", attribute: "textContent", transform: transform do |s| %>
+<%= cw.sync_for target: "#char-count", attribute: "textContent", transform: transform do |s| %>
   <textarea maxlength="<%= max %>" <%= cw_attrs(s.root_attrs) %> rows="3" style="width:100%;"></textarea>
 <% end %>
 <p><output id="char-count">0</output>/<%= max %></p>

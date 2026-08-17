@@ -5,7 +5,7 @@
   [aria-pressed="true"] .reveal-label::before { content: "Hide"; }
 </style>
 
-<%= crosswire_reveal_for revealed: revealed do |r| %>
+<%= cw.reveal_for revealed: revealed do |r| %>
   <div <%= cw_attrs(r.root_attrs) %>>
     <label>
       Password<br>

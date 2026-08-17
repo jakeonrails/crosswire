@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::HotkeyHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.hotkey_for`,
+  # `cw.hotkey_attrs` (and `cw.hotkey` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   #
   # `hotkey` is a behaviour, not a widget — it decorates an element you already have,
   # so it ships no batteries-included render form and no partial, only the two
@@ -13,12 +12,12 @@ module Crosswire
   module HotkeyHelper
     # Yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_hotkey_for key: "cmd+k" do |h| %>
+    #   <%= cw.hotkey_for key: "cmd+k" do |h| %>
     #     <button <%= cw_attrs(h.root_attrs) %> data-action="click->dialog#open">
     #       Search
     #     </button>
     #   <% end %>
-    def crosswire_hotkey_for(**options, &block)
+    def hotkey_for(**options, &block)
       capture(Crosswire::Presenters::Hotkey.new(**options), &block)
     end
 
@@ -27,10 +26,10 @@ module Crosswire
     # job. `key:` is required and passed straight through to the presenter — a
     # hotkey with no key is meaningless, so there is no default to fall back on.
     #
-    #   <button <%= cw_attrs(crosswire_hotkey_attrs(key: "cmd+k"), data: { action: "click->dialog#open" }) %>>
+    #   <button <%= cw_attrs(cw.hotkey_attrs(key: "cmd+k"), data: { action: "click->dialog#open" }) %>>
     #     Search
     #   </button>
-    def crosswire_hotkey_attrs(**options)
+    def hotkey_attrs(**options)
       Crosswire::Presenters::Hotkey.new(**options).root_attrs
     end
   end

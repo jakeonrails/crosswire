@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::PopoverHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.popover_for`,
+  # `cw.popover_attrs` (and `cw.popover` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   module PopoverHelper
     # Batteries-included form — renders the shipped partial.
     #
-    #   <%= crosswire_popover "About this user", id: "user_card_42" do %>
+    #   <%= cw.popover "About this user", id: "user_card_42" do %>
     #     <p>Member since 2024.</p>
     #   <% end %>
     #
@@ -18,7 +17,7 @@ module Crosswire
     # Crosswire::Presenters::Popover): for most popovers the native
     # `popovertarget`/`popover` attributes this renders are the ENTIRE mechanism —
     # `cw--popover` only adds placement fallback and programmatic control.
-    def crosswire_popover(trigger_label, **options, &body)
+    def popover(trigger_label, **options, &body)
       presenter = Crosswire::Presenters::Popover.new(**options)
 
       render("crosswire/popover",
@@ -29,11 +28,11 @@ module Crosswire
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_popover_for id: "user_card_42" do |p| %>
+    #   <%= cw.popover_for id: "user_card_42" do |p| %>
     #     <button <%= cw_attrs(p.trigger_attrs) %>>About</button>
     #     <div <%= cw_attrs(p.panel_attrs) %>>…</div>
     #   <% end %>
-    def crosswire_popover_for(**options, &block)
+    def popover_for(**options, &block)
       capture(Crosswire::Presenters::Popover.new(**options), &block)
     end
 
@@ -44,10 +43,10 @@ module Crosswire
     # docstring: `popovertarget`/`popover` link the two by id, with no shared
     # ancestor required) and the controller lives entirely on the panel, so this is
     # `Presenters::Popover#panel_attrs` rather than a `root_attrs`. You still need
-    # to render the trigger yourself with `crosswire_popover_for`'s `trigger_attrs`.
+    # to render the trigger yourself with `cw.popover_for`'s `trigger_attrs`.
     #
-    #   <div <%= cw_attrs(crosswire_popover_attrs(id: "user_card_42")) %>>…</div>
-    def crosswire_popover_attrs(**options)
+    #   <div <%= cw_attrs(cw.popover_attrs(id: "user_card_42")) %>>…</div>
+    def popover_attrs(**options)
       Crosswire::Presenters::Popover.new(**options).panel_attrs
     end
   end

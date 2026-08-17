@@ -31,7 +31,7 @@ module Crosswire
     #
     # This class closes (1): every subscribe attempt re-derives the streamables from
     # the verified name and asks `authorized?` before ever calling `stream_from`, not
-    # only whichever request originally rendered `crosswire_stream_from`. It does NOT,
+    # only whichever request originally rendered `cw.stream_from`. It does NOT,
     # and structurally CANNOT, close (2) or (3) — a channel is a subscription gate, not
     # a rendering pipeline, and it never sees the payload. **A stream whose payload
     # legitimately differs by viewer must not be authorized harder — it must be
@@ -45,7 +45,7 @@ module Crosswire
     # Fails CLOSED: `authorized?` returns `false` unless a subclass overrides it — the
     # opposite default from `Turbo::StreamsChannel`, which authorizes anyone holding a
     # validly-signed name. A channel that forgets to override `authorized?` rejects
-    # every subscriber instead of accepting every subscriber; `crosswire_stream_from`
+    # every subscriber instead of accepting every subscriber; `cw.stream_from`
     # (see `Crosswire::StreamsHelper`) additionally raises in development/test if it
     # detects that omission, so the mistake is loud long before it reaches production.
     #
@@ -59,7 +59,7 @@ module Crosswire
     #   end
     #
     #   <%# app/views/boards/show.html.erb %>
-    #   <%= crosswire_stream_from(@board, channel: BoardChannel) %>
+    #   <%= cw.stream_from(@board, channel: BoardChannel) %>
     #
     # (`current_user` comes from your `ApplicationCable::Connection#identified_by`, as
     # with any Action Cable channel.)

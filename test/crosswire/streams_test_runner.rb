@@ -264,9 +264,9 @@ module CrosswireStreams
   end
 
   # ---------------------------------------------------------------------------------
-  # crosswire_version_attrs / crosswire_versioned_replace — the helper half, rendered
+  # cw.version_attrs / cw.versioned_replace — the helper half, rendered
   # through real ERB/ActionView the same way `StreamsHelperTest` covers
-  # `crosswire_stream_from` in `integration_test_runner.rb`.
+  # `cw.stream_from` in `integration_test_runner.rb`.
   # ---------------------------------------------------------------------------------
   module Dom
     def dom(html) = Nokogiri::HTML5.fragment(html.to_s)
@@ -280,26 +280,32 @@ module CrosswireStreams
   class VersionAttrsHelperTest < ActionView::TestCase
     include Dom
 
-    helper Crosswire::StreamsHelper
+    # `cw.version_attrs`/`cw.versioned_replace` are reached through the builder facade
+    # post-D8 (docs/DECISIONS.md), not by `helper Crosswire::StreamsHelper`-ing this
+    # module directly into the view — that only defines bare `version_attrs`/
+    # `versioned_replace`, not `cw.version_attrs`. `Crosswire::FacadeHelper` (for
+    # `cw`/`crosswire`) is what actually needs including here; `Crosswire::Builder`
+    # already includes `Crosswire::StreamsHelper` itself (lib/crosswire/builder.rb).
+    helper Crosswire::FacadeHelper
 
-    def test_crosswire_version_attrs_accepts_a_versionable_object
+    def test_cw_version_attrs_accepts_a_versionable_object
       widget = VersionableWidget.new(lock_version: 9)
 
-      assert_equal({"data-cw-version" => "9"}, view.crosswire_version_attrs(widget))
+      assert_equal({"data-cw-version" => "9"}, view.cw.version_attrs(widget))
     end
 
-    def test_crosswire_version_attrs_accepts_a_plain_integer
-      assert_equal({"data-cw-version" => "12"}, view.crosswire_version_attrs(12))
+    def test_cw_version_attrs_accepts_a_plain_integer
+      assert_equal({"data-cw-version" => "12"}, view.cw.version_attrs(12))
     end
 
-    def test_crosswire_versioned_replace_renders_a_versioned_replace_turbo_stream
+    def test_cw_versioned_replace_renders_a_versioned_replace_turbo_stream
       # `.html_safe` matters here the same way it would for any `turbo_stream.replace
       # "id", html: "..."` call site — `Turbo::Streams::TagBuilder#action` renders an
       # unsafe `html:` string through `ActionView::Base#render`, which HTML-escapes
       # plain strings by default (the ordinary Rails XSS guard); nothing
-      # `crosswire_versioned_replace` does changes that, since it forwards `**rendering`
+      # `cw.versioned_replace` does changes that, since it forwards `**rendering`
       # as-is rather than reimplementing rendering.
-      html = view.crosswire_versioned_replace("widget_1", html: '<div id="widget_1" data-cw-version="3"></div>'.html_safe)
+      html = view.cw.versioned_replace("widget_1", html: '<div id="widget_1" data-cw-version="3"></div>'.html_safe)
       el = node(html, "turbo-stream")
 
       assert_equal "versioned_replace", el["action"]

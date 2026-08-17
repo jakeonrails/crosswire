@@ -3,7 +3,7 @@
     that IS the honest behaviour of an optional peer that was never installed. The
     keyboard path below needs nothing but fetch, and drives the exact same
     reorder-and-persist code a drag would. %>
-<%= crosswire_sortable_for url: "/sortable_demo", param_name: param_name do |s| %>
+<%= cw.sortable_for url: "/sortable_demo", param_name: param_name do |s| %>
   <ul <%= cw_attrs(s.root_attrs) %> style="list-style:none;padding:0;margin:0;max-width:20rem;">
     <% %w[Homepage Pricing Onboarding].each_with_index do |title, i| %>
       <li <%= cw_attrs(s.item_attrs(id: "sortable-item-#{i}")) %>

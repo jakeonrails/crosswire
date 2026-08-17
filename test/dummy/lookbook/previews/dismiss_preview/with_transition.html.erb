@@ -2,7 +2,7 @@
     for cw--dismiss's cancelable `dismissing` event, so the node fades before it is
     removed — R6. Neither controller references the other's class. %>
 <% t = cw_presenter(:transition, leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0") %>
-<%= crosswire_dismiss_for label: "Dismiss notice" do |d| %>
+<%= cw.dismiss_for label: "Dismiss notice" do |d| %>
   <div <%= cw_attrs(d.root_attrs, t.root_attrs, t.leave_on, class: "flash opacity-100", role: "status") %>>
     This one fades out first.
     <button <%= cw_attrs(d.trigger_attrs) %>>&times;</button>

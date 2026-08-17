@@ -1,4 +1,4 @@
-<%= crosswire_relative_time_for datetime: datetime, threshold: threshold do |rt| %>
+<%= cw.relative_time_for datetime: datetime, threshold: threshold do |rt| %>
   <p>
     Posted
     <time <%= cw_attrs(rt.root_attrs) %>><%= time_ago_in_words(Time.iso8601(datetime)) %> ago</time>

@@ -1,4 +1,4 @@
-<%= crosswire_clipboard_for success_class: success_class.presence,
+<%= cw.clipboard_for success_class: success_class.presence,
       success_duration: success_duration do |c| %>
   <div <%= cw_attrs(c.root_attrs) %>>
     <input <%= cw_attrs(c.source_attrs) %> value="https://example.com/invite/8f3a1c" readonly size="40">

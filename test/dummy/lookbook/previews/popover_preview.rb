@@ -22,7 +22,7 @@
 # dismissed by a touch outside it — verify light-dismiss there before shipping if you
 # support iOS Safari.
 class PopoverPreview < Lookbook::Preview
-  # The shipped partial, via `crosswire_popover`. Trigger and panel are siblings, not
+  # The shipped partial, via `cw.popover`. Trigger and panel are siblings, not
   # nested — `popovertarget`/`popover` is an attribute-level relationship the browser
   # resolves by id, so no shared wrapper is needed.
   #
@@ -35,7 +35,7 @@ class PopoverPreview < Lookbook::Preview
     )
   end
 
-  # `crosswire_popover_for` yields the presenter. Note there is no `root_attrs` at all
+  # `cw.popover_for` yields the presenter. Note there is no `root_attrs` at all
   # — unlike `dialog`/`tabs`, nothing here needs a common ancestor.
   def compose_your_own
     render_with_template(template: "popover_preview/compose_your_own")

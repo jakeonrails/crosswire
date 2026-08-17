@@ -12,7 +12,7 @@
 # open state must be rendered by the server, survive a Turbo morph, or be driven from
 # elsewhere on the page.
 class DisclosurePreview < Lookbook::Preview
-  # The shipped partial, via `crosswire_disclosure`.
+  # The shipped partial, via `cw.disclosure`.
   #
   # @param summary text "Trigger label"
   # @param open toggle "Server-rendered initial state — correct before JS loads"
@@ -25,7 +25,7 @@ class DisclosurePreview < Lookbook::Preview
     )
   end
 
-  # `crosswire_disclosure_for` yields the presenter and renders none of our markup — here
+  # `cw.disclosure_for` yields the presenter and renders none of our markup — here
   # driving a native `<details>`/`<summary>`, an element structure the shipped partial
   # never produces. The controller still works: it only ever knew targets and values.
   def compose_your_own

@@ -2,7 +2,7 @@
   .cw-fallback-demo [data-cw--fallback-target="failed"] { color: #b91c1c; }
 </style>
 
-<%= crosswire_fallback_for state: "loading" do |f| %>
+<%= cw.fallback_for state: "loading" do |f| %>
   <div <%= cw_attrs(f.root_attrs) %> class="cw-fallback-demo">
     <p <%= cw_attrs(f.loading_attrs) %>>Loading…</p>
     <p <%= cw_attrs(f.failed_attrs) %>>

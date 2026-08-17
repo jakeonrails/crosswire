@@ -1,5 +1,5 @@
 <% t = cw_presenter(:transition, leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0") %>
-<%= crosswire_dismiss_for label: "Dismiss" do |d| %>
+<%= cw.dismiss_for label: "Dismiss" do |d| %>
   <div <%= cw_attrs(d.root_attrs, t.root_attrs, t.leave_on, class: "flash opacity-100") %>>
     Fades, then removes.
     <button <%= cw_attrs(d.trigger_attrs) %>>&times;</button>

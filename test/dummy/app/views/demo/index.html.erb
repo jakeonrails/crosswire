@@ -2,21 +2,21 @@
 
 <section id="disclosure-default">
   <h3>disclosure (closed)</h3>
-  <%= crosswire_disclosure "Shipping details", id: "shipping" do %>
+  <%= cw.disclosure "Shipping details", id: "shipping" do %>
     <p>Arrives in 3–5 days.</p>
   <% end %>
 </section>
 
 <section id="disclosure-open">
   <h3>disclosure (open, with landmark region and an open class)</h3>
-  <%= crosswire_disclosure "Returns policy", id: "returns", open: true, region: true, open_class: "is-open" do %>
+  <%= cw.disclosure "Returns policy", id: "returns", open: true, region: true, open_class: "is-open" do %>
     <p>30 days, no questions.</p>
   <% end %>
 </section>
 
 <section id="disclosure-for">
   <h3>disclosure — compose-it-yourself (<code>_for</code>), on a native &lt;details&gt;</h3>
-  <%= crosswire_disclosure_for id: "faq-1" do |d| %>
+  <%= cw.disclosure_for id: "faq-1" do |d| %>
     <details <%= cw_attrs(d.root_attrs) %>>
       <summary <%= cw_attrs(d.trigger_attrs) %>>Do you ship internationally?</summary>
       <div <%= cw_attrs(d.panel_attrs) %>>Yes, to 41 countries.</div>
@@ -26,7 +26,7 @@
 
 <section id="dialog-default">
   <h3>dialog</h3>
-  <%= crosswire_dialog "Delete this project?", id: "confirm-delete", trigger_label: "Delete…" do %>
+  <%= cw.dialog "Delete this project?", id: "confirm-delete", trigger_label: "Delete…" do %>
     <p>This cannot be undone.</p>
     <form method="dialog"><button>Cancel</button></form>
   <% end %>
@@ -34,7 +34,7 @@
 
 <section id="dialog-for">
   <h3>dialog — compose-it-yourself (<code>_for</code>)</h3>
-  <%= crosswire_dialog_for id: "custom-dialog", title: "Rename" do |d| %>
+  <%= cw.dialog_for id: "custom-dialog", title: "Rename" do |d| %>
     <div <%= cw_attrs(d.root_attrs) %>>
       <button <%= cw_attrs(d.trigger_attrs) %>>Rename…</button>
       <dialog <%= cw_attrs(d.panel_attrs) %>>
@@ -47,7 +47,7 @@
 
 <section id="confirm-for">
   <h3>confirm — compose-it-yourself (<code>_for</code>)</h3>
-  <%= crosswire_confirm_for id: "inline-confirm", title: "Discard draft?", body: "Your changes are not saved.",
+  <%= cw.confirm_for id: "inline-confirm", title: "Discard draft?", body: "Your changes are not saved.",
                             destructive: true, destructive_class: "is-destructive" do |c| %>
     <dialog <%= cw_attrs(c.dialog_attrs) %>>
       <h2 <%= cw_attrs(c.title_attrs) %>><%= c.title %></h2>
@@ -56,5 +56,5 @@
       <button <%= cw_attrs(c.confirm_attrs) %>><%= c.confirm_label %></button>
     </dialog>
   <% end %>
-  <p><em>The batteries-included <code>crosswire_confirm</code> partial is mounted once in the layout.</em></p>
+  <p><em>The batteries-included <code>cw.confirm</code> partial is mounted once in the layout.</em></p>
 </section>

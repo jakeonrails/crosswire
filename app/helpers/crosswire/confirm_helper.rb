@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::ConfirmHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.confirm_for`,
+  # `cw.confirm_attrs` (and `cw.confirm` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   module ConfirmHelper
     # Batteries-included form — renders the shipped partial.
     #
@@ -13,8 +12,8 @@ module Crosswire
     # confirmation in the page via its `open()` method. See
     # Crosswire::Presenters::Confirm for the `Turbo.config.forms.confirm` wiring.
     #
-    #   <%= crosswire_confirm id: "confirm" %>
-    def crosswire_confirm(**options)
+    #   <%= cw.confirm id: "confirm" %>
+    def confirm(**options)
       presenter = Crosswire::Presenters::Confirm.new(**options)
 
       render("crosswire/confirm", confirm: presenter)
@@ -22,7 +21,7 @@ module Crosswire
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_confirm_for id: "confirm" do |c| %>
+    #   <%= cw.confirm_for id: "confirm" do |c| %>
     #     <dialog <%= cw_attrs(c.dialog_attrs) %>>
     #       <h2 <%= cw_attrs(c.title_attrs) %>><%= c.title %></h2>
     #       <p <%= cw_attrs(c.body_attrs) %>><%= c.body %></p>
@@ -30,7 +29,7 @@ module Crosswire
     #       <button <%= cw_attrs(c.confirm_attrs) %>><%= c.confirm_label %></button>
     #     </dialog>
     #   <% end %>
-    def crosswire_confirm_for(**options, &block)
+    def confirm_for(**options, &block)
       capture(Crosswire::Presenters::Confirm.new(**options), &block)
     end
 
@@ -41,10 +40,10 @@ module Crosswire
     # `cw--dialog` and `cw--confirm`), so this is `Presenters::Confirm#dialog_attrs`
     # rather than a `root_attrs` — see the presenter docstring.
     #
-    #   <dialog <%= cw_attrs(crosswire_confirm_attrs(id: "confirm"), class: "cw-confirm") %>>
+    #   <dialog <%= cw_attrs(cw.confirm_attrs(id: "confirm"), class: "cw-confirm") %>>
     #     …
     #   </dialog>
-    def crosswire_confirm_attrs(**options)
+    def confirm_attrs(**options)
       Crosswire::Presenters::Confirm.new(**options).dialog_attrs
     end
   end

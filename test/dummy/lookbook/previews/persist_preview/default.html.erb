@@ -1,5 +1,5 @@
 <label>
   Filter
-  <input <%= cw_attrs(crosswire_persist_attrs(key: key, storage: storage, debounce: debounce)) %>
+  <input <%= cw_attrs(cw.persist_attrs(key: key, storage: storage, debounce: debounce)) %>
          type="text" placeholder="Type here, then reload the preview">
 </label>

@@ -1,4 +1,4 @@
-<%= crosswire_dismiss_for remove: false, label: "Dismiss toast" do |d| %>
+<%= cw.dismiss_for remove: false, label: "Dismiss toast" do |d| %>
   <% t = cw_presenter(:timeout, delay: delay) %>
   <div <%= cw_attrs(d.root_attrs, t.root_attrs,
                     data: { action: "cw--timeout:elapsed->cw--dismiss#dismiss " \

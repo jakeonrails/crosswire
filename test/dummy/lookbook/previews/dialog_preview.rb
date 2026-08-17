@@ -13,7 +13,7 @@
 # exists for the parts the platform does *not* do: server-rendered open state that
 # survives a Turbo morph, and the cache/morph reset.
 class DialogPreview < Lookbook::Preview
-  # The shipped partial, via `crosswire_dialog`.
+  # The shipped partial, via `cw.dialog`.
   #
   # @param title text "Becomes the accessible name AND the visible heading"
   # @param trigger_label text "Omit to place your own trigger anywhere on the page"
@@ -36,7 +36,7 @@ class DialogPreview < Lookbook::Preview
     render_with_template(template: "dialog_preview/non_modal")
   end
 
-  # `crosswire_dialog_for` yields the presenter. The trigger does not have to live inside
+  # `cw.dialog_for` yields the presenter. The trigger does not have to live inside
   # the dialog's own root — `trigger_attrs` carries `aria-controls`, so it can sit
   # anywhere on the page.
   def compose_your_own

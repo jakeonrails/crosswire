@@ -1,6 +1,6 @@
 <%# `attribute: "open"` persists a boolean attribute rather than a value, which makes
     this work on a plain <details> with no other JavaScript at all. %>
-<details <%= cw_attrs(crosswire_persist_attrs(key: "faq-1-open", attribute: "open", storage: "session")) %>>
+<details <%= cw_attrs(cw.persist_attrs(key: "faq-1-open", attribute: "open", storage: "session")) %>>
   <summary>Remembers whether it was open</summary>
   <p>Stored in <code>sessionStorage</code> under <code>faq-1-open</code>.</p>
 </details>

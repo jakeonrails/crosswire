@@ -78,10 +78,13 @@ cannot be, because `stimulus-loading` registers via a dynamic per-controller imp
 
 ## Use it at whatever level suits
 
+Every component hangs off one builder, `cw` (alias for `crosswire`) — reached from any
+view exactly the way `turbo_stream`/`tag.` are, no per-component `helper` line required.
+
 **Batteries included** — renders the shipped partial:
 
 ```erb
-<%= crosswire_disclosure "Shipping details", id: "shipping" do %>
+<%= cw.disclosure "Shipping details", id: "shipping" do %>
   <p>Arrives in 3–5 days.</p>
 <% end %>
 ```
@@ -89,7 +92,7 @@ cannot be, because `stimulus-loading` registers via a dynamic per-controller imp
 **Compose it yourself** — yields the presenter, renders none of our markup:
 
 ```erb
-<%= crosswire_disclosure_for id: "faq-1" do |d| %>
+<%= cw.disclosure_for id: "faq-1" do |d| %>
   <div <%= cw_attrs(d.root_attrs) %>>
     <%= tag.button "Details", **d.trigger_attrs %>
     <%= tag.div(**d.panel_attrs) { "…" } %>
@@ -118,16 +121,20 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 **Behaviours** (decorate an existing element, no markup)
 `dismiss` · `transition` · `persist` · `intersection` · `focus-trap` · `roving-focus` ·
 `hotkey` · `click-outside` · `scroll-lock` · `timeout` · `sync` · `clipboard` · `autosubmit` ·
-`dirty-form` · `char-count` · `reveal`
+`dirty-form` · `char-count` · `reveal` · `activate` · `autogrow` · `countdown` · `interval` ·
+`relative-time` · `selection` · `sortable`
 
 **Widgets** (own markup, ship an ejectable partial)
 `disclosure` · `dialog` · `confirm` · `tabs` · `popover`
 
-Every component exposes `crosswire_<name>_for` (yields the presenter) and
-`crosswire_<name>_attrs` (returns the merged attribute hash); widgets additionally get the
-bare `crosswire_<name>` render form.
+**Survivability tier** (outside the 39-primitive vocabulary — see D7)
+`preserve` · `loading` · `fallback` · `Crosswire::Streams`
 
-18 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
+Every component exposes `cw.<name>_for` (yields the presenter) and `cw.<name>_attrs`
+(returns the merged attribute hash); widgets additionally get the bare `cw.<name>`
+render form — see `Crosswire::Builder` (lib/crosswire/builder.rb).
+
+11 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
 reconciled across ~95 UI patterns with zero drift, so the names are stable even where the
 code isn't written.
 

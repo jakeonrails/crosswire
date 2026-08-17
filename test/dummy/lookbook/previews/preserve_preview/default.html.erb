@@ -20,7 +20,7 @@
   <section>
     <h3>With <code>cw--preserve</code></h3>
     <div id="preserve-demo-protected"
-         <%= cw_attrs(crosswire_preserve_attrs(attributes: "aria-expanded")) %>
+         <%= cw_attrs(cw.preserve_attrs(attributes: "aria-expanded")) %>
          aria-expanded="false">
       <button type="button" id="preserve-demo-toggle-protected">Toggle</button>
       <p>Live <code>aria-expanded</code>: <output id="preserve-demo-readout-protected">false</output></p>
@@ -41,7 +41,7 @@
     morphing itself; its content is only ever cloned out for use as the INCOMING side
     of a real morphElements(current, incoming) call below. %>
 <template id="preserve-demo-stale-unprotected"><div id="preserve-demo-unprotected" aria-expanded="false"></div></template>
-<template id="preserve-demo-stale-protected"><div id="preserve-demo-protected" <%= cw_attrs(crosswire_preserve_attrs(attributes: "aria-expanded")) %> aria-expanded="false"></div></template>
+<template id="preserve-demo-stale-protected"><div id="preserve-demo-protected" <%= cw_attrs(cw.preserve_attrs(attributes: "aria-expanded")) %> aria-expanded="false"></div></template>
 
 <script type="module">
   import { morphElements } from "@hotwired/turbo"

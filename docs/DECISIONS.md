@@ -89,7 +89,7 @@ each cites the file that establishes it.
 | R7 | Default to **`turbo_stream.replace(target, method: :morph)`**, not page-level morphing | 11, 13, 14 |
 | R8 | **Vitest two-tier** (jsdom + browser mode) + Minitest/Cuprite | 10 |
 | R9 | **APG-complete in the controller**, never opt-in consumer wiring — this is the moat | 10, 12, 19 |
-| R10 | Naming: `cw--` identifiers, `crosswire_*` helpers, `cw--name:verb` events | 17 |
+| R10 | Naming: `cw--` identifiers, `cw--name:verb` events. Helper naming superseded by `D8` — was flat `crosswire_*` methods, now per-component methods on the `cw`/`crosswire` builder | 17 |
 | R11 | **39-primitive vocabulary**, converged with zero drift across ~95 patterns. No `modal` controller | 08 |
 
 ---
@@ -240,6 +240,85 @@ authentication, which `AuthorizedStreamChannel` closes).
 **Reopen if:** a consumer needs the survivability names folded into the primitive count
 for tooling/marketing reasons, or `crosswire-server` lands and it turns out these pieces
 belong there instead.
+
+---
+
+## D8 — The `crosswire`/`cw` builder facade
+**Locked 2026-08-16 (Jake).**
+
+Replace the ~90 flat `crosswire_<name>[_for|_attrs]` view helpers with a single entry
+point, `crosswire` (canonical) / `cw` (shipped alias), returning a
+`Crosswire::Builder` — modeled directly on Turbo's own `turbo_stream.`/`tag.`
+TagBuilder idiom, not invented here:
+
+```erb
+<%= cw.disclosure "Shipping details", id: "shipping" do %>...<% end %>
+<%= cw.disclosure_for id: "faq-1" do |d| %>...<% end %>
+<%= tag.div **cw.disclosure_attrs(id: "x") %>
+<%= cw.stream_from @board, channel: BoardChannel %>
+```
+
+Methods stay FLAT per component (`<name>`, `<name>_for`, `<name>_attrs`), not nested
+under a further namespace — `cw.disclosure_for`, never `cw.disclosure.for`. Streams
+gets the same treatment: `stream_from`, `version_attrs`, `versioned_replace`.
+
+**Full cutover, no deprecation shim.** Pre-release, zero external users (`D1`'s
+sequencing is exactly what makes this cheap now and expensive later): the old
+`crosswire_*`-prefixed methods disappear from the view namespace entirely, rather than
+aliasing forward. The 153-tutorial series this positions crosswire for (`D1`) gets
+written once, against the final API, instead of once now and once after a v2 rename.
+
+**Why now, why this shape:**
+- **Namespace hygiene.** 31 components × up to 3 variants ≈ 90+ methods landing in
+  *every* view, whether or not that view uses them, versus one name (plus its alias) that
+  autocompletes into the whole vocabulary.
+- **Rails-native precedent, not a new idiom.** `turbo_stream.replace`/`.append`/etc. and
+  `tag.div`/`tag.button` already teach every Rails developer this exact shape:
+  `Turbo::Streams::TagBuilder.new(view_context)`, unknown methods delegated to the view
+  context. `Crosswire::Builder` copies that architecture line for line — construction,
+  memoization, delegation.
+- **`cw`/`crosswire` mirrors `t`/`translate` and `turbo_stream`.** A short alias for a
+  hot path, with the unabbreviated name always available — not a new naming convention.
+- **Discoverability doubles as documentation.** `cw.` + autocomplete lists the whole
+  vocabulary from inside the editor, and a `NoMethodError` can teach instead of just
+  failing — `cw.modal` explains that a modal is `dialog` + `focus-trap` + `scroll-lock`
+  + `dismiss` + `transition`, composed, rather than a name crosswire will never define
+  (`docs/COMPONENT_CONTRACT.md`'s "Banned as primitive names").
+- **The future styled-component tier lands in the same namespace for free** —
+  `cw.button` and friends, whenever that tier ships, need no new entry point.
+
+**Architecture:** `lib/crosswire/builder.rb` is a plain Ruby class (no Rails requires of
+its own — it stays loadable by `test/crosswire/contract_audit_test.rb`'s Rails-free
+suite, `D5`). Every per-component helper module keeps its file
+(`app/helpers/crosswire/<name>_helper.rb`) and logic, with its methods renamed to drop
+the `crosswire_` prefix (`crosswire_disclosure_attrs` → `disclosure_attrs`), and is
+`include`d into `Crosswire::Builder` — NOT into views. The module bodies are otherwise
+unmodified: they still call `render`, `capture`, `tag`, `turbo_stream` as though `self`
+were the view context, which keeps working because `Builder#method_missing` forwards
+anything it doesn't itself define to the real view context it was constructed with.
+`Crosswire::StreamsHelper` gets the identical treatment, which is a genuine
+simplification over the pre-D8 world: it no longer needs registering by hand in
+`test/dummy/app/controllers/crosswire_preview_controller.rb` and `HelperCase` (both used
+to `helper Crosswire::StreamsHelper` explicitly, since it names no component for a
+`Crosswire.component_names` loop to find) — as of D8 it rides along with every other
+helper module simply by being `include`d into `Builder` once, in one place.
+
+**`CW` (capitalized) was rejected** — it reads as a Ruby constant and fights linters
+expecting a bare local/method call.
+
+**`cw_attrs` (and `cw_presenter`) stay view-level helpers, unchanged.** They are
+attribute-merge/presenter-construction *utilities*, not component primitives — folding
+them into the builder would mean `cw.cw_attrs(...)`, which buys nothing and reads worse
+than `cw_attrs(...)` already does.
+
+**Collision note:** `cw`/`crosswire` occupy 2 names in the view helper namespace instead
+of ~90. If a host app already defines `cw`, `crosswire` (the canonical, unabbreviated
+name) is still available — no config toggle for choosing a different name ships in v1
+(YAGNI; see Reopen-if).
+
+**Reopen if:** a host app has a real, unavoidable collision on both `cw` AND
+`crosswire` (unlikely enough not to design for up front), or a future styled-component
+tier turns out to want its own separate entry point after all.
 
 ---
 

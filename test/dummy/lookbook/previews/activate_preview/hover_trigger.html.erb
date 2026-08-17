@@ -1,7 +1,7 @@
 <%# target: nil (the default) clicks activate's OWN element. Safe here only because the
     triggering event is mouseenter, not click — binding click->cw--activate#activate on
     the same element it clicks would recurse forever. %>
-<%= crosswire_activate_for do |a| %>
+<%= cw.activate_for do |a| %>
   <a href="#" id="hover-trigger-link"
      <%= cw_attrs(a.root_attrs, data: { action: "mouseenter->cw--activate#activate" }) %>>
     Hover me

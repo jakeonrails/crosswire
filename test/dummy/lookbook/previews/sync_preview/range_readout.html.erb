@@ -1,4 +1,4 @@
-<%= crosswire_sync_for target: "#volume-readout", attribute: "textContent" do |s| %>
+<%= cw.sync_for target: "#volume-readout", attribute: "textContent" do |s| %>
   <input type="range" min="0" max="100" value="50" <%= cw_attrs(s.root_attrs) %>>
 <% end %>
 <output id="volume-readout">50</output>%

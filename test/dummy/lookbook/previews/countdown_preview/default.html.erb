@@ -1,4 +1,4 @@
-<%= crosswire_countdown_for deadline: deadline, format: format do |c| %>
+<%= cw.countdown_for deadline: deadline, format: format do |c| %>
   <div <%= cw_attrs(c.root_attrs) %>>
     <time <%= cw_attrs(c.output_attrs) %>></time>
   </div>

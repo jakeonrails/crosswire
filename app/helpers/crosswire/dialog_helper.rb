@@ -1,27 +1,26 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::DialogHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.dialog_for`,
+  # `cw.dialog_attrs` (and `cw.dialog` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   module DialogHelper
     # Batteries-included form — renders the shipped partial.
     #
-    #   <%= crosswire_dialog "Delete this project?", id: "confirm-delete", trigger_label: "Delete…" do %>
+    #   <%= cw.dialog "Delete this project?", id: "confirm-delete", trigger_label: "Delete…" do %>
     #     <p>This cannot be undone.</p>
     #   <% end %>
     #
     # `title` becomes the dialog's accessible name (`aria-labelledby`) and its visible
     # heading. `trigger_label`, if given, renders a button — fully wired via
     # `dialog.trigger_attrs` — that opens the dialog; omit it to supply your own
-    # trigger anywhere on the page with `crosswire_dialog_for`.
+    # trigger anywhere on the page with `cw.dialog_for`.
     #
     # The partial is overridable by creating app/views/crosswire/_dialog.html.erb, or
     # ejectable with `rails g crosswire:eject dialog`. Accessibility comes from the
     # presenter, so a restyled copy stays correct.
-    def crosswire_dialog(title = nil, trigger_label: nil, **options, &body)
+    def dialog(title = nil, trigger_label: nil, **options, &body)
       presenter = Crosswire::Presenters::Dialog.new(title: title, **options)
 
       # The block is genuinely optional — a dialog can be title-only, or have its body
@@ -36,7 +35,7 @@ module Crosswire
 
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_dialog_for id: "confirm-delete" do |d| %>
+    #   <%= cw.dialog_for id: "confirm-delete" do |d| %>
     #     <div <%= cw_attrs(d.root_attrs) %>>
     #       <button <%= cw_attrs(d.trigger_attrs) %>>Delete…</button>
     #       <dialog <%= cw_attrs(d.panel_attrs) %>>
@@ -45,17 +44,17 @@ module Crosswire
     #       </dialog>
     #     </div>
     #   <% end %>
-    def crosswire_dialog_for(**options, &block)
+    def dialog_for(**options, &block)
       capture(Crosswire::Presenters::Dialog.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
     # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
     #
-    #   <div <%= cw_attrs(crosswire_dialog_attrs(id: "confirm-delete"), class: "dialog-wrap") %>>
+    #   <div <%= cw_attrs(cw.dialog_attrs(id: "confirm-delete"), class: "dialog-wrap") %>>
     #     …
     #   </div>
-    def crosswire_dialog_attrs(**options)
+    def dialog_attrs(**options)
       Crosswire::Presenters::Dialog.new(**options).root_attrs
     end
   end

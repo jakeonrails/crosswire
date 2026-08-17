@@ -1,5 +1,5 @@
 <%# With `text:` set there is no source element at all — the button is the whole widget. %>
-<%= crosswire_clipboard_for text: "npm install crosswire", success_class: "is-copied" do |c| %>
+<%= cw.clipboard_for text: "npm install crosswire", success_class: "is-copied" do |c| %>
   <div <%= cw_attrs(c.root_attrs) %>>
     <code>npm install crosswire</code>
     <button <%= cw_attrs(c.button_attrs) %>>Copy</button>

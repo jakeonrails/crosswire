@@ -20,7 +20,7 @@ module Crosswire
     #
     #   # app/views/widgets/_widget.html.erb — the SAME partial renders the page and the
     #   # broadcast, so there is exactly one place that ever writes the version:
-    #   <div id="<%= dom_id(widget) %>" <%= cw_attrs(crosswire_version_attrs(widget)) %>>
+    #   <div id="<%= dom_id(widget) %>" <%= cw_attrs(cw.version_attrs(widget)) %>>
     #
     # Requires optimistic locking (a `lock_version` column — see
     # `ActiveRecord::Locking::Optimistic`). `lock_version` already increments on every
@@ -58,7 +58,7 @@ module Crosswire
       # own target, unless the caller already passed `target:` or `targets:`.
       #
       # Does NOT stamp `data-cw-version` onto the rendered HTML for you — that
-      # attribute rides the PARTIAL's root element (`crosswire_version_attrs`, above),
+      # attribute rides the PARTIAL's root element (`cw.version_attrs`, above),
       # which is what makes it identical whether the partial is rendered for the page
       # or for this broadcast. Stamping it here instead, on the `<turbo-stream>`
       # wrapper rather than the payload's root, is exactly the mistake that would

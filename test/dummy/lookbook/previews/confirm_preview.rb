@@ -20,7 +20,7 @@
 # **Mount it once**, in the application layout. `Turbo.config.forms.confirm` then routes
 # every `data-turbo-confirm` through it — see the presenter docstring for that wiring.
 class ConfirmPreview < Lookbook::Preview
-  # The shipped partial, via `crosswire_confirm`.
+  # The shipped partial, via `cw.confirm`.
   #
   # @param title text
   # @param body text
@@ -36,7 +36,7 @@ class ConfirmPreview < Lookbook::Preview
     )
   end
 
-  # `crosswire_confirm_for` yields the presenter. Note that a single `<dialog>` element
+  # `cw.confirm_for` yields the presenter. Note that a single `<dialog>` element
   # carries both controllers — there is no wrapper div anywhere in this markup.
   def compose_your_own
     render_with_template(template: "confirm_preview/compose_your_own")

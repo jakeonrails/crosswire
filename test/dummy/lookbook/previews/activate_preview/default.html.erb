@@ -1,7 +1,7 @@
 <div style="height: 8rem; overflow: auto; border: 1px solid currentColor;">
   <div style="height: 12rem;">Scroll down…</div>
 
-  <%= crosswire_activate_for target: "#load-more" do |a| %>
+  <%= cw.activate_for target: "#load-more" do |a| %>
     <div <%= cw_attrs(cw_presenter(:intersection, once: true).root_attrs, a.root_attrs,
                       data: { action: "cw--intersection:entered->cw--activate#activate" },
                       class: "sentinel") %>>

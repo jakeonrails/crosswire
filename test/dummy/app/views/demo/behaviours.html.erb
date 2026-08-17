@@ -2,9 +2,9 @@
 
 <section id="dismiss">
   <h3>dismiss (+ transition on the same element — the R6 cancelable seam)</h3>
-  <%= crosswire_dismiss_for label: "Dismiss notice", escape: true do |d| %>
+  <%= cw.dismiss_for label: "Dismiss notice", escape: true do |d| %>
     <div <%= cw_attrs(d.root_attrs,
-                      crosswire_transition_attrs(leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0"),
+                      cw.transition_attrs(leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0"),
                       Crosswire::Presenters::Transition.new.leave_on,
                       class: "flash", role: "status") %>>
       Saved.
@@ -15,15 +15,15 @@
 
 <section id="dismiss-attrs">
   <h3>dismiss — bare attribute builder</h3>
-  <div <%= cw_attrs(crosswire_dismiss_attrs(remove: false, selector: ".banner")) %> class="banner">
+  <div <%= cw_attrs(cw.dismiss_attrs(remove: false, selector: ".banner")) %> class="banner">
     Hidden rather than removed.
   </div>
 </section>
 
 <section id="persist">
   <h3>persist</h3>
-  <input <%= cw_attrs(crosswire_persist_attrs(key: "search-filter", debounce: 200)) %> type="text" placeholder="Type, then reload">
-  <details <%= cw_attrs(crosswire_persist_attrs(key: "faq-1-open", attribute: "open", storage: "session")) %>>
+  <input <%= cw_attrs(cw.persist_attrs(key: "search-filter", debounce: 200)) %> type="text" placeholder="Type, then reload">
+  <details <%= cw_attrs(cw.persist_attrs(key: "faq-1-open", attribute: "open", storage: "session")) %>>
     <summary>Remembers whether it was open</summary>
     <p>Stored in sessionStorage.</p>
   </details>
@@ -31,7 +31,7 @@
 
 <section id="intersection">
   <h3>intersection</h3>
-  <%= crosswire_intersection_for once: true, root_margin: "200px", threshold: 0.25 do |i| %>
+  <%= cw.intersection_for once: true, root_margin: "200px", threshold: 0.25 do |i| %>
     <div <%= cw_attrs(i.root_attrs, data: { action: "cw--intersection:entered->window#console" }) %>>
       Fires <code>cw--intersection:entered</code> once, 200px early.
     </div>
@@ -40,7 +40,7 @@
 
 <section id="transition">
   <h3>transition</h3>
-  <div <%= cw_attrs(crosswire_transition_attrs(
+  <div <%= cw_attrs(cw.transition_attrs(
                       enter: "fade", enter_from: "opacity-0", enter_to: "opacity-100",
                       leave: "fade", leave_from: "opacity-100", leave_to: "opacity-0")) %>>
     Enter/leave classes only — no design-system opinion in the controller.
@@ -49,7 +49,7 @@
 
 <section id="focus-trap">
   <h3>focus-trap</h3>
-  <%= crosswire_focus_trap_for active: true, initial: "#drawer-heading", active_class: "is-trapped" do |t| %>
+  <%= cw.focus_trap_for active: true, initial: "#drawer-heading", active_class: "is-trapped" do |t| %>
     <div <%= cw_attrs(t.root_attrs) %>>
       <h4 id="drawer-heading" tabindex="-1">Filters</h4>
       <button>First</button>
@@ -60,7 +60,7 @@
 
 <section id="clipboard">
   <h3>clipboard</h3>
-  <%= crosswire_clipboard_for success_class: "is-copied", success_duration: 1500 do |c| %>
+  <%= cw.clipboard_for success_class: "is-copied", success_duration: 1500 do |c| %>
     <div <%= cw_attrs(c.root_attrs) %>>
       <input <%= cw_attrs(c.source_attrs) %> value="https://example.com/invite/abc" readonly>
       <button <%= cw_attrs(c.button_attrs) %>>Copy link</button>
@@ -72,9 +72,9 @@
 <section id="autosubmit">
   <h3>autosubmit</h3>
   <form action="/" method="get">
-    <input <%= cw_attrs(crosswire_autosubmit_attrs(delay: 300), type: "search", name: "q", id: "q") %> data-turbo-permanent>
+    <input <%= cw_attrs(cw.autosubmit_attrs(delay: 300), type: "search", name: "q", id: "q") %> data-turbo-permanent>
   </form>
-  <%= crosswire_autosubmit_for(event: "change", scope: "#filters") do |a| %>
+  <%= cw.autosubmit_for(event: "change", scope: "#filters") do |a| %>
     <select <%= cw_attrs(a.root_attrs, name: "status") %>>
       <option>Any</option>
       <option>Open</option>
@@ -84,7 +84,7 @@
 
 <section id="dirty-form">
   <h3>dirty-form</h3>
-  <%= crosswire_dirty_form_for do |d| %>
+  <%= cw.dirty_form_for do |d| %>
     <form action="/" method="get" <%= cw_attrs(d.root_attrs) %>>
       <input type="text" name="title" value="Draft title">
       <button type="submit">Save</button>
@@ -94,7 +94,7 @@
 
 <section id="char-count">
   <h3>char-count</h3>
-  <%= crosswire_char_count_for max: 120 do |c| %>
+  <%= cw.char_count_for max: 120 do |c| %>
     <div <%= cw_attrs(c.root_attrs) %>>
       <textarea <%= cw_attrs(c.input_attrs) %> rows="2" cols="40">Write a short bio.</textarea>
       <%= tag.output(**c.output_attrs) %>
@@ -104,7 +104,7 @@
 
 <section id="reveal">
   <h3>reveal</h3>
-  <%= crosswire_reveal_for do |r| %>
+  <%= cw.reveal_for do |r| %>
     <div <%= cw_attrs(r.root_attrs) %>>
       <input <%= cw_attrs(r.input_attrs) %> name="password" value="hunter2" autocomplete="new-password">
       <button <%= cw_attrs(r.trigger_attrs) %>>Show password</button>

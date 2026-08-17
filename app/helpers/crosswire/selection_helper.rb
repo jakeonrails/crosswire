@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Crosswire
-  # Include per-component rather than globally:
-  #
-  #   class ApplicationController < ActionController::Base
-  #     helper Crosswire::SelectionHelper
-  #   end
+  # Included into Crosswire::Builder (lib/crosswire/builder.rb), not mixed into views
+  # directly. Reach these methods through the facade helper: `cw.selection_for`,
+  # `cw.selection_attrs` (and `cw.selection` for components that ship a
+  # partial) — or the canonical `crosswire.` in place of `cw.`.
   #
   # `selection` is a behaviour, not a widget — it decorates checkboxes and a
   # toolbar you already have (a table of rows, a list of cards), so it ships no
@@ -13,7 +12,7 @@ module Crosswire
   module SelectionHelper
     # Compose-it-yourself form — yields the presenter, renders no markup of ours.
     #
-    #   <%= crosswire_selection_for do |s| %>
+    #   <%= cw.selection_for do |s| %>
     #     <div <%= cw_attrs(s.root_attrs) %>>
     #       <table>
     #         <thead>
@@ -36,17 +35,17 @@ module Crosswire
     #       <button type="button" <%= cw_attrs(s.action_attrs) %>>Archive</button>
     #     </div>
     #   <% end %>
-    def crosswire_selection_for(**options, &block)
+    def selection_for(**options, &block)
       capture(Crosswire::Presenters::Selection.new(**options), &block)
     end
 
     # Returns the merged root attribute hash — a plain Hash, ready for `cw_attrs` or
     # `tag.div(**...)`. Renders and escapes nothing itself; that is `cw_attrs`' job.
     #
-    #   <div <%= cw_attrs(crosswire_selection_attrs) %>>
+    #   <div <%= cw_attrs(cw.selection_attrs) %>>
     #     …
     #   </div>
-    def crosswire_selection_attrs(**options)
+    def selection_attrs(**options)
       Crosswire::Presenters::Selection.new(**options).root_attrs
     end
   end

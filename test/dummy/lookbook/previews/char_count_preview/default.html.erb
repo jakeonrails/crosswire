@@ -3,7 +3,7 @@
   .is-over-limit { color: #cf222e; font-weight: bold; }
 </style>
 
-<%= crosswire_char_count_for max: max, warn_at: warn_at,
+<%= cw.char_count_for max: max, warn_at: warn_at,
       warn_class: "is-near-limit", over_class: "is-over-limit" do |c| %>
   <div <%= cw_attrs(c.root_attrs) %>>
     <label>

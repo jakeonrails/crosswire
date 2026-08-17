@@ -2,7 +2,7 @@
     knows the other exists — the recipe from Crosswire::ClickOutsideHelper's own doc
     example. %>
 <% outside = cw_presenter(:click_outside, enabled: enabled) %>
-<%= crosswire_dismiss_for remove: false, label: "Close menu" do |d| %>
+<%= cw.dismiss_for remove: false, label: "Close menu" do |d| %>
   <div <%= cw_attrs(outside.root_attrs, d.root_attrs,
                     data: { action: "cw--click-outside:clicked->cw--dismiss#dismiss" },
                     class: "menu", role: "menu") %>>
