@@ -1,0 +1,26 @@
+<%# menuitemcheckbox/menuitemradio items toggle in place and the menu STAYS OPEN —
+    only a plain menuitem closes it (Crosswire::Presenters::Menu 0.9). Toggling
+    aria-checked itself is the consumer's own click handler (crosswire supplies the
+    role/close-on-activation split, not the state machine) — the tiny script below is
+    that consumer code, not part of the shipped controller. %>
+<%= cw.menu "View", id: "view-menu", items: [
+      {label: "Compact", value: "compact", role: "menuitemradio", checked: true},
+      {label: "Comfortable", value: "comfortable", role: "menuitemradio", checked: false},
+      {label: "Spacious", value: "spacious", role: "menuitemradio", checked: false},
+      {label: "Show hidden files", value: "hidden", role: "menuitemcheckbox", checked: false}
+    ] %>
+
+<script type="module">
+  document.getElementById("view-menu-trigger").parentElement
+    .addEventListener("cw--menu:selected", (event) => {
+      const {item} = event.detail
+      const role = item.getAttribute("role")
+
+      if (role === "menuitemradio") {
+        item.closest("[role=menu]").querySelectorAll('[role="menuitemradio"]')
+          .forEach((el) => el.setAttribute("aria-checked", String(el === item)))
+      } else if (role === "menuitemcheckbox") {
+        item.setAttribute("aria-checked", String(item.getAttribute("aria-checked") !== "true"))
+      }
+    })
+</script>

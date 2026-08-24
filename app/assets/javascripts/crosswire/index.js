@@ -16,6 +16,7 @@ import HotkeyController from "crosswire/controllers/hotkey_controller"
 import IntersectionController from "crosswire/controllers/intersection_controller"
 import IntervalController from "crosswire/controllers/interval_controller"
 import LoadingController from "crosswire/controllers/loading_controller"
+import MenuController from "crosswire/controllers/menu_controller"
 import PersistController from "crosswire/controllers/persist_controller"
 import PopoverController from "crosswire/controllers/popover_controller"
 import PreserveController from "crosswire/controllers/preserve_controller"
@@ -85,7 +86,8 @@ export const CROSSWIRE_CONTROLLERS = {
   "cw--dialog": DialogController,
   "cw--confirm": ConfirmController,
   "cw--tabs": TabsController,
-  "cw--popover": PopoverController
+  "cw--popover": PopoverController,
+  "cw--menu": MenuController
 }
 
 /**
@@ -94,7 +96,8 @@ export const CROSSWIRE_CONTROLLERS = {
  */
 const REQUIRES = {
   "cw--confirm": ["cw--dialog"],
-  "cw--tabs": ["cw--roving-focus"]
+  "cw--tabs": ["cw--roving-focus"],
+  "cw--menu": ["cw--popover", "cw--roving-focus"]
 }
 
 export function registerCrosswireControllers(application, only = null) {
@@ -148,6 +151,7 @@ export {
   IntersectionController,
   IntervalController,
   LoadingController,
+  MenuController,
   PersistController,
   PopoverController,
   PreserveController,

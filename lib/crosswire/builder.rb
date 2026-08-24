@@ -56,9 +56,13 @@ module Crosswire
       modal: "a modal is dialog + focus-trap + scroll-lock + dismiss + transition, " \
              "composed on one element — see cw.dialog for the batteries-included form, " \
              "or cw.dialog_for to compose the pieces yourself.",
-      dropdown: "a dropdown is popover + roving-focus + dismiss + click-outside, " \
-                "composed on one element — see cw.popover for the batteries-included " \
-                "form, or cw.popover_for to compose the pieces yourself.",
+      dropdown: "\"dropdown\" is two different widgets depending on what's inside: " \
+                "navigation links to other pages are cw.popover with plain <a> " \
+                "elements and NO role=\"menu\" (APG's Disclosure Navigation example " \
+                "says the menu role is wrong for a link list); a list of commands " \
+                "(Duplicate, Archive, Delete) is cw.menu, which composes popover + " \
+                "roving-focus + the role=\"menu\" semantics for you. See " \
+                "Crosswire::Presenters::Menu's Rule 0 before reaching for either.",
       tooltip: "crosswire ships no tooltip primitive (see docs/COMPONENT_CONTRACT.md " \
                "R9, Rule 0) — the native `title` attribute or a CSS-only " \
                "`popover`/anchor-positioning pattern covers most cases with no JS at all."

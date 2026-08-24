@@ -1,0 +1,32 @@
+<div style="display: flex; gap: 3rem;">
+  <div>
+    <h3>Links to other pages — <code>cw.popover</code>, no <code>role="menu"</code></h3>
+    <%= cw.popover_for id: "nav-dropdown" do |p| %>
+      <button <%= cw_attrs(p.trigger_attrs) %>>Account</button>
+      <div <%= cw_attrs(p.panel_attrs) %>>
+        <%= link_to "Settings", "#" %><br>
+        <%= link_to "Billing", "#" %><br>
+        <%= link_to "Sign out", "#" %>
+      </div>
+    <% end %>
+    <p>No <code>cw--menu</code> anywhere. No <code>role="menu"</code>. Tab reaches
+    every link normally, because they never left the Tab sequence.</p>
+  </div>
+
+  <div>
+    <h3>Commands — <code>cw.menu</code></h3>
+    <%= cw.menu "Account", id: "cmd-dropdown", items: [
+          {label: "Rename workspace", value: "rename"},
+          {label: "Duplicate workspace", value: "duplicate"},
+          {label: "Delete workspace", value: "delete"}
+        ] %>
+    <p>Full <code>role="menu"</code> semantics: items are OUT of the Tab sequence,
+    reachable only via Up/Down once the menu is open, with typeahead and Home/End.</p>
+  </div>
+</div>
+
+<p>Both look like the same dropdown button. They are not the same widget. APG's own
+Disclosure Navigation pattern is explicit that <code>role="menu"</code> is the wrong
+choice for a list of links — it promises assistive technology far more than a link
+list needs, and taking it on obligates you to build all of that by hand. Most
+"accessible dropdown" tutorials on the web get this backwards.</p>

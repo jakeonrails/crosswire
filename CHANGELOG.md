@@ -24,3 +24,8 @@
 - Add the agent-skills family — `skills/crosswire-ui`, `skills/crosswire-composing`,
   and `skills/crosswire-authoring`, shipped in the gem — plus
   `rails g crosswire:skills` to copy them into a host app's `.claude/skills/`.
+- Add `menu` — WAI-ARIA APG Menu Button, composing `popover` + `roving-focus` under a
+  thin (under 90 lines) controller that moves focus into the panel on open, closes on
+  the right item roles, and rescues focus (R8) when the focused item is removed while
+  open. `Crosswire::Builder::COMPOSITE_HINTS[:dropdown]` now distinguishes navigation
+  links (`cw.popover`, plain `<a>`, no `role="menu"`) from commands (`cw.menu`).

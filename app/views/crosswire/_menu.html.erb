@@ -1,0 +1,33 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision lives in Crosswire::Presenters::Menu,
+  so this file is safe to restyle, shadow, or eject — the role/aria wiring, the native
+  Popover-API semantics, and the roving-focus composition all travel with the
+  controller and presenter, not with this markup. See docs/DECISIONS.md D6.
+
+  Locals:
+    menu          Crosswire::Presenters::Menu
+    button_label  String — trigger button text
+    items         Array of { label:, href: nil, value: nil, role: "menuitem",
+                    checked: nil, disabled: false }. An item with href: renders as
+                    <a role=menuitem>; without it, <button type=button role=menuitem>.
+                    For a button_to-shaped item (DELETE + CSRF), use cw.menu_for
+                    instead — this partial deliberately doesn't express every
+                    activation shape.
+%>
+<div <%= cw_attrs(menu.root_attrs, class: "cw-menu") %>>
+  <button <%= cw_attrs(menu.button_attrs, class: "cw-menu__button") %>><%= button_label %></button>
+
+  <div <%= cw_attrs(menu.menu_attrs, class: "cw-menu__list") %>>
+    <% items.each do |item| %>
+      <% attrs = menu.item_attrs(role: item.fetch(:role, "menuitem"), checked: item[:checked], value: item[:value]) %>
+      <% if item[:href] %>
+        <a href="<%= item[:href] %>"
+           <%= cw_attrs(attrs, class: "cw-menu__item", "aria-disabled" => (item[:disabled] ? "true" : nil)) %>><%= item[:label] %></a>
+      <% else %>
+        <button type="button"
+                <%= cw_attrs(attrs, class: "cw-menu__item", disabled: (item[:disabled] || nil)) %>><%= item[:label] %></button>
+      <% end %>
+    <% end %>
+  </div>
+</div>

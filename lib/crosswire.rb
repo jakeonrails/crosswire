@@ -35,6 +35,7 @@ require "crosswire/presenters/hotkey"
 require "crosswire/presenters/intersection"
 require "crosswire/presenters/interval"
 require "crosswire/presenters/loading"
+require "crosswire/presenters/menu"
 require "crosswire/presenters/persist"
 require "crosswire/presenters/popover"
 require "crosswire/presenters/preserve"
@@ -93,7 +94,8 @@ module Crosswire
     dialog: Crosswire::Presenters::Dialog,
     confirm: Crosswire::Presenters::Confirm,
     tabs: Crosswire::Presenters::Tabs,
-    popover: Crosswire::Presenters::Popover
+    popover: Crosswire::Presenters::Popover,
+    menu: Crosswire::Presenters::Menu
   }.freeze
 
   def self.component_names = COMPONENTS.keys.map(&:to_s)

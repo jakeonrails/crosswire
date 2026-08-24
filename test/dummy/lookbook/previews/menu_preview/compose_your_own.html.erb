@@ -1,0 +1,26 @@
+<%# The panel below carries data-controller="cw--popover cw--roving-focus" — both
+    stacked on one element, exactly what Crosswire::Presenters::Menu#menu_attrs
+    builds — with cw--menu itself on the wrapper (root_attrs). Nothing hidden inside
+    a partial. %>
+<%= cw.menu_for id: "manual-menu" do |m| %>
+  <div <%= cw_attrs(m.root_attrs) %>>
+    <button <%= cw_attrs(m.button_attrs) %>>Actions</button>
+    <div <%= cw_attrs(m.menu_attrs) %>>
+      <button <%= cw_attrs(m.item_attrs(value: "duplicate")) %>>Duplicate</button>
+      <button <%= cw_attrs(m.item_attrs(value: "archive")) %>>Archive</button>
+
+      <%# A button_to-style item (DELETE + CSRF) — cw.menu's items: array
+          deliberately doesn't try to express this shape; cw.menu_for's
+          item_attrs composes onto any element you render yourself, including a
+          real form submit button. %>
+      <%= form_with url: "#", method: :delete, data: {turbo_confirm: "Delete this row?"} do %>
+        <button type="submit" <%= cw_attrs(m.item_attrs(value: "delete")) %>>Delete</button>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<p>Inspect the panel above: <code>data-controller="cw--popover cw--roving-focus"</code>
+— both controllers, stacked on one element (R5b) — while <code>cw--menu</code> itself
+lives on the wrapper <code>&lt;div&gt;</code>, because its <code>button</code> target
+is a sibling of the panel, not a descendant of it.</p>

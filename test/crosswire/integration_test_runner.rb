@@ -206,6 +206,7 @@ module CrosswireIntegration
       "dialog" => { id: "probe" },
       "popover" => { id: "probe" },
       "tabs" => { id: "probe", selected: "one" },
+      "menu" => { id: "probe" },
       "persist" => { key: "probe" },
       "hotkey" => { key: "probe" },
       "timeout" => { delay: 1000 },

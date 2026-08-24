@@ -30,30 +30,40 @@ sharing is safe (R5b).
 
 ## Dropdown menu
 
-`popover` + `roving-focus` + `dismiss` + `click-outside`. Placement matters here:
-`popover`'s controller lives on the panel (trigger and panel are linked by id via
-`popovertarget`, no shared ancestor needed), and `roving-focus` sits on the menu list
-so its `keydown` handling stays scoped to the items:
+**Rule 0, read this first: a list of navigation links is not a menu.** `role="menu"`
+obligates you to remove every item from the Tab sequence, implement Up/Down/Home/
+End/typeahead, move focus into the panel on open, close on activation, and return
+focus — APG's own Disclosure Navigation example says the menu role is wrong for a
+link list, because it doesn't provide the complex functionality assistive technology
+expects from that role. So "dropdown" is two different recipes depending on what's
+inside, not one:
+
+**Navigation links** — `popover`, plain `<a>` elements, **no** `role="menu"`, zero
+JavaScript beyond what `cw.popover` already ships:
 
 ```erb
-<%= cw.popover_for id: "actions-menu" do |p| %>
-  <button <%= cw_attrs(p.trigger_attrs) %>>Actions</button>
-  <div <%= cw_attrs(p.panel_attrs, cw.click_outside_attrs, cw.dismiss_attrs(escape: true)) %>>
-    <%= cw.roving_focus_for orientation: "vertical" do |r| %>
-      <div <%= cw_attrs(r.root_attrs) %> role="menu">
-        <% actions.each_with_index do |action, i| %>
-          <button <%= cw_attrs(r.item_attrs(current: i.zero?)) %> role="menuitem">
-            <%= action %>
-          </button>
-        <% end %>
-      </div>
-    <% end %>
+<%= cw.popover_for id: "profile-menu" do |p| %>
+  <button <%= cw_attrs(p.trigger_attrs) %>>Account</button>
+  <div <%= cw_attrs(p.panel_attrs) %>>
+    <%= link_to "Settings", settings_path %>
+    <%= link_to "Sign out", logout_path, data: { turbo_method: :delete } %>
   </div>
 <% end %>
 ```
 
-Rule 0 note: for a plain disclosure-style menu with no keyboard roving, the bare
-`popover` attribute alone may be the whole widget.
+**Commands** (Duplicate, Archive, Delete) — `cw.menu`, which composes `popover` +
+`roving-focus` + the `role="menu"` semantics for you; nothing here is hand-assembled:
+
+```erb
+<%= cw.menu "Actions", id: "row-42-menu", items: [
+      { label: "Duplicate", value: "duplicate" },
+      { label: "Archive", value: "archive" },
+      { label: "Delete", value: "delete" }
+    ] %>
+```
+
+For a `button_to`-shaped item (a DELETE with CSRF), use `cw.menu_for` instead — see
+`Crosswire::Presenters::Menu`'s docstring for the compose-it-yourself form.
 
 ## Toast / flash message
 

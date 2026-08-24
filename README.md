@@ -5,7 +5,7 @@ Composable, accessible Hotwire primitives for Rails.
 Small, generic Stimulus controllers paired with ERB helpers, so rich UI stays *The Rails
 Way* without reaching for React.
 
-> **Status: alpha.** Twenty-eight primitives of a planned 39, plus a separate
+> **Status: alpha.** Twenty-nine primitives of a planned 39, plus a separate
 > **survivability tier** (`preserve` · `loading` · `fallback` · `Crosswire::Streams`)
 > that sits outside that count. The API will change. It is being built in the open from
 > a 50,000-line research corpus (`research/`) rather than from vibes — if a design
@@ -125,7 +125,7 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 `relative-time` · `selection` · `sortable`
 
 **Widgets** (own markup, ship an ejectable partial)
-`disclosure` · `dialog` · `confirm` · `tabs` · `popover`
+`disclosure` · `dialog` · `confirm` · `tabs` · `popover` · `menu`
 
 **Survivability tier** (outside the 39-primitive vocabulary — see D7)
 `preserve` · `loading` · `fallback` · `Crosswire::Streams`
@@ -134,7 +134,7 @@ Every component exposes `cw.<name>_for` (yields the presenter) and `cw.<name>_at
 (returns the merged attribute hash); widgets additionally get the bare `cw.<name>`
 render form — see `Crosswire::Builder` (lib/crosswire/builder.rb).
 
-11 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
+10 more are specified in `research/notes/08-ui-pattern-catalog.md` — the vocabulary was
 reconciled across ~95 UI patterns with zero drift, so the names are stable even where the
 code isn't written.
 

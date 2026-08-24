@@ -1,0 +1,15 @@
+<%= cw.menu "Actions", id: "row-actions", placement: placement, items: [
+      { label: "Duplicate", value: "duplicate" },
+      { label: "Rename", value: "rename" },
+      { label: "Archive", value: "archive" },
+      { label: "View history", href: "#" },
+      { label: "Delete", value: "delete" }
+    ] %>
+
+<p>Last selected: <output id="menu-demo-status">none yet</output></p>
+
+<script type="module">
+  document.addEventListener("cw--menu:selected", (event) => {
+    document.getElementById("menu-demo-status").textContent = event.detail.value ?? "(a link — no value)"
+  })
+</script>
