@@ -54,19 +54,25 @@ function applyLock() {
   savedScrollY = window.scrollY
 
   savedHtmlOverflow = doc.style.overflow
+
+  // Measure whether a scrollbar is actually taking space BEFORE touching `overflow`.
+  // `scrollbar-gutter: stable` reserves gutter space unconditionally the instant
+  // `overflow` isn't `visible` — per the CSS Overflow spec, it reserves the gutter
+  // "even if the box doesn't currently overflow in the relevant axis." Applying it
+  // regardless of whether a scrollbar existed before locking doesn't compensate for
+  // anything on a page that wasn't already scrolling — it *introduces* a shift where
+  // none existed, on any platform with a space-taking (non-overlay) scrollbar. Gating
+  // both branches on a measured `gap` keeps this to what it claims to be: compensation,
+  // not a blind reservation.
+  const gap = window.innerWidth - doc.clientWidth
+
   doc.style.overflow = "hidden"
 
-  // Reserve the scrollbar's own width permanently rather than measuring it after the
-  // fact — this is the detail everyone gets wrong, and it's what keeps the page from
-  // visibly jumping a few pixels sideways the instant the scrollbar disappears.
-  // Falls back to measuring the actual gap only where `scrollbar-gutter` isn't
-  // supported.
-  if (supportsScrollbarGutter()) {
-    savedHtmlScrollbarGutter = doc.style.scrollbarGutter
-    doc.style.scrollbarGutter = "stable"
-  } else {
-    const gap = window.innerWidth - doc.clientWidth
-    if (gap > 0) {
+  if (gap > 0) {
+    if (supportsScrollbarGutter()) {
+      savedHtmlScrollbarGutter = doc.style.scrollbarGutter
+      doc.style.scrollbarGutter = "stable"
+    } else {
       savedHtmlPaddingRight = doc.style.paddingRight
       const current = Number.parseFloat(getComputedStyle(doc).paddingRight) || 0
       doc.style.paddingRight = `${current + gap}px`

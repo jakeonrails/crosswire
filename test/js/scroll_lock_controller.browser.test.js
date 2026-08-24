@@ -89,6 +89,27 @@ describe("cw--scroll-lock (real browser layout)", () => {
   // is unchanged (or compensated by padding) across the lock transition is the only
   // honest way to verify that claim — jsdom cannot report a real scrollbar width at
   // all.
+  //
+  // `tallPageMarkup()` forces real overflow so there's a genuine scrollbar to
+  // compensate for. That alone doesn't exercise the compensation path on every
+  // platform, though: macOS's default overlay scrollbars take 0px of layout space
+  // regardless of content height, so `widthBefore === widthDuring` holds trivially
+  // there even with the compensation logic removed outright — confirmed directly
+  // against this repo's pinned Playwright/Chromium build, where neither
+  // `::-webkit-scrollbar` sizing nor `scrollbar-width` moved `clientWidth` off of a 0px
+  // gap in headless mode on macOS. That asymmetry is inherent to overlay-vs-classic
+  // scrollbar platforms, not something fakeable from CSS here, so this assertion stays
+  // a platform-independent invariant (measured, never a hardcoded pixel value) rather
+  // than a forced scenario. It's naturally exercised for real on CI's headless Linux
+  // Chromium, whose default classic (space-taking) scrollbars give `gap` in
+  // scroll_lock_controller.js's `applyLock()` a genuine non-zero value. The
+  // deterministic, mocked regression coverage for the exact gating bug this guards
+  // against — reserving gutter space only when something actually overflowed before
+  // locking — lives in scroll_lock_controller.test.js's "scrollbar-gutter compensation
+  // gating" suite, which controls `clientWidth`/`innerWidth`/`CSS.supports` directly
+  // and so isn't at the mercy of the host platform's actual scrollbar rendering. See
+  // dialog_controller.browser.test.js's "scrollbar-gutter compensation" test for the
+  // full writeup of the CI-only failure this guards against.
   test("does not shift page content width when the scrollbar disappears", async () => {
     await mount(tallPageMarkup(), { "cw--scroll-lock": ScrollLockController })
 

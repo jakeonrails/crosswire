@@ -154,7 +154,31 @@ describe("cw--dialog (real browser <dialog>)", () => {
     document.body.style.height = ""
   })
 
+  // `document.body.style.height = "5000px"` forces real overflow on `<html>` so there's
+  // a genuine scrollbar to compensate for before the lock ever engages — without it
+  // `gap` in scroll_lock_controller.js's `applyLock()` is 0 on every platform and the
+  // compensation branch never runs at all. Without any overflowing content, this
+  // assertion previously passed for free on every platform (before === during === the
+  // same untouched viewport width) while the real bug — `scrollbar-gutter: stable`
+  // being applied unconditionally, reserving gutter space even when nothing overflowed
+  // — reproduced only in CI's headless Linux Chromium, whose default classic
+  // (space-taking) scrollbars turned that unconditional reservation into a real 15px
+  // content-box shift. macOS's default overlay scrollbars take 0px of layout space
+  // regardless of content height, so `document.documentElement.getBoundingClientRect()`
+  // is unaffected locally even with this fixed — that asymmetry is inherent to
+  // overlay-vs-classic scrollbar platforms and (verified directly against this
+  // repo's pinned Playwright build) is not something `::-webkit-scrollbar` /
+  // `scrollbar-width` overrides can force away in headless Chromium on macOS, so this
+  // file settles for a platform-independent invariant (measured, never a hardcoded
+  // pixel value) rather than trying to fake a classic scrollbar locally. The
+  // deterministic, mocked regression coverage for the exact gating bug — reserve gutter
+  // space only when something actually overflowed before locking — lives in
+  // scroll_lock_controller.test.js's "scrollbar-gutter compensation gating" suite,
+  // which controls `clientWidth`/`innerWidth`/`CSS.supports` directly and so isn't at
+  // the mercy of the host platform's actual scrollbar rendering.
   test("scrollbar-gutter compensation keeps the page's content box width stable while locked", async () => {
+    document.body.style.height = "5000px"
+
     const { trigger } = await boot()
     const before = document.documentElement.getBoundingClientRect().width
 
@@ -163,6 +187,8 @@ describe("cw--dialog (real browser <dialog>)", () => {
     const during = document.documentElement.getBoundingClientRect().width
 
     expect(during).toBe(before)
+
+    document.body.style.height = ""
   })
 
   test("Turbo morph hazard: a dialog left open across a morph is not silently struck inert-forever", async () => {

@@ -161,6 +161,57 @@ describe("cw--scroll-lock", () => {
   // either — the only thing being verified is "does the controller apply and later
   // restore the expected inline styles."
 
+  // --- scrollbar-gutter compensation gating --------------------------------------------
+  //
+  // jsdom does no layout, so `document.documentElement.clientWidth` is unconditionally 0
+  // and `CSS` isn't even defined as a global here (see the file-level comment) — real
+  // cross-platform layout behavior belongs in scroll_lock_controller.browser.test.js.
+  // But that's exactly what makes jsdom the one place `applyLock()`'s gating logic can be
+  // pinned down deterministically: `clientWidth`, `innerWidth`, and `CSS.supports` can
+  // all be mocked directly, independent of what scrollbar (if any) the host OS/browser
+  // actually renders. This is the regression test for the bug fixed here: the
+  // `scrollbar-gutter: stable` branch used to apply unconditionally, which reserves
+  // gutter space even when nothing overflowed before locking (per the CSS Overflow spec,
+  // `stable` reserves space "even if the box doesn't currently overflow") — introducing
+  // exactly the shift the compensation was supposed to prevent, on any platform with a
+  // space-taking scrollbar. It only ever surfaced as the real, reproducible CI failure
+  // this fix responds to.
+  describe("scrollbar-gutter compensation gating", () => {
+    let originalCSS
+
+    beforeEach(() => {
+      originalCSS = global.CSS
+      global.CSS = { supports: () => true } // pretend scrollbar-gutter is supported
+    })
+
+    afterEach(() => {
+      global.CSS = originalCSS
+      html.style.scrollbarGutter = ""
+    })
+
+    test("does not reserve scrollbar-gutter space when nothing overflowed before locking", async () => {
+      Object.defineProperty(html, "clientWidth", { value: 1024, configurable: true }) // no gap
+      Object.defineProperty(window, "innerWidth", { value: 1024, configurable: true })
+
+      await mountAll(markup("a", true))
+
+      expect(html.style.scrollbarGutter).toBe("")
+
+      delete html.clientWidth
+    })
+
+    test("reserves scrollbar-gutter space when a real scrollbar was taking space before locking", async () => {
+      Object.defineProperty(html, "clientWidth", { value: 1009, configurable: true }) // 15px gap
+      Object.defineProperty(window, "innerWidth", { value: 1024, configurable: true })
+
+      await mountAll(markup("a", true))
+
+      expect(html.style.scrollbarGutter).toBe("stable")
+
+      delete html.clientWidth
+    })
+  })
+
   describe("iOS", () => {
     // `platform`/`maxTouchPoints` are inherited getters on Navigator.prototype, not
     // own properties of the `navigator` instance — `getOwnPropertyDescriptor` returns
