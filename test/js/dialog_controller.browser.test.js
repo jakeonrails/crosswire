@@ -176,15 +176,23 @@ describe("cw--dialog (real browser <dialog>)", () => {
   // scroll_lock_controller.test.js's "scrollbar-gutter compensation gating" suite,
   // which controls `clientWidth`/`innerWidth`/`CSS.supports` directly and so isn't at
   // the mercy of the host platform's actual scrollbar rendering.
+  // Measure clientWidth (the content box), not getBoundingClientRect().width (the
+  // border box). On classic-scrollbar platforms the two move differently across the
+  // lock transition: the real scrollbar and the reserved scrollbar-gutter are carved
+  // out of different boxes, so the border box legitimately changes width (observed on
+  // CI's Linux Chromium: 414 -> 399) while the content box — the thing whose stability
+  // the user actually perceives as "no layout shift" — stays constant (399 -> 399).
+  // scroll_lock_controller.browser.test.js already measures clientWidth for the same
+  // reason.
   test("scrollbar-gutter compensation keeps the page's content box width stable while locked", async () => {
     document.body.style.height = "5000px"
 
     const { trigger } = await boot()
-    const before = document.documentElement.getBoundingClientRect().width
+    const before = document.documentElement.clientWidth
 
     trigger.click()
     await settle()
-    const during = document.documentElement.getBoundingClientRect().width
+    const during = document.documentElement.clientWidth
 
     expect(during).toBe(before)
 
