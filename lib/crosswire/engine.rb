@@ -11,10 +11,40 @@ module Crosswire
     config.autoload_paths << root.join("lib/crosswire/presenters")
     config.eager_load_paths << root.join("lib/crosswire/presenters")
 
-    # Serve our controllers through the asset pipeline (Propshaft or Sprockets).
+    # `lib/crosswire/ui` is DELIBERATELY ABSENT from both lists above, unlike
+    # `lib/crosswire/presenters`. Two independent reasons (UI-tier spec §2), either one
+    # sufficient on its own:
+    #
+    #   1. `test/crosswire/contract_audit_test.rb#test_every_presenter_has_a_matching_controller`
+    #      globs `lib/crosswire/presenters/` and demands every entry own a Stimulus
+    #      controller. UI presenters have none by design (Rule 0) — autoloading them
+    #      from that same directory would either fail that check or force it to special-
+    #      case a UI subdirectory it has no business knowing about.
+    #   2. `UI` is a two-letter acronym. Zeitwerk's default inflector would expect
+    #      `lib/crosswire/ui.rb` to define `Crosswire::Ui`, not `Crosswire::UI` — fixable
+    #      only with a `Zeitwerk::Inflector` override, and only a GLOBAL one, since Rails
+    #      shares one inflector across every autoload root in the app. Shipping a gem
+    #      that silently mutates the host app's inflection rules is not a cost this tier
+    #      is worth paying. `lib/crosswire.rb` requiring `crosswire/ui` explicitly (as it
+    #      does) sidesteps the whole question: a `require`d constant is never a Zeitwerk
+    #      concern.
+    #
+    # Nothing to write here to enforce it — the enforcement IS the absence of a
+    # `config.autoload_paths << root.join("lib/crosswire/ui")` line. Don't add one.
+
+    # Serve our controllers, and the UI tier's tokens/base/component CSS, through the
+    # asset pipeline (Propshaft or Sprockets).
     initializer "crosswire.assets" do |app|
       if app.config.respond_to?(:assets)
         app.config.assets.paths << root.join("app/assets/javascripts")
+        app.config.assets.paths << root.join("app/assets/stylesheets")
+
+        # `crosswire.css` (the app-owned @import manifest `rails g crosswire:install`
+        # writes) is what actually gets requested; it `@import`s this file. Sprockets
+        # needs precompile entries for anything reached only through `@import` and not
+        # directly `<link>`ed — Propshaft precompiles everything under `assets.paths`
+        # regardless, so this is a no-op there. See lib/generators/crosswire/install.
+        app.config.assets.precompile << "crosswire/ui.css"
       end
     end
 

@@ -1,0 +1,119 @@
+/* crosswire/ui/themes/patchbay.css — the site's own "technical drawing" palette
+   (paper/ink/copper/verdigris/oxide, site/template.html:10-80), re-valued as a
+   swappable crosswire UI theme. The JAKE-1 hedge: tokens.css ships a neutral
+   default so an app that never looks at the site isn't handed crosswire's own
+   branding; an app that WANTS the exact look demonstrated on the site imports this
+   file AFTER tokens.css. Both are the `crosswire.tokens` layer, same selectors, so
+   this simply overrides tokens.css's color custom properties property-by-property —
+   the same last-one-in-a-layer-wins mechanism described in tokens.css's own header.
+
+   Defines every --cw-color-* token tokens.css defines — nothing else. Space, radius,
+   type, shadow, motion and layering tokens are shared, unopinionated, and stay in
+   tokens.css; only the palette itself is a design opinion worth swapping. Same
+   selector structure, same light/dark mechanism, same contrast thresholds — see
+   tokens.css's own header comment and ui-tier-spec.md §1. */
+
+@layer crosswire.tokens {
+  :root {
+    /* light — site/template.html's :root block, mapped onto the semantic roles */
+    --cw-color-bg: #edf1f4;
+    --cw-color-surface: #f6f8fa;
+    --cw-color-surface-raised: #ffffff;
+    --cw-color-surface-sunk: #e2e8ed;
+    --cw-color-fg: #0e1319;
+    --cw-color-fg-muted: #3d4956;
+    --cw-color-fg-subtle: #6b7885;
+    --cw-color-border: #cbd5dd;
+    --cw-color-border-strong: #64727f;
+    --cw-color-accent: #b0703c;
+    --cw-color-accent-fg: #0e1319;
+    --cw-color-accent-hover: #c88a54;
+    --cw-color-accent-subtle: #f0e2d4;
+    --cw-color-danger: #9e3b32;
+    --cw-color-danger-fg: #ffffff;
+    --cw-color-danger-subtle: #f2dedc;
+    --cw-color-success: #3d7b70;
+    --cw-color-success-fg: #ffffff;
+    --cw-color-success-subtle: #dce9e6;
+    /* warning/info have no equivalent in site/template.html's palette — invented in
+       the same technical-drawing family (brass, steel-blue) rather than borrowed
+       from tokens.css's neutral amber/blue, so the theme still reads as one palette. */
+    --cw-color-warning: #9c6b12;
+    --cw-color-warning-fg: #ffffff;
+    --cw-color-warning-subtle: #f5ead3;
+    --cw-color-info: #3d5a80;
+    --cw-color-info-fg: #ffffff;
+    --cw-color-info-subtle: #dde6ee;
+    --cw-color-focus: #b0703c;
+    --cw-color-overlay: rgb(14 19 25 / 0.5);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  @layer crosswire.tokens {
+    :root:not([data-cw-theme="light"]):not([data-theme="light"]) {
+      --cw-color-bg: #0e1319;
+      --cw-color-surface: #161c24;
+      --cw-color-surface-raised: #1f2731;
+      --cw-color-surface-sunk: #0a0e13;
+      --cw-color-fg: #e4eaf0;
+      --cw-color-fg-muted: #a9b7c3;
+      --cw-color-fg-subtle: #71808e;
+      --cw-color-border: #232c36;
+      --cw-color-border-strong: #5c6c79;
+      --cw-color-accent: #d18f5c;
+      --cw-color-accent-fg: #0e1319;
+      --cw-color-accent-hover: #e5a874;
+      --cw-color-accent-subtle: #2a1d13;
+      --cw-color-danger: #d2726a;
+      --cw-color-danger-fg: #0e1319;
+      --cw-color-danger-subtle: #2a1614;
+      --cw-color-success: #67ab9e;
+      --cw-color-success-fg: #0e1319;
+      --cw-color-success-subtle: #12241f;
+      --cw-color-warning: #d9a441;
+      --cw-color-warning-fg: #0e1319;
+      --cw-color-warning-subtle: #2e2210;
+      --cw-color-info: #7c9cc2;
+      --cw-color-info-fg: #0e1319;
+      --cw-color-info-subtle: #16222e;
+      --cw-color-focus: #d18f5c;
+      --cw-color-overlay: rgb(0 0 0 / 0.6);
+    }
+  }
+}
+
+@layer crosswire.tokens {
+  /* Same block as the @media one above, verbatim — see tokens.css's own note on why
+     this duplication is intentional and how the audit compares the two. */
+  :root[data-cw-theme="dark"],
+  :root[data-theme="dark"]:not([data-cw-theme="light"]) {
+    --cw-color-bg: #0e1319;
+    --cw-color-surface: #161c24;
+    --cw-color-surface-raised: #1f2731;
+    --cw-color-surface-sunk: #0a0e13;
+    --cw-color-fg: #e4eaf0;
+    --cw-color-fg-muted: #a9b7c3;
+    --cw-color-fg-subtle: #71808e;
+    --cw-color-border: #232c36;
+    --cw-color-border-strong: #5c6c79;
+    --cw-color-accent: #d18f5c;
+    --cw-color-accent-fg: #0e1319;
+    --cw-color-accent-hover: #e5a874;
+    --cw-color-accent-subtle: #2a1d13;
+    --cw-color-danger: #d2726a;
+    --cw-color-danger-fg: #0e1319;
+    --cw-color-danger-subtle: #2a1614;
+    --cw-color-success: #67ab9e;
+    --cw-color-success-fg: #0e1319;
+    --cw-color-success-subtle: #12241f;
+    --cw-color-warning: #d9a441;
+    --cw-color-warning-fg: #0e1319;
+    --cw-color-warning-subtle: #2e2210;
+    --cw-color-info: #7c9cc2;
+    --cw-color-info-fg: #0e1319;
+    --cw-color-info-subtle: #16222e;
+    --cw-color-focus: #d18f5c;
+    --cw-color-overlay: rgb(0 0 0 / 0.6);
+  }
+}

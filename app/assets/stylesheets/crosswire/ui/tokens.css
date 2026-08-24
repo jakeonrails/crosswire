@@ -1,0 +1,126 @@
+/* crosswire/ui/tokens.css — the styled component tier's design tokens (~67).
+   Two depths only: a global (--cw-color-accent) and a component knob defaulting to
+   one (--cw-button-bg, in button.css, defaults to var(--cw-color-surface)). Override
+   system-wide via a global, per-component via a knob, per-instance via style="".
+   Knobs never chain to a GUESSED host token name — the escalation ladder below is
+   the mechanism for host overrides instead (ui-tier-spec.md §1).
+
+   Convention: a surface-group token (bg/surface/border/...) names what it paints;
+   bare `fg` = the text color to use on it. A role token (accent/danger/success/
+   warning/info) names an action or state; `<role>-fg` = text color ON that role's
+   background — shadcn's --foreground/--primary-foreground split, renamed to
+   crosswire's flat --cw-<category>-<step> scheme.
+
+   Host override ladder, no !important ever: (1) redefine any --cw-* in your own
+   unlayered CSS; (2) plain rules against .cw-button — unlayered app CSS beats every
+   layer; (3) `rails g crosswire:eject button --css`. ui.css (the bundle) declares
+   `@layer crosswire.tokens, crosswire.base, crosswire.components;` once; this file
+   wraps its own rules in the matching `@layer` so it stays ordered standalone too.
+
+   Colors below are paired two-per-line to fit this file's ≤160-line budget with the
+   dark palette necessarily duplicated twice (see the note lower down) — every other
+   category stays one token per line. */
+
+@layer crosswire.tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* color (27, semantic) — light values */
+    --cw-color-bg: #fbfcfd; --cw-color-surface: #f8fafc;
+    --cw-color-surface-raised: #ffffff; --cw-color-surface-sunk: #f1f5f9;
+    --cw-color-fg: #0f172a; --cw-color-fg-muted: #475569;
+    --cw-color-fg-subtle: #94a3b8; --cw-color-border: #e2e8f0;
+    --cw-color-border-strong: #7c8ba1; --cw-color-accent: #4f46e5;
+    --cw-color-accent-fg: #ffffff; --cw-color-accent-hover: #4338ca;
+    --cw-color-accent-subtle: #eef2ff; --cw-color-danger: #dc2626;
+    --cw-color-danger-fg: #ffffff; --cw-color-danger-subtle: #fef2f2;
+    --cw-color-success: #15803d; --cw-color-success-fg: #ffffff;
+    --cw-color-success-subtle: #f0fdf4; --cw-color-warning: #d97706;
+    --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #fffbeb;
+    --cw-color-info: #1d4ed8; --cw-color-info-fg: #ffffff;
+    --cw-color-info-subtle: #eff6ff; --cw-color-focus: #4f46e5;
+    --cw-color-overlay: rgb(15 23 42 / 0.5);
+
+    /* space (9) */
+    --cw-space-0: 0; --cw-space-1: 0.25rem; --cw-space-2: 0.5rem;
+    --cw-space-3: 0.75rem; --cw-space-4: 1rem; --cw-space-5: 1.5rem;
+    --cw-space-6: 2rem; --cw-space-7: 3rem; --cw-space-8: 4rem;
+
+    /* radius (5) — one knob, four derived steps */
+    --cw-radius: 0.5rem; --cw-radius-sm: calc(var(--cw-radius) - 4px);
+    --cw-radius-md: calc(var(--cw-radius) - 2px); --cw-radius-lg: var(--cw-radius);
+    --cw-radius-full: 9999px;
+
+    /* type (14) */
+    --cw-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --cw-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --cw-text-xs: 0.75rem; --cw-text-sm: 0.875rem; --cw-text-base: 1rem;
+    --cw-text-lg: 1.125rem; --cw-text-xl: 1.25rem; --cw-text-2xl: 1.5rem;
+    --cw-weight-normal: 400; --cw-weight-medium: 500;
+    --cw-weight-semibold: 600; --cw-weight-bold: 700;
+    --cw-leading-tight: 1.25; --cw-leading-normal: 1.5;
+
+    /* shadow (4) — focus ring travels as a shadow so it composes with elevation */
+    --cw-shadow-1: 0 1px 2px rgb(15 23 42 / 0.06);
+    --cw-shadow-2: 0 4px 12px -2px rgb(15 23 42 / 0.12);
+    --cw-shadow-3: 0 16px 40px -12px rgb(15 23 42 / 0.22);
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-focus);
+
+    /* motion (3) */
+    --cw-duration-fast: 120ms; --cw-duration-base: 200ms;
+    --cw-ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+    /* layering (5) */
+    --cw-z-dropdown: 1000; --cw-z-overlay: 1010; --cw-z-modal: 1020;
+    --cw-z-toast: 1030; --cw-border-width: 1px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-cw-theme="light"]):not([data-theme="light"]) {
+      color-scheme: dark;
+      --cw-color-bg: #0b1220; --cw-color-surface: #111827;
+      --cw-color-surface-raised: #1f2937; --cw-color-surface-sunk: #070b13;
+      --cw-color-fg: #f1f5f9; --cw-color-fg-muted: #94a3b8;
+      --cw-color-fg-subtle: #64748b; --cw-color-border: #1f2937;
+      --cw-color-border-strong: #5b6675; --cw-color-accent: #818cf8;
+      --cw-color-accent-fg: #1e1b4b; --cw-color-accent-hover: #a5b4fc;
+      --cw-color-accent-subtle: #1e1b4b; --cw-color-danger: #f87171;
+      --cw-color-danger-fg: #450a0a; --cw-color-danger-subtle: #450a0a;
+      --cw-color-success: #4ade80; --cw-color-success-fg: #052e16;
+      --cw-color-success-subtle: #052e16; --cw-color-warning: #fbbf24;
+      --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #451a03;
+      --cw-color-info: #60a5fa; --cw-color-info-fg: #0c1e3d;
+      --cw-color-info-subtle: #0c1e3d; --cw-color-focus: #818cf8;
+      --cw-color-overlay: rgb(0 0 0 / 0.6);
+    }
+  }
+
+  /* Same declarations as the @media block above, verbatim (a test asserts the two
+     dark blocks stay byte-identical). `data-cw-theme` is canonical; `data-theme` is
+     honoured as a bridge, but cw wins if both are set. */
+  :root[data-cw-theme="dark"],
+  :root[data-theme="dark"]:not([data-cw-theme="light"]) {
+    color-scheme: dark;
+    --cw-color-bg: #0b1220; --cw-color-surface: #111827;
+    --cw-color-surface-raised: #1f2937; --cw-color-surface-sunk: #070b13;
+    --cw-color-fg: #f1f5f9; --cw-color-fg-muted: #94a3b8;
+    --cw-color-fg-subtle: #64748b; --cw-color-border: #1f2937;
+    --cw-color-border-strong: #5b6675; --cw-color-accent: #818cf8;
+    --cw-color-accent-fg: #1e1b4b; --cw-color-accent-hover: #a5b4fc;
+    --cw-color-accent-subtle: #1e1b4b; --cw-color-danger: #f87171;
+    --cw-color-danger-fg: #450a0a; --cw-color-danger-subtle: #450a0a;
+    --cw-color-success: #4ade80; --cw-color-success-fg: #052e16;
+    --cw-color-success-subtle: #052e16; --cw-color-warning: #fbbf24;
+    --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #451a03;
+    --cw-color-info: #60a5fa; --cw-color-info-fg: #0c1e3d;
+    --cw-color-info-subtle: #0c1e3d; --cw-color-focus: #818cf8;
+    --cw-color-overlay: rgb(0 0 0 / 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --cw-duration-fast: 1ms;
+      --cw-duration-base: 1ms;
+    }
+  }
+}

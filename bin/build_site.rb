@@ -10,6 +10,7 @@
 # Run: bin/build_site.rb  (or `rake site`)
 
 require "fileutils"
+require_relative "../lib/crosswire/vocabulary"
 
 ROOT = File.expand_path("..", __dir__)
 TEMPLATE = File.join(ROOT, "site/template.html")
@@ -22,18 +23,10 @@ MORPH = File.join(ROOT, "app/assets/javascripts/crosswire/morph.js")
 # bloat the page with code no demo exercises.
 DEMOED = %w[disclosure dismiss clipboard dialog hotkey persist].freeze
 
-# The reconciled 39-primitive vocabulary, grouped as in research/notes/08. Shipped
-# status is derived from the filesystem, never hand-maintained, so the table cannot
-# drift from reality.
-VOCABULARY = {
-  "Behaviour" => %w[dismiss persist intersection transition focus-trap roving-focus hotkey sync
-                    timeout scroll-lock interval click-outside anchor activate autoscroll cable-channel],
-  "Widget" => %w[dialog combobox popover disclosure tabs menu],
-  "Form" => %w[autosubmit dirty-form direct-upload char-count nested-form drop-zone reveal
-               file-preview input-mask autogrow],
-  "Collection" => %w[sortable selection chart],
-  "Utility" => %w[relative-time confirm clipboard countdown]
-}.freeze
+# The reconciled 39-primitive vocabulary now lives in lib/crosswire/vocabulary.rb —
+# the UI-tier name-collision lint needs the same table, so it is required above
+# rather than defined twice. See that file's docstring.
+VOCABULARY = Crosswire::VOCABULARY
 
 def shipped
   @shipped ||= Dir[File.join(CONTROLLERS, "*_controller.js")]

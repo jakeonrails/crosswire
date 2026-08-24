@@ -95,8 +95,15 @@ module Crosswire
       end
 
       # Components that ship a default, ejectable partial.
+      #
+      # Widened to `**/_*.html.erb` so this also walks app/views/crosswire/ui/ (empty
+      # through Phase 0 — the UI tier's own eject tiers, `--css`/`--presenter`, land
+      # in a later phase per ui-tier-spec.md §4). `File.basename` already discards any
+      # subdirectory, so a future `ui/_button.html.erb` yields the same "button" name
+      # a flat file would — no behavior change today, just a directory the glob now
+      # actually looks inside.
       def partial_components
-        Dir[views_dir.join("_*.html.erb")].map do |path|
+        Dir[views_dir.join("**", "_*.html.erb")].map do |path|
           File.basename(path).delete_prefix("_").delete_suffix(".html.erb")
         end.sort
       end

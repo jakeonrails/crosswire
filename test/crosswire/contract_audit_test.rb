@@ -78,18 +78,26 @@ module Crosswire
 
     # R10 — the contract marker is what makes ejection and view-path shadowing safe.
     # ShadowCheck reads it at boot; a partial without one silently defeats that.
+    #
+    # Widened to `**/_*.html.erb` so this also walks app/views/crosswire/ui/ (empty
+    # through Phase 0). A UI partial's marker is checked against
+    # `Crosswire::UI::CONTRACT_VERSION`, never the primitive tier's
+    # `Crosswire::CONTRACT_VERSION` — see `expected_contract_version_for` — so this
+    # test stays correct the moment Phase 1 lands the first one, instead of demanding
+    # every UI partial declare the primitive tier's version number.
     def test_every_shipped_partial_carries_a_current_contract_marker
-      partials = Dir[File.join(VIEW_DIR, "_*.html.erb")].sort
+      partials = Dir[File.join(VIEW_DIR, "**", "_*.html.erb")].sort
       refute_empty partials, "expected at least one shipped partial"
 
       violations = partials.filter_map do |path|
         marker = File.read(path)[/crosswire:contract\s+v(\d+)/, 1]
-        name = File.basename(path)
+        name = path.delete_prefix("#{VIEW_DIR}/")
+        expected = expected_contract_version_for(path)
 
         if marker.nil?
           "#{name}: no `<%# crosswire:contract vN %>` marker"
-        elsif marker.to_i != Crosswire::CONTRACT_VERSION
-          "#{name}: declares v#{marker}, gem ships v#{Crosswire::CONTRACT_VERSION}"
+        elsif marker.to_i != expected
+          "#{name}: declares v#{marker}, gem ships v#{expected}"
         end
       end
 
@@ -98,6 +106,15 @@ module Crosswire
 
         #{violations.map { |v| "  #{v}" }.join("\n")}
       MSG
+    end
+
+    def expected_contract_version_for(path)
+      if path.delete_prefix("#{VIEW_DIR}/").start_with?("ui/")
+        require "crosswire/ui"
+        Crosswire::UI::CONTRACT_VERSION
+      else
+        Crosswire::CONTRACT_VERSION
+      end
     end
 
     # R10, inverted. The contract marker is an ERB comment that ShadowCheck reads out

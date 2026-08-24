@@ -1,0 +1,31 @@
+Description:
+    Set up crosswire's styled component tier (tokens, base rules, and every shipped
+    component's CSS) in this app. Writes ONE file you own from here on:
+
+        app/assets/stylesheets/crosswire.css
+
+    an @import manifest pulling in the gem's ui.css bundle. Nothing crosswire ships
+    auto-injects a <link> for this — you add the printed stylesheet_link_tag to your
+    own layout, so an app that never uses a UI component pays nothing for it.
+
+    Re-run any time; the manifest is written once with create_file, so an unchanged
+    file is a silent no-op and a locally edited one prompts (or is preserved/
+    overwritten under --skip/--force) exactly like `crosswire:eject`.
+
+Example:
+    rails generate crosswire:install
+
+        Writes app/assets/stylesheets/crosswire.css importing "crosswire/ui.css".
+        Prints the stylesheet_link_tag line to add to your layout.
+
+    rails generate crosswire:install --tokens
+
+        Also copies tokens.css into your app
+        (app/assets/stylesheets/crosswire/ui/tokens.css) and imports it AFTER the
+        gem's bundle, so you can edit token values directly — your copy wins,
+        property by property, via the shared `crosswire.tokens` cascade layer.
+
+    rails generate crosswire:install --tailwind
+
+        Appends a clearly-marked placeholder comment noting that the Tailwind
+        @theme mapping is held to a future release — no mapping file exists yet.

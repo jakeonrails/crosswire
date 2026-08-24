@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "crosswire/ui"
+
 module Crosswire
   # The single entry point for crosswire's helper surface — modeled on
   # `Turbo::Streams::TagBuilder` (turbo-rails) and Rails' own `tag.`/`translate`-`t`
@@ -47,6 +49,20 @@ module Crosswire
       include Crosswire.const_get(:"#{camelize(name)}Helper")
     end
     include Crosswire::StreamsHelper
+
+    # The UI tier's equivalent of the loop above — included from `Crosswire::UI`,
+    # not `Crosswire`, and from a module living under `Crosswire::UI::<Name>Helper`
+    # (lib/crosswire/ui/<name>_helper.rb), not `app/helpers/`, per the UI-tier spec §2.
+    # `Crosswire::UI::COMPONENTS` is empty through Phase 0 (spec §10), so this is a
+    # true no-op today — zero iterations, nothing included — but it is real, exercised
+    # code: `test/crosswire/ui_contract_audit_test.rb` walks
+    # `Crosswire::UI.component_names` and asserts each one's helper module actually
+    # landed in `Crosswire::Builder.ancestors`, so the very first UI component to add
+    # a name here is checked by the same mechanism the primitive tier already trusts,
+    # not by a promise that this loop would have worked.
+    Crosswire::UI.component_names.each do |name|
+      include Crosswire::UI.const_get(:"#{camelize(name)}Helper")
+    end
 
     # Names a consumer might reasonably reach for that crosswire deliberately does NOT
     # ship as one primitive (docs/COMPONENT_CONTRACT.md "Banned as primitive names" —

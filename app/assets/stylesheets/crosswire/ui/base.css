@@ -1,0 +1,47 @@
+/* crosswire/ui/base.css — the handful of rules every UI component can assume are
+   already in effect, so no individual component.css has to re-declare them.
+   See ui-tier-spec.md §6. */
+
+@layer crosswire.base {
+  /* Visually hidden but still announced — the same shape as Bootstrap's
+     .visually-hidden / Tailwind's .sr-only. Components reach for this instead of
+     `display: none` wherever sighted users don't need the text but a screen reader
+     still should (e.g. a toast's live-region label). */
+  .cw-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Belt-and-braces: the `hidden` attribute already does this natively, but a
+     component that also toggles a class (rather than the attribute) for a transition
+     needs this to still win over any `display` a caller's own CSS might set. */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* One shared focus-visible treatment, built from --cw-shadow-focus (a shadow, not
+     an outline) specifically so it COMPOSES with a component's own box-shadow
+     elevation instead of replacing it — see tokens.css's shadow section. Individual
+     components opt in with `.cw-focusable` on whichever element is the real focus
+     target; nothing here applies unprompted. */
+  .cw-focusable:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  /* Scoped to .cw-* only — never the bare `*` selector. A universal box-sizing reset
+     is exactly the kind of global rule a component LIBRARY must not impose on a host
+     app's own markup; every crosswire UI component opts itself in by carrying this
+     class, and nothing outside cw-* is touched. */
+  [class^="cw-"],
+  [class*=" cw-"] {
+    box-sizing: border-box;
+  }
+}
