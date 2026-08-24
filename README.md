@@ -138,6 +138,18 @@ render form — see `Crosswire::Builder` (lib/crosswire/builder.rb).
 reconciled across ~95 UI patterns with zero drift, so the names are stable even where the
 code isn't written.
 
+## Styled components
+
+A second, separate tier: purely presentational components — `button`, `badge`, and
+more to come — that ship a Ruby presenter, an ejectable partial, and real CSS built on
+~67 design tokens (`--cw-<category>-<step>` globals, `--cw-<component>-<prop>` knobs
+that default to them). Same accessibility-in-the-presenter contract as the primitives
+above, same `cw.<name>` / `cw.<name>_for` / `cw.<name>_attrs` helper triple, and its
+own `crosswire:eject` tiers. It is landing component by component, not all at once —
+see `site/components/` for the ones shipped so far, each with live, restylable
+examples rendered from the gem's real source, and `docs/MORPH.md` for how each one
+behaves under a Turbo 8 morph.
+
 ## Accessibility is in the presenter, not the markup
 
 Every `role`, `aria-*`, id relationship and `tabindex` is emitted by a Ruby presenter. The

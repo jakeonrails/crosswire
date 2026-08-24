@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.button — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>button</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A button or link with five variants, three sizes, and the three accessibility guarantees a plain &lt;button&gt;/&lt;a&gt; gets wrong by default (type=button, disabled-anchor semantics, aria-busy/data-loading).</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><p>
+  <a class="cw-button cw-button--primary cw-focusable" href="https://example.com/docs">Visit the docs</a>
+
+  <a class="cw-button cw-focusable" role="link" aria-disabled="true">Disabled link</a>
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/button/as-link.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.button &quot;Visit the docs&quot;, href: &quot;https://example.com/docs&quot;, variant: :primary %&gt;
+  &lt;%= cw.button &quot;Disabled link&quot;, href: &quot;#&quot;, disabled: true %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <button class="cw-button cw-button--sm cw-focusable" type="button">Small</button>
+
+  <button class="cw-button cw-focusable" type="button">Medium</button>
+
+  <button class="cw-button cw-button--lg cw-focusable" type="button">Large</button>
+
+  <button class="cw-button cw-button--ghost cw-button--icon cw-focusable" type="button">★</button>
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/button/sizes.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.button &quot;Small&quot;, size: :sm %&gt;
+  &lt;%= cw.button &quot;Medium&quot; %&gt;
+  &lt;%= cw.button &quot;Large&quot;, size: :lg %&gt;
+  &lt;%= cw.button &quot;★&quot;, size: :icon, variant: :ghost %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <button class="cw-button cw-focusable" type="button" disabled="disabled">Disabled</button>
+
+  <button class="cw-button cw-button--primary cw-focusable" type="button" aria-busy="true" data-loading="">Loading</button>
+
+  <a class="cw-button cw-focusable" role="link" aria-disabled="true">Disabled link</a>
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/button/states.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.button &quot;Disabled&quot;, disabled: true %&gt;
+  &lt;%= cw.button &quot;Loading&quot;, variant: :primary, loading: true %&gt;
+  &lt;%= cw.button &quot;Disabled link&quot;, href: &quot;#&quot;, disabled: true %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <button class="cw-button cw-button--primary cw-focusable" type="button">Primary</button>
+
+  <button class="cw-button cw-focusable" type="button">Secondary</button>
+
+  <button class="cw-button cw-button--ghost cw-focusable" type="button">Ghost</button>
+
+  <button class="cw-button cw-button--danger cw-focusable" type="button">Danger</button>
+
+  <button class="cw-button cw-button--link cw-focusable" type="button">Link</button>
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/button/variants.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.button &quot;Primary&quot;, variant: :primary %&gt;
+  &lt;%= cw.button &quot;Secondary&quot; %&gt;
+  &lt;%= cw.button &quot;Ghost&quot;, variant: :ghost %&gt;
+  &lt;%= cw.button &quot;Danger&quot;, variant: :danger %&gt;
+  &lt;%= cw.button &quot;Link&quot;, variant: :link %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <a class="cw-button cw-button--primary cw-focusable" href="https://example.com/docs">Read the docs</a>
+</p>
+<p>
+  <form class="button_to" method="post" action="#"><button class="cw-button cw-button--danger cw-focusable" type="submit">Delete account</button></form>
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/button/with-rails-helpers.html.erb</p>
+    <pre><code>&lt;%#
+  RULE 0: a button that submits a form or navigates needs no JavaScript — pair
+  cw.button_attrs with the real Rails helper instead of cw.button&#39;s own markup.
+%&gt;
+&lt;p&gt;
+  &lt;%= link_to &quot;Read the docs&quot;, &quot;https://example.com/docs&quot;,
+              cw.button_attrs(variant: :primary, href: &quot;https://example.com/docs&quot;) %&gt;
+&lt;/p&gt;
+&lt;p&gt;
+  &lt;%= button_to &quot;Delete account&quot;, &quot;#&quot;, cw.button_attrs(variant: :danger).except(&quot;type&quot;) %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <table class="props">
+  <thead><tr><th>Prop</th><th>Values</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr>
+  <td><code>variant</code></td>
+  <td><code>:primary, :secondary, :ghost, :danger, :link</code></td>
+  <td><code>:secondary</code></td>
+</tr>
+<tr>
+  <td><code>size</code></td>
+  <td><code>:sm, :md, :lg, :icon</code></td>
+  <td><code>:md</code></td>
+</tr>
+<tr>
+  <td><code>block</code></td>
+  <td><code>true, false</code></td>
+  <td><code>false</code></td>
+</tr>
+
+  </tbody>
+</table>
+
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Safe
+  A button carries no DOM-only state of its own (no open/expanded/selected —
+  just the variant classes and a11y attributes, all of which are re-rendered
+  identically by any morph because they are pure functions of the presenter&#39;s
+  constructor arguments). Nothing for a Turbo 8 morph to clobber or need to
+  preserve.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/button.css — cw-button, the UI tier&#39;s worked example (ui-tier-spec.md
+   §3/§6.2). Every color/length below is either a global token or one of THIS
+   component&#39;s own `--cw-button-*` knobs, always consumed through `var(...)` — see
+   tokens.css&#39;s own header for the three-rung override ladder (globals, knobs,
+   style=&quot;&quot;) this file exists to make possible.
+
+   Focus is deliberately NOT redeclared here — base.css&#39;s shared focus-visible rule
+   (a box-shadow built from `--cw-shadow-focus`) is the ONE treatment every
+   interactive UI component opts into by carrying the `cw-focusable` class (the
+   Button presenter&#39;s `attrs` method adds it) — see that file&#39;s own docstring. */
+
+@layer crosswire.components {
+  .cw-button {
+    /* Knobs — override per-component with a plain rule against .cw-button
+       (unlayered beats layered), or per-instance with style=&quot;&quot;. */
+    --cw-button-bg: var(--cw-color-surface);
+    --cw-button-fg: var(--cw-color-fg);
+    --cw-button-border: var(--cw-color-border-strong);
+    --cw-button-px: var(--cw-space-3);
+    --cw-button-py: var(--cw-space-2);
+
+    /* Implementation-only knobs (still `--cw-button-*`, still overridable, just not
+       part of the five headline knobs above) — kept as custom properties rather than
+       inlined literals so every actual length/number below stays a `var(...)`
+       reference, never a bare token, per this tier&#39;s token-discipline audit. */
+    --cw-button-disabled-opacity: .6;
+    --cw-button-danger-hover-brightness: 1.08;
+    --cw-button-icon-ratio: 1;
+    --cw-button-spinner-size: 1em;
+    --cw-button-spinner-thickness: .15em;
+    --cw-button-spinner-duration: calc(var(--cw-duration-base) * 4);
+    --cw-button-spin-turn: 360deg;
+    --cw-button-block-width: 100%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cw-space-2);
+    appearance: none;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+    border-radius: var(--cw-radius-md);
+    border: var(--cw-border-width) solid var(--cw-button-border);
+    padding: var(--cw-button-py) var(--cw-button-px);
+    background: var(--cw-button-bg);
+    color: var(--cw-button-fg);
+    transition: background-color var(--cw-duration-fast) var(--cw-ease),
+                border-color var(--cw-duration-fast) var(--cw-ease),
+                color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  /* Guarded against :disabled/[aria-disabled] so a disabled anchor (which has no
+     native :hover suppression the way a disabled &lt;button&gt; does) never shows a live
+     hover treatment — see Crosswire::UI::Button&#39;s own docstring on why a disabled
+     anchor is real ARIA state, not a cosmetic afterthought. */
+  .cw-button:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button:disabled,
+  .cw-button[aria-disabled=&quot;true&quot;] {
+    cursor: not-allowed;
+    opacity: var(--cw-button-disabled-opacity);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+
+  .cw-button--primary {
+    --cw-button-bg: var(--cw-color-accent);
+    --cw-button-fg: var(--cw-color-accent-fg);
+    --cw-button-border: var(--cw-color-accent);
+  }
+  .cw-button--primary:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+    --cw-button-bg: var(--cw-color-accent-hover);
+    --cw-button-border: var(--cw-color-accent-hover);
+  }
+
+  /* secondary is the default — cw-button&#39;s own knob values above ARE the secondary
+     styling, so its variant map entry is `nil` (Variants rule 2) and there is
+     nothing to declare here. */
+
+  .cw-button--ghost {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+  }
+  .cw-button--ghost:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button--danger {
+    --cw-button-bg: var(--cw-color-danger);
+    --cw-button-fg: var(--cw-color-danger-fg);
+    --cw-button-border: var(--cw-color-danger);
+  }
+  .cw-button--danger:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+    filter: brightness(var(--cw-button-danger-hover-brightness));
+  }
+
+  .cw-button--link {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+    --cw-button-fg: var(--cw-color-accent);
+    text-decoration: underline;
+  }
+  .cw-button--link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+    --cw-button-fg: var(--cw-color-accent-hover);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, same reasoning as secondary above)
+     — only the other three sizes need a rule. */
+
+  .cw-button--sm {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-button--lg {
+    --cw-button-px: var(--cw-space-4);
+    --cw-button-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  .cw-button--icon {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-2);
+    aspect-ratio: var(--cw-button-icon-ratio);
+  }
+
+  /* ---- block ---------------------------------------------------------------- */
+
+  .cw-button--block {
+    display: flex;
+    width: var(--cw-button-block-width);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — the same attribute name Crosswire::UI::Button sets
+     server-side and `Crosswire::Presenters::Loading`&#39;s controller sets at runtime
+     (D7a, docs/DECISIONS.md) — so either path lights up this exact rule with zero
+     configuration. The spinner is an ::after flex item (the root is already
+     `display: inline-flex` with a `gap`), not an absolutely-positioned overlay, so
+     it needs no centering math of its own. */
+  .cw-button[data-loading] {
+    cursor: progress;
+  }
+
+  .cw-button[data-loading]::after {
+    content: &quot;&quot;;
+    width: var(--cw-button-spinner-size);
+    height: var(--cw-button-spinner-size);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-button-spinner-thickness) solid currentColor;
+    border-top-color: transparent;
+    animation: cw-button-spin var(--cw-button-spinner-duration) linear infinite;
+  }
+
+  @keyframes cw-button-spin {
+    to { transform: rotate(var(--cw-button-spin-turn)); }
+  }
+
+  /* A fast-but-still-spinning animation is not &quot;stopped&quot; — tokens.css&#39;s own
+     prefers-reduced-motion block already collapses every *duration* token to 1ms,
+     which would just make this spin imperceptibly FAST rather than actually still,
+     so the spinner needs its own explicit stop. */
+  @media (prefers-reduced-motion: reduce) {
+    .cw-button[data-loading]::after {
+      animation: none;
+    }
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject button</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

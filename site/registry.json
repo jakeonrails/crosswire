@@ -1,1 +1,103 @@
-[]
+[
+  {
+    "name": "button",
+    "type": "registry:ui",
+    "description": "A button or link with five variants, three sizes, and the three accessibility guarantees a plain <button>/<a> gets wrong by default (type=button, disabled-anchor semantics, aria-busy/data-loading).",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/button.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/button_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_button.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/button.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/button/as-link.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/button/sizes.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/button/states.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/button/variants.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/button/with-rails-helpers.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-button-bg",
+      "--cw-button-block-width",
+      "--cw-button-border",
+      "--cw-button-danger-hover-brightness",
+      "--cw-button-disabled-opacity",
+      "--cw-button-fg",
+      "--cw-button-icon-ratio",
+      "--cw-button-px",
+      "--cw-button-py",
+      "--cw-button-spin-turn",
+      "--cw-button-spinner-duration",
+      "--cw-button-spinner-size",
+      "--cw-button-spinner-thickness"
+    ]
+  },
+  {
+    "name": "badge",
+    "type": "registry:ui",
+    "description": "Inert status text with six variants and an optional leading dot — the smallest UI-tier component.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/badge.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/badge_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_badge.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/badge.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/badge/dot.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/badge/variants.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-badge-bg",
+      "--cw-badge-border",
+      "--cw-badge-dot-size",
+      "--cw-badge-fg",
+      "--cw-badge-px",
+      "--cw-badge-py"
+    ]
+  }
+]

@@ -51,17 +51,48 @@ namespace :ui do
     require "json"
     require_relative "lib/crosswire/ui"
 
+    root = File.expand_path(__dir__)
+    ui_css_dir = File.join(root, "app/assets/stylesheets/crosswire/ui")
+
     # Schema per component (spec §4): name/type/description/dependencies/
-    # registryDependencies/files[{path,type}]/cssVars. No component ships one yet
-    # (Crosswire::UI::COMPONENTS is empty through Phase 0), so this is `[]` today —
-    # deliberately still written, not skipped, so `rake site`'s dependency on this
-    # task and any consumer reading site/registry.json see a real, valid, empty
-    # registry rather than a missing file.
-    entries = Crosswire::UI.component_names.map { |name| { "name" => name } }
+    # registryDependencies/files[{path,type}]/cssVars — everything but `description`
+    # (a short hand-written line in `Crosswire::UI::COMPONENTS`, the one thing the
+    # filesystem cannot derive) is read from real, on-disk state, the same "cannot
+    # drift from what's actually shipped" reasoning `crosswire:eject`'s own component
+    # discovery already uses (lib/generators/crosswire/eject/eject_generator.rb).
+    entries = Crosswire::UI.component_names.map do |name|
+      css_path = File.join(ui_css_dir, "#{name}.css")
+      css_vars = File.read(css_path).scan(/(--cw-#{Regexp.escape(name)}(?:-[\w-]+)?)\s*:/).flatten.uniq.sort
+
+      files = [
+        { "path" => "lib/crosswire/ui/#{name}.rb", "type" => "presenter" },
+        { "path" => "lib/crosswire/ui/#{name}_helper.rb", "type" => "helper" },
+        { "path" => "app/views/crosswire/ui/_#{name}.html.erb", "type" => "partial" },
+        { "path" => "app/assets/stylesheets/crosswire/ui/#{name}.css", "type" => "css" }
+      ] + Dir[File.join(root, "site/examples/#{name}/*.html.erb")].sort.map do |example|
+        { "path" => example.delete_prefix("#{root}/"), "type" => "example" }
+      end
+
+      {
+        "name" => name,
+        "type" => "registry:ui",
+        "description" => Crosswire::UI::COMPONENTS.fetch(name.to_sym).fetch(:description),
+        "dependencies" => [],
+        "registryDependencies" => [],
+        "files" => files,
+        "cssVars" => css_vars
+      }
+    end
 
     path = File.expand_path("site/registry.json", __dir__)
     File.write(path, "#{JSON.pretty_generate(entries)}\n")
     puts "wrote #{path} (#{entries.size} component#{"s" unless entries.size == 1})"
+  end
+
+  desc "Rebuild site/components/<name>/index.html for every registered UI component " \
+       "by rendering its site/examples/ through the real Rails view stack"
+  task :gallery do
+    sh "#{RbConfig.ruby.shellescape} bin/build_gallery.rb"
   end
 end
 
@@ -110,9 +141,12 @@ namespace :morph do
   end
 end
 
-desc "Rebuild site/index.html from the gem's real source, then smoke-test it in Chromium"
+desc "Rebuild site/index.html and every site/components/<name>/index.html from the " \
+     "gem's real source, then smoke-test all of it in Chromium — " \
+     "ui:bundle -> ui:registry -> build_site -> ui:gallery -> smoke (spec §9)"
 task site: ["ui:bundle", "ui:registry", "morph:doc"] do
   sh "ruby bin/build_site.rb"
+  Rake::Task["ui:gallery"].invoke
   sh "node bin/smoke_site.mjs"
 end
 

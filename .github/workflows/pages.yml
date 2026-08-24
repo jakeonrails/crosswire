@@ -43,9 +43,14 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
-      # Build the page from real source, then prove it actually works.
-      - run: ruby bin/build_site.rb
-      - run: node bin/smoke_site.mjs
+      # Build the page AND the component gallery from real source (rake site runs
+      # ui:bundle -> ui:registry -> build_site -> ui:gallery -> smoke; the gallery
+      # renders every example through the booted dummy app's real view stack),
+      # then prove it all actually works.
+      - run: bundle exec rake site
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

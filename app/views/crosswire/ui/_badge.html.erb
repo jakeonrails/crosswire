@@ -1,0 +1,12 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every class decision lives in Crosswire::UI::Badge, so this
+  file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Locals:
+    badge    Crosswire::UI::Badge
+    label    String or nil — plain-text badge content
+    content  String or nil — already-captured block content; takes precedence over
+             `label` when both are given
+%>
+<span <%= cw_attrs(badge.attrs) %>><%= content ? content : label %></span>

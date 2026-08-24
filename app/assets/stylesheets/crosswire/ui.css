@@ -174,3 +174,258 @@
     box-sizing: border-box;
   }
 }
+
+/* crosswire/ui/button.css — cw-button, the UI tier's worked example (ui-tier-spec.md
+   §3/§6.2). Every color/length below is either a global token or one of THIS
+   component's own `--cw-button-*` knobs, always consumed through `var(...)` — see
+   tokens.css's own header for the three-rung override ladder (globals, knobs,
+   style="") this file exists to make possible.
+
+   Focus is deliberately NOT redeclared here — base.css's shared focus-visible rule
+   (a box-shadow built from `--cw-shadow-focus`) is the ONE treatment every
+   interactive UI component opts into by carrying the `cw-focusable` class (the
+   Button presenter's `attrs` method adds it) — see that file's own docstring. */
+
+@layer crosswire.components {
+  .cw-button {
+    /* Knobs — override per-component with a plain rule against .cw-button
+       (unlayered beats layered), or per-instance with style="". */
+    --cw-button-bg: var(--cw-color-surface);
+    --cw-button-fg: var(--cw-color-fg);
+    --cw-button-border: var(--cw-color-border-strong);
+    --cw-button-px: var(--cw-space-3);
+    --cw-button-py: var(--cw-space-2);
+
+    /* Implementation-only knobs (still `--cw-button-*`, still overridable, just not
+       part of the five headline knobs above) — kept as custom properties rather than
+       inlined literals so every actual length/number below stays a `var(...)`
+       reference, never a bare token, per this tier's token-discipline audit. */
+    --cw-button-disabled-opacity: .6;
+    --cw-button-danger-hover-brightness: 1.08;
+    --cw-button-icon-ratio: 1;
+    --cw-button-spinner-size: 1em;
+    --cw-button-spinner-thickness: .15em;
+    --cw-button-spinner-duration: calc(var(--cw-duration-base) * 4);
+    --cw-button-spin-turn: 360deg;
+    --cw-button-block-width: 100%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cw-space-2);
+    appearance: none;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+    border-radius: var(--cw-radius-md);
+    border: var(--cw-border-width) solid var(--cw-button-border);
+    padding: var(--cw-button-py) var(--cw-button-px);
+    background: var(--cw-button-bg);
+    color: var(--cw-button-fg);
+    transition: background-color var(--cw-duration-fast) var(--cw-ease),
+                border-color var(--cw-duration-fast) var(--cw-ease),
+                color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  /* Guarded against :disabled/[aria-disabled] so a disabled anchor (which has no
+     native :hover suppression the way a disabled <button> does) never shows a live
+     hover treatment — see Crosswire::UI::Button's own docstring on why a disabled
+     anchor is real ARIA state, not a cosmetic afterthought. */
+  .cw-button:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button:disabled,
+  .cw-button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: var(--cw-button-disabled-opacity);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+
+  .cw-button--primary {
+    --cw-button-bg: var(--cw-color-accent);
+    --cw-button-fg: var(--cw-color-accent-fg);
+    --cw-button-border: var(--cw-color-accent);
+  }
+  .cw-button--primary:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-accent-hover);
+    --cw-button-border: var(--cw-color-accent-hover);
+  }
+
+  /* secondary is the default — cw-button's own knob values above ARE the secondary
+     styling, so its variant map entry is `nil` (Variants rule 2) and there is
+     nothing to declare here. */
+
+  .cw-button--ghost {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+  }
+  .cw-button--ghost:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button--danger {
+    --cw-button-bg: var(--cw-color-danger);
+    --cw-button-fg: var(--cw-color-danger-fg);
+    --cw-button-border: var(--cw-color-danger);
+  }
+  .cw-button--danger:not(:disabled):not([aria-disabled="true"]):hover {
+    filter: brightness(var(--cw-button-danger-hover-brightness));
+  }
+
+  .cw-button--link {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+    --cw-button-fg: var(--cw-color-accent);
+    text-decoration: underline;
+  }
+  .cw-button--link:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-fg: var(--cw-color-accent-hover);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, same reasoning as secondary above)
+     — only the other three sizes need a rule. */
+
+  .cw-button--sm {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-button--lg {
+    --cw-button-px: var(--cw-space-4);
+    --cw-button-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  .cw-button--icon {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-2);
+    aspect-ratio: var(--cw-button-icon-ratio);
+  }
+
+  /* ---- block ---------------------------------------------------------------- */
+
+  .cw-button--block {
+    display: flex;
+    width: var(--cw-button-block-width);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — the same attribute name Crosswire::UI::Button sets
+     server-side and `Crosswire::Presenters::Loading`'s controller sets at runtime
+     (D7a, docs/DECISIONS.md) — so either path lights up this exact rule with zero
+     configuration. The spinner is an ::after flex item (the root is already
+     `display: inline-flex` with a `gap`), not an absolutely-positioned overlay, so
+     it needs no centering math of its own. */
+  .cw-button[data-loading] {
+    cursor: progress;
+  }
+
+  .cw-button[data-loading]::after {
+    content: "";
+    width: var(--cw-button-spinner-size);
+    height: var(--cw-button-spinner-size);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-button-spinner-thickness) solid currentColor;
+    border-top-color: transparent;
+    animation: cw-button-spin var(--cw-button-spinner-duration) linear infinite;
+  }
+
+  @keyframes cw-button-spin {
+    to { transform: rotate(var(--cw-button-spin-turn)); }
+  }
+
+  /* A fast-but-still-spinning animation is not "stopped" — tokens.css's own
+     prefers-reduced-motion block already collapses every *duration* token to 1ms,
+     which would just make this spin imperceptibly FAST rather than actually still,
+     so the spinner needs its own explicit stop. */
+  @media (prefers-reduced-motion: reduce) {
+    .cw-button[data-loading]::after {
+      animation: none;
+    }
+  }
+}
+
+/* crosswire/ui/badge.css — cw-badge, the smallest UI-tier component (ui-tier-spec.md
+   §5). Every color/length below is either a global token or one of THIS component's
+   own `--cw-badge-*` knobs, always consumed through `var(...)` — see tokens.css's own
+   header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-badge {
+    --cw-badge-bg: var(--cw-color-surface-sunk);
+    --cw-badge-fg: var(--cw-color-fg-muted);
+    --cw-badge-border: var(--cw-color-border);
+    --cw-badge-px: var(--cw-space-2);
+    --cw-badge-py: var(--cw-space-1);
+    --cw-badge-dot-size: .4em;
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cw-space-1);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-border-width) solid var(--cw-badge-border);
+    padding: var(--cw-badge-py) var(--cw-badge-px);
+    background: var(--cw-badge-bg);
+    color: var(--cw-badge-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2) — the knob
+     values above ARE the neutral styling, so there is nothing to declare for it. */
+
+  .cw-badge--accent {
+    --cw-badge-bg: var(--cw-color-accent-subtle);
+    --cw-badge-fg: var(--cw-color-accent);
+    --cw-badge-border: var(--cw-color-accent-subtle);
+  }
+
+  .cw-badge--danger {
+    --cw-badge-bg: var(--cw-color-danger-subtle);
+    --cw-badge-fg: var(--cw-color-danger);
+    --cw-badge-border: var(--cw-color-danger-subtle);
+  }
+
+  .cw-badge--success {
+    --cw-badge-bg: var(--cw-color-success-subtle);
+    --cw-badge-fg: var(--cw-color-success);
+    --cw-badge-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-badge--warning {
+    --cw-badge-bg: var(--cw-color-warning-subtle);
+    --cw-badge-fg: var(--cw-color-warning);
+    --cw-badge-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-badge--info {
+    --cw-badge-bg: var(--cw-color-info-subtle);
+    --cw-badge-fg: var(--cw-color-info);
+    --cw-badge-border: var(--cw-color-info-subtle);
+  }
+
+  /* ---- dot -------------------------------------------------------------------- */
+  /* Pure CSS — no extra markup, no slot; a leading status dot drawn from a single
+     `::before`, colored with `currentColor` so it always matches whichever variant
+     it's combined with without a knob of its own. */
+
+  .cw-badge--dot::before {
+    content: "";
+    width: var(--cw-badge-dot-size);
+    height: var(--cw-badge-dot-size);
+    border-radius: var(--cw-radius-full);
+    background: currentColor;
+  }
+}

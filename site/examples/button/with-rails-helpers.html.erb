@@ -1,0 +1,11 @@
+<%#
+  RULE 0: a button that submits a form or navigates needs no JavaScript — pair
+  cw.button_attrs with the real Rails helper instead of cw.button's own markup.
+%>
+<p>
+  <%= link_to "Read the docs", "https://example.com/docs",
+              cw.button_attrs(variant: :primary, href: "https://example.com/docs") %>
+</p>
+<p>
+  <%= button_to "Delete account", "#", cw.button_attrs(variant: :danger).except("type") %>
+</p>

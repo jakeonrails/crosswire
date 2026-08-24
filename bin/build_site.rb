@@ -11,6 +11,7 @@
 
 require "fileutils"
 require_relative "../lib/crosswire/vocabulary"
+require_relative "lib/site_bundle"
 
 ROOT = File.expand_path("..", __dir__)
 TEMPLATE = File.join(ROOT, "site/template.html")
@@ -36,17 +37,10 @@ end
 
 require "set"
 
-def strip_module_syntax(source)
-  source
-    .gsub(/^import .*$/, "")                       # inlined, so nothing to import
-    .gsub(/^export \{[^}]*\};?\s*$/m, "")          # Stimulus' trailing export block
-    .gsub(/^export default class/, "class")        # our controllers
-    .gsub(/^export /, "")
-end
-
-def class_name_for(name)
-  "#{name.split('_').map(&:capitalize).join}Controller"
-end
+# `strip_module_syntax`/`class_name_for` now live in bin/lib/site_bundle.rb — shared
+# with bin/build_gallery.rb (ui-tier-spec.md §9), moved rather than re-derived.
+def strip_module_syntax(source) = SiteBundle.strip_module_syntax(source)
+def class_name_for(name) = SiteBundle.class_name_for(name)
 
 def vocabulary_rows
   VOCABULARY.map do |group, names|
@@ -100,39 +94,28 @@ end.join("\n")
 
 stimulus_js = strip_module_syntax(File.read(STIMULUS))
 
-# BLOCK FORM IS MANDATORY HERE. `String#sub` with a *string* replacement interprets
-# backreferences in that replacement — `\0`–`\9`, `\&`, `\``, `\'`, `\\` and `\+`.
-#
-# This bit hard. Stimulus's own action-descriptor regex contains `\+`:
-#
-#   /^(?:(?:([^.]+?)\+)?(.+?)…/
-#
-# Ruby read that `\+` as "the last matched group", our pattern was a plain string with
-# no groups, so it expanded to EMPTY and silently deleted the `\+` from the shipped
-# regex. The optional group then swallowed a character, and every `click->` in the page
-# was parsed as event `lick`. Nothing threw. The attribute was right, the controller
-# connected, the targets resolved — the whole page was simply inert.
-#
-# The block form returns its value verbatim, with no backreference expansion.
-html = File.read(TEMPLATE)
-           .sub("<!--INJECT:STIMULUS-->") { stimulus_js }
-           .sub("<!--INJECT:CONTROLLERS-->") { controllers }
-           .sub("<!--INJECT:REGISTER-->") { registrations }
-           .sub("<!--INJECT:VOCAB-->") { vocabulary_rows }
+# The block-form-`sub`-with-backreference-hazard story (see bin/lib/site_bundle.rb's
+# `SiteBundle.inject` docstring for the full account) and the byte-guards below both
+# now live there too — shared with bin/build_gallery.rb, moved rather than re-derived.
+# Wrapped in a top-level `abort`, same CLI behaviour as before the move: a clean
+# one-line stderr message and a non-zero exit, no Ruby backtrace.
+begin
+  html = File.read(TEMPLATE)
+  html = SiteBundle.inject(html, "<!--INJECT:STIMULUS-->", stimulus_js)
+  html = SiteBundle.inject(html, "<!--INJECT:CONTROLLERS-->", controllers)
+  html = SiteBundle.inject(html, "<!--INJECT:REGISTER-->", registrations)
+  html = SiteBundle.inject(html, "<!--INJECT:VOCAB-->", vocabulary_rows)
 
-%w[STIMULUS CONTROLLERS REGISTER VOCAB].each do |marker|
-  abort "marker <!--INJECT:#{marker}--> was not replaced" if html.include?("<!--INJECT:#{marker}-->")
+  SiteBundle.assert_present!(html, stimulus_js, "inlined Stimulus")
+  SiteBundle.assert_present!(html, controllers, "inlined controllers")
+
+  # And pin the specific regex, because this is the one whose corruption is invisible:
+  # no error, no console message, just a page where nothing responds to a click.
+  descriptor = File.read(STIMULUS)[/const descriptorPattern = .*/]
+  SiteBundle.assert_present!(html, descriptor, "Stimulus action-descriptor regex")
+rescue RuntimeError => e
+  abort e.message
 end
-
-# Guard against the above ever returning, and against any other silent mangling: what
-# we inlined must appear in the output byte for byte.
-abort "FATAL: inlined Stimulus does not match its source — injection corrupted it" unless html.include?(stimulus_js)
-abort "FATAL: inlined controllers do not match their source" unless html.include?(controllers)
-
-# And pin the specific regex, because this is the one whose corruption is invisible:
-# no error, no console message, just a page where nothing responds to a click.
-descriptor = File.read(STIMULUS)[/const descriptorPattern = .*/]
-abort "FATAL: Stimulus action-descriptor regex was altered during injection" unless html.include?(descriptor)
 
 FileUtils.mkdir_p(File.dirname(OUTPUT))
 File.write(OUTPUT, html)

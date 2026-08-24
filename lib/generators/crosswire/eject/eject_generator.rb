@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pathname"
 require "rails/generators"
 require "rails/engine"
 require "crosswire"
@@ -160,7 +161,7 @@ module Crosswire
           eject_partial(name)
           say <<~MSG
 
-            Ejected app/views/crosswire/_#{name}.html.erb.
+            Ejected app/views/crosswire/#{partial_relative_path(name)}.
 
             #{upgrade_note}
           MSG
@@ -170,11 +171,23 @@ module Crosswire
       end
 
       def eject_with_controller(name, has_partial)
+        # A UI-tier component (spec §2's "anatomy rule b") ships markup + CSS
+        # presenters, never a Stimulus identifier — it has nothing under
+        # `controllers_dir` to eject. Fail with a clear Thor::Error naming the actual
+        # UI-tier ejection tiers instead of a raw Errno::ENOENT from `eject_controller`
+        # reading a file that was never going to exist.
+        unless controller_components.include?(name)
+          raise Thor::Error, "\"#{name}\" ships no Stimulus controller — it's a UI-tier " \
+                              "component (markup + CSS presenter, no JavaScript), so " \
+                              "--controller has nothing to eject. Use the default markup " \
+                              "tier instead: `rails g crosswire:eject #{name}`."
+        end
+
         eject_controller(name)
         eject_partial(name) if has_partial
 
         files = ["app/javascript/controllers/#{name}_controller.js"]
-        files.unshift("app/views/crosswire/_#{name}.html.erb") if has_partial
+        files.unshift("app/views/crosswire/#{partial_relative_path(name)}") if has_partial
 
         say <<~MSG
 
@@ -244,10 +257,19 @@ module Crosswire
       # exact same Thor::Actions conflict-detection (identical?/force/skip/prompt), so
       # this is not a shortcut around requirement 6 — just a shortcut around source
       # path resolution we don't need.
+      #
+      # `partial_components` glob is widened to `**/_*.html.erb` (see its own
+      # docstring), so a UI-tier partial's actual source lives one directory down —
+      # `app/views/crosswire/ui/_button.html.erb`, not `app/views/crosswire/_button.html.erb`
+      # — and its contract marker means `Crosswire::UI::CONTRACT_VERSION`, not the
+      # primitive tier's. `partial_source_path`/`partial_relative_path` below resolve
+      # BOTH from the real file, rather than assuming every component sits flat in
+      # `views_dir`, so ejecting a UI component writes to (and reads the marker
+      # against) the right place instead of a path that doesn't exist.
       def eject_partial(component)
-        source = views_dir.join("_#{component}.html.erb")
+        source = partial_source_path(component)
         verify_contract_marker!(source)
-        create_file "app/views/crosswire/_#{component}.html.erb", File.binread(source)
+        create_file "app/views/crosswire/#{partial_relative_path(component)}", File.binread(source)
       end
 
       def eject_controller(component)
@@ -255,17 +277,40 @@ module Crosswire
         create_file "app/javascript/controllers/#{component}_controller.js", File.binread(source)
       end
 
+      def partial_source_path(component)
+        Dir[views_dir.join("**", "_#{component}.html.erb")].first
+      end
+
+      def partial_relative_path(component)
+        Pathname.new(partial_source_path(component)).relative_path_from(views_dir).to_s
+      end
+
+      # A partial under `app/views/crosswire/ui/` is governed by
+      # `Crosswire::UI::CONTRACT_VERSION` (independent counter, see lib/crosswire/ui.rb's
+      # own docstring on why); every other shipped partial is governed by
+      # `Crosswire::CONTRACT_VERSION`. Mirrors `Crosswire::ShadowCheck#ui_contract_version`.
+      def expected_contract_version(source)
+        if source.to_s.start_with?("#{views_dir.join("ui")}/")
+          require "crosswire/ui"
+          Crosswire::UI::CONTRACT_VERSION
+        else
+          Crosswire::CONTRACT_VERSION
+        end
+      end
+
       # Belt-and-braces: fail loudly, rather than ship a silently-wrong contract, if a
-      # shipped partial's marker ever doesn't match Crosswire::CONTRACT_VERSION. This
-      # reads the version from the real constant every time — never a literal "v1" —
-      # so it can't drift the way a hardcoded marker could.
+      # shipped partial's marker ever doesn't match the contract version that
+      # actually governs it. This reads the version from the real constant every
+      # time — never a literal "v1" — so it can't drift the way a hardcoded marker
+      # could.
       def verify_contract_marker!(source)
         version = File.readlines(source).first.to_s[CONTRACT_MARKER, 1]&.to_i
+        expected = expected_contract_version(source)
 
-        return if version == Crosswire::CONTRACT_VERSION
+        return if version == expected
 
         raise Thor::Error, "#{source} is missing a `<%# crosswire:contract " \
-                            "v#{Crosswire::CONTRACT_VERSION} %>` marker (found: " \
+                            "v#{expected} %>` marker (found: " \
                             "#{version.inspect}). That is a crosswire gem bug, not a usage " \
                             "error — please report it."
       end

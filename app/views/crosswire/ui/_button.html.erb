@@ -1,0 +1,23 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision — the tag itself, type=button,
+  disabled-anchor a11y, aria-busy/data-loading — lives in Crosswire::UI::Button, so
+  this file is safe to restyle, shadow, or eject; the wiring travels with the
+  presenter, not with the markup. See docs/DECISIONS.md D6.
+
+  `button.tag_name` picks `:a` or `:button`. `content_tag(name, options_hash, &block)`
+  — not `tag.public_send(name, **options_hash)` — is how that dynamic tag name is
+  rendered: `button.attrs` has STRING keys (`Crosswire::Attributes` always produces
+  flat, dashed string keys), and Ruby keyword-splat requires Symbol keys, so
+  `**button.attrs` would raise `TypeError: wrong argument type String (expected
+  Symbol)`. `content_tag` takes the options Hash as an ordinary positional argument
+  instead — the same `tag_options` machinery `cw_attrs` (`tag.attributes(hash)`)
+  calls elsewhere, so this renders identically either way.
+
+  Locals:
+    button   Crosswire::UI::Button
+    label    String or nil — plain-text button content
+    content  String or nil — already-captured block content (e.g. an icon plus a
+             label); takes precedence over `label` when both are given
+%>
+<%= content_tag(button.tag_name, button.attrs) { content ? content : label } %>

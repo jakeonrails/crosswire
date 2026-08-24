@@ -13,6 +13,7 @@
 import { chromium } from "playwright"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
+import fs from "node:fs"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const browser = await chromium.launch()
@@ -51,7 +52,39 @@ await page.reload()
 await page.waitForTimeout(400)
 check("cw--persist survives reload", await box.isChecked())
 
-check("no console or page errors", errors.length === 0, errors.join(" | "))
+check("site/index.html: no console or page errors", errors.length === 0, errors.join(" | "))
+
+// ---- component gallery pages (ui-tier-spec.md §9) -----------------------------
+// Walks every site/components/<name>/index.html bin/build_gallery.rb wrote, failing
+// on a console/page error OR a zero-height root — the two failure modes a byte-guard
+// alone cannot catch (site/template.html's own header tells that exact story: a
+// mangled regex left a correct-looking DOM with nothing connected. A zero-height
+// root is that same class of bug for a component page specifically: markup that
+// rendered, script that didn't throw, and a component that is nonetheless invisible.
+const componentsDir = path.join(root, "site/components")
+const componentNames = fs.existsSync(componentsDir)
+  ? fs.readdirSync(componentsDir).filter((name) => fs.existsSync(path.join(componentsDir, name, "index.html"))).sort()
+  : []
+
+for (const name of componentNames) {
+  const pageErrors = []
+  const onPageError = (e) => pageErrors.push("pageerror: " + e.message)
+  const onConsole = (m) => { if (m.type() === "error") pageErrors.push("console: " + m.text()) }
+  page.on("pageerror", onPageError)
+  page.on("console", onConsole)
+
+  await page.goto("file://" + path.join(componentsDir, name, "index.html"))
+  await page.waitForTimeout(200)
+
+  const rootHeights = await page.locator(".example .stage").evaluateAll((els) => els.map((el) => el.offsetHeight))
+  check(`site/components/${name}: at least one rendered example`, rootHeights.length > 0)
+  check(`site/components/${name}: no zero-height example root`, rootHeights.every((h) => h > 0),
+        rootHeights.map((h, i) => `#${i}=${h}px`).join(" "))
+
+  page.off("pageerror", onPageError)
+  page.off("console", onConsole)
+  check(`site/components/${name}: no console or page errors`, pageErrors.length === 0, pageErrors.join(" | "))
+}
 
 await browser.close()
 

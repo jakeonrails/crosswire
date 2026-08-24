@@ -1,0 +1,76 @@
+/* crosswire/ui/badge.css — cw-badge, the smallest UI-tier component (ui-tier-spec.md
+   §5). Every color/length below is either a global token or one of THIS component's
+   own `--cw-badge-*` knobs, always consumed through `var(...)` — see tokens.css's own
+   header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-badge {
+    --cw-badge-bg: var(--cw-color-surface-sunk);
+    --cw-badge-fg: var(--cw-color-fg-muted);
+    --cw-badge-border: var(--cw-color-border);
+    --cw-badge-px: var(--cw-space-2);
+    --cw-badge-py: var(--cw-space-1);
+    --cw-badge-dot-size: .4em;
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cw-space-1);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-border-width) solid var(--cw-badge-border);
+    padding: var(--cw-badge-py) var(--cw-badge-px);
+    background: var(--cw-badge-bg);
+    color: var(--cw-badge-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2) — the knob
+     values above ARE the neutral styling, so there is nothing to declare for it. */
+
+  .cw-badge--accent {
+    --cw-badge-bg: var(--cw-color-accent-subtle);
+    --cw-badge-fg: var(--cw-color-accent);
+    --cw-badge-border: var(--cw-color-accent-subtle);
+  }
+
+  .cw-badge--danger {
+    --cw-badge-bg: var(--cw-color-danger-subtle);
+    --cw-badge-fg: var(--cw-color-danger);
+    --cw-badge-border: var(--cw-color-danger-subtle);
+  }
+
+  .cw-badge--success {
+    --cw-badge-bg: var(--cw-color-success-subtle);
+    --cw-badge-fg: var(--cw-color-success);
+    --cw-badge-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-badge--warning {
+    --cw-badge-bg: var(--cw-color-warning-subtle);
+    --cw-badge-fg: var(--cw-color-warning);
+    --cw-badge-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-badge--info {
+    --cw-badge-bg: var(--cw-color-info-subtle);
+    --cw-badge-fg: var(--cw-color-info);
+    --cw-badge-border: var(--cw-color-info-subtle);
+  }
+
+  /* ---- dot -------------------------------------------------------------------- */
+  /* Pure CSS — no extra markup, no slot; a leading status dot drawn from a single
+     `::before`, colored with `currentColor` so it always matches whichever variant
+     it's combined with without a knob of its own. */
+
+  .cw-badge--dot::before {
+    content: "";
+    width: var(--cw-badge-dot-size);
+    height: var(--cw-badge-dot-size);
+    border-radius: var(--cw-radius-full);
+    background: currentColor;
+  }
+}

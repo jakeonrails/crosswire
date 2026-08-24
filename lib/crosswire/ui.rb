@@ -4,28 +4,45 @@ require "crosswire/ui/variants"
 require "crosswire/ui/component"
 require "crosswire/ui/slots"
 
-# Phase 1+ adds one pair of requires per shipped component here, eagerly —
-#   require "crosswire/ui/button"
-#   require "crosswire/ui/button_helper"
-# — for the SAME reason lib/crosswire.rb requires every primitive-tier presenter
-# eagerly rather than letting Zeitwerk autoload them (see that file's docstring in
-# full): `lib/crosswire/ui` is never added to the engine's `autoload_paths` at all
-# (see lib/crosswire/engine.rb for why), so nothing under it is discoverable unless
-# something requires it by hand. `lib/crosswire.rb`'s eager requires exist to dodge a
-# Zeitwerk top-level-constant collision that does not arise here — this file's
-# requires exist for the more basic reason that without them `Crosswire::UI::COMPONENTS`
-# below would have nothing to reference: it is populated by hand from these requires,
-# not discovered from the filesystem.
+# One pair of requires per shipped component, eagerly — for the SAME reason
+# lib/crosswire.rb requires every primitive-tier presenter eagerly rather than
+# letting Zeitwerk autoload them (see that file's docstring in full): `lib/crosswire/ui`
+# is never added to the engine's `autoload_paths` at all (see lib/crosswire/engine.rb
+# for why), so nothing under it is discoverable unless something requires it by hand.
+# `lib/crosswire.rb`'s eager requires exist to dodge a Zeitwerk top-level-constant
+# collision that does not arise here — this file's requires exist for the more basic
+# reason that without them `Crosswire::UI::COMPONENTS` below would have nothing to
+# reference: it is populated by hand from these requires, not discovered from the
+# filesystem.
+require "crosswire/ui/button"
+require "crosswire/ui/button_helper"
+require "crosswire/ui/badge"
+require "crosswire/ui/badge_helper"
+
 module Crosswire
   module UI
-    # Every styled component crosswire ships in this tier — empty through Phase 0
-    # (see the UI-tier spec §10: "gate: audits green, no components"). The generator,
-    # the registry (`rake ui:registry`), the docs and `ui_contract_audit_test.rb` all
-    # read this, so it stays the single source of truth exactly the way
-    # `Crosswire::COMPONENTS` (lib/crosswire.rb) is for the primitive tier — deliberately
-    # NOT the same hash, because this tier's contract (markup + CSS presenters, no
-    # Stimulus identifier) is a genuinely different shape (spec §2).
-    COMPONENTS = {}.freeze
+    # Every styled component crosswire ships in this tier, keyed by the name the
+    # generator, `rake ui:registry`, `docs/MORPH.md` and `ui_contract_audit_test.rb`
+    # all key off — deliberately NOT the same hash shape as `Crosswire::COMPONENTS`
+    # (lib/crosswire.rb, name => presenter CLASS): this tier's registry (spec §4) is
+    # shadcn-shaped, one JSON entry per component drawn from real filesystem state
+    # (files, declared `--cw-<name>-*` knobs) plus a short hand-written description —
+    # so each value here carries only what the filesystem genuinely cannot derive.
+    #
+    #   COMPONENTS.fetch(:button).fetch(:description)
+    #   Crosswire::UI.component_names # => ["button", "badge"]
+    COMPONENTS = {
+      button: {
+        description: "A button or link with five variants, three sizes, and the " \
+                      "three accessibility guarantees a plain <button>/<a> gets " \
+                      "wrong by default (type=button, disabled-anchor semantics, " \
+                      "aria-busy/data-loading)."
+      }.freeze,
+      badge: {
+        description: "Inert status text with six variants and an optional leading " \
+                      "dot — the smallest UI-tier component."
+      }.freeze
+    }.freeze
 
     def self.component_names = COMPONENTS.keys.map(&:to_s)
 
