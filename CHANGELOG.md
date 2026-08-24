@@ -21,3 +21,6 @@
   authorize the *subscriber* to a Turbo Stream, not just the signed stream name.
 - Add `versioned_replace` — a Turbo Stream action that applies a broadcast only
   when its version beats the page's, so out-of-order deliveries can't go backwards.
+- Add the agent-skills family — `skills/crosswire-ui`, `skills/crosswire-composing`,
+  and `skills/crosswire-authoring`, shipped in the gem — plus
+  `rails g crosswire:skills` to copy them into a host app's `.claude/skills/`.

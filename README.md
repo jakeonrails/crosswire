@@ -161,6 +161,22 @@ have no answer to that.
 You can also just override a partial by creating `app/views/crosswire/_disclosure.html.erb`.
 Same check applies.
 
+## For agents
+
+The gem ships three Claude Code skills that teach a coding agent to work with
+crosswire the way this README describes: `crosswire-ui` (use the primitives —
+Rule 0 before any JavaScript, then the right `cw` level), `crosswire-composing`
+(build a modal, dropdown, or drawer by stacking primitives instead of writing a
+controller), and `crosswire-authoring` (write a new controller that survives the
+component contract). Copy them into your app's `.claude/skills/`:
+
+```bash
+bin/rails g crosswire:skills
+```
+
+Re-run the generator after upgrading the gem to refresh them; it never overwrites
+your local edits without `--force`.
+
 ## What this does not do
 
 Hotwire genuinely loses at: virtualized long lists, spreadsheet-style grid editing,

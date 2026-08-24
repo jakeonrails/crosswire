@@ -1,0 +1,30 @@
+Description:
+    Copy the agent skills crosswire ships into this app's .claude/skills/, so coding
+    agents (Claude Code and compatible) pick them up when working in this app.
+
+    The shipped set is discovered from the gem at run time; today it is:
+
+      crosswire-ui          Using the primitives: Rule 0 before any JavaScript, the
+                            cw builder's three usage levels, and the survivability
+                            tier (preserve, loading/fallback, authorized streams).
+
+      crosswire-composing   Composite widgets (modal, dropdown, drawer, toast, …):
+                            decompose into shipped primitives and stack their attrs —
+                            no new controller.
+
+      crosswire-authoring   Writing a NEW Stimulus controller: whether it should be a
+                            controller at all, the component shape, the R-rules, and
+                            the sharp edges that bite first-time controllers.
+
+    Idempotent: an unchanged file is a silent no-op, and a locally edited copy is
+    never overwritten without --force. Re-run after upgrading the gem to refresh the
+    skills.
+
+Example:
+    rails generate crosswire:skills
+
+        Copies every shipped skill into .claude/skills/<name>/.
+
+    rails generate crosswire:skills --force
+
+        Refreshes the skills, overwriting locally edited copies.
