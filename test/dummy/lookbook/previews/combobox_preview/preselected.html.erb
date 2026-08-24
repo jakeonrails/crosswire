@@ -1,0 +1,8 @@
+<%# value:/display: rendered server-side (R4) — inspect the HTML before any JS runs:
+    the hidden field already carries "CA", the visible input already shows
+    "California", and the matching <li role=option> already carries
+    aria-selected="true". This is the exact regression tabs hit (BUILD-LOG §3) —
+    reading server state from only one of several places is one refactor away from
+    reading "" on connect and clobbering a correct page. %>
+<%= cw.combobox id: "state-preselected", name: "state", label: "State",
+      options: states, value: "CA", display: "California" %>

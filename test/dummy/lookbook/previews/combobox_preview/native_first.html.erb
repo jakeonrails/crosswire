@@ -1,0 +1,34 @@
+<div style="display: flex; gap: 3rem; flex-wrap: wrap;">
+  <div>
+    <h3>1. Native &lt;select&gt;</h3>
+    <label for="native-select">State</label><br>
+    <select id="native-select" name="state">
+      <% states.each do |state| %>
+        <option value="<%= state[:value] %>"><%= state[:display] %></option>
+      <% end %>
+    </select>
+    <p>Zero JavaScript. Real constraint validation. A native mobile picker. Do not
+    replace this merely to restyle it.</p>
+  </div>
+
+  <div>
+    <h3>2. &lt;input&gt; + &lt;datalist&gt;</h3>
+    <label for="native-datalist">State</label><br>
+    <input id="native-datalist" name="state_text" list="state-options">
+    <datalist id="state-options">
+      <% states.each do |state| %>
+        <option value="<%= state[:display] %>">
+      <% end %>
+    </datalist>
+    <p>Also zero JavaScript — but the SUBMITTED value is whatever text was typed,
+    not a code. Right choice when the typed text itself is the value.</p>
+  </div>
+
+  <div>
+    <h3>3. cw.combobox</h3>
+    <%= cw.combobox id: "state-native-first", name: "state", label: "State", options: states %>
+    <p>The only one of the three where the displayed text ("California") and the
+    submitted value (<code>CA</code>) legitimately differ — the actual reason to
+    reach for this presenter over the two above.</p>
+  </div>
+</div>

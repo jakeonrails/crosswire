@@ -4,6 +4,7 @@ import AutosubmitController from "crosswire/controllers/autosubmit_controller"
 import CharCountController from "crosswire/controllers/char_count_controller"
 import ClickOutsideController from "crosswire/controllers/click_outside_controller"
 import ClipboardController from "crosswire/controllers/clipboard_controller"
+import ComboboxController from "crosswire/controllers/combobox_controller"
 import ConfirmController from "crosswire/controllers/confirm_controller"
 import CountdownController from "crosswire/controllers/countdown_controller"
 import DialogController from "crosswire/controllers/dialog_controller"
@@ -87,7 +88,8 @@ export const CROSSWIRE_CONTROLLERS = {
   "cw--confirm": ConfirmController,
   "cw--tabs": TabsController,
   "cw--popover": PopoverController,
-  "cw--menu": MenuController
+  "cw--menu": MenuController,
+  "cw--combobox": ComboboxController
 }
 
 /**
@@ -97,7 +99,8 @@ export const CROSSWIRE_CONTROLLERS = {
 const REQUIRES = {
   "cw--confirm": ["cw--dialog"],
   "cw--tabs": ["cw--roving-focus"],
-  "cw--menu": ["cw--popover", "cw--roving-focus"]
+  "cw--menu": ["cw--popover", "cw--roving-focus"],
+  "cw--combobox": ["cw--click-outside"]
 }
 
 export function registerCrosswireControllers(application, only = null) {
@@ -139,6 +142,7 @@ export {
   CharCountController,
   ClickOutsideController,
   ClipboardController,
+  ComboboxController,
   ConfirmController,
   CountdownController,
   DialogController,

@@ -1,0 +1,29 @@
+<%# The wrapper below carries data-controller="cw--combobox cw--click-outside" —
+    both stacked on one element, exactly what Crosswire::Presenters::Combobox
+    #root_attrs builds (R5a mechanism 2: cw--combobox itself keeps click-outside's
+    own enabled value in lockstep with `expanded`, by writing that OTHER
+    controller's value attribute directly — see both controllers' docstrings).
+    Nothing hidden inside a partial: label, input, hidden field, listbox, empty
+    message and live region are all rendered by hand here. %>
+<%= cw.combobox_for id: "state-manual", name: "state" do |c| %>
+  <div <%= cw_attrs(c.root_attrs) %> style="position: relative; max-width: 20rem;">
+    <label <%= cw_attrs(c.label_attrs) %>>State</label>
+    <input type="text" <%= cw_attrs(c.input_attrs) %> style="width: 100%;">
+    <input <%= cw_attrs(c.field_attrs) %>>
+
+    <ul <%= cw_attrs(c.listbox_attrs) %>
+        style="position: absolute; top: 100%; left: 0; right: 0; margin: 0; padding: 0; list-style: none; border: 1px solid; background: Canvas;">
+      <% states.each do |state| %>
+        <li <%= cw_attrs(c.option_attrs(value: state[:value], display: state[:display])) %>><%= state[:display] %></li>
+      <% end %>
+    </ul>
+
+    <p <%= cw_attrs(c.empty_attrs) %>>No matches</p>
+    <div <%= cw_attrs(c.status_attrs) %>></div>
+  </div>
+<% end %>
+
+<p>Inspect the wrapper above: <code>data-controller="cw--combobox cw--click-outside"</code>
+— both controllers, stacked on one element (R5a) — with
+<code>data-cw--click-outside-enabled-value</code> flipped by <code>cw--combobox</code>
+itself, in lockstep with <code>expanded</code>, never reimplemented here.</p>

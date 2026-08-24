@@ -28,6 +28,36 @@ class DemoController < ApplicationController
     head :ok
   end
 
+  # A short, hardcoded list for the `combobox` Lookbook preview's `filter: "remote"`
+  # scenario — this dummy app has no Country model to query.
+  COMBOBOX_DEMO_COUNTRIES = [
+    {value: "US", display: "United States"},
+    {value: "CA", display: "Canada"},
+    {value: "MX", display: "Mexico"},
+    {value: "FR", display: "France"},
+    {value: "DE", display: "Germany"},
+    {value: "JP", display: "Japan"},
+    {value: "BR", display: "Brazil"},
+    {value: "AU", display: "Australia"}
+  ].freeze
+
+  # GET target for the `combobox` Lookbook preview's remote-filter scenario — see
+  # routes.rb. Filters the hardcoded list above by `params[:q]` (`cw--combobox`'s
+  # own `param:` default) and re-renders the identical `<turbo-frame>`/`<ul
+  # role=listbox>` shape `Crosswire::Presenters::Combobox#frame_attrs`/
+  # `#listbox_attrs` expect, so the round trip exercises a REAL Turbo Frame fetch
+  # (cancellation-on-new-src included) instead of a simulated one.
+  def combobox_demo
+    query = params[:q].to_s.strip.downcase
+    matches = COMBOBOX_DEMO_COUNTRIES.select { |country| country[:display].downcase.include?(query) }
+
+    combobox = Crosswire::Presenters::Combobox.new(
+      id: "country-remote", name: "country", filter: "remote", src: combobox_demo_path
+    )
+
+    render partial: "demo/combobox_demo_options", locals: {combobox: combobox, options: matches}
+  end
+
   # GET target for the `loading`/`fallback` Lookbook previews — see routes.rb.
   # Sleeps briefly so a real fetch is slow enough to observe cw--loading's
   # anti-flicker delay and cw--fallback's "loading" state, then renders a

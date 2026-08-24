@@ -598,6 +598,30 @@ from it; don't vendor code from it.
 
 ---
 
+### "A combobox listbox should wire Home/End to jump to the first/last option"
+
+**Reality.** This repo's own UI pattern catalog says so
+(`research/notes/08-ui-pattern-catalog.md`, line 3526: "Home/End jump") — but WAI-ARIA APG's Editable
+Combobox pattern assigns Home/End to the TEXT CURSOR, the same as any other text input, because the
+combobox's input field is meant to stay an ordinary editable control even while its listbox is open.
+Wiring Home/End to option navigation instead silently breaks "move the caret to the start of what I
+typed" — the catalog was loose here, and APG is the source of truth.
+
+**Do this instead.** Leave Home/End unwired entirely. `cw--combobox` deliberately does not intercept
+either key, so the browser's own native caret-movement default runs unhindered:
+
+```ruby
+# Crosswire::Presenters::Combobox#input_attrs — no keydown.home / keydown.end anywhere
+```
+
+Reach for `cw--roving-focus`'s own Home/End (first/last item) only for a non-editable composite widget
+— a menu, a tablist — never for a combobox's own text input.
+
+*Crosswire's own `research/notes/08-ui-pattern-catalog.md` line 3526 vs. WAI-ARIA APG Combobox —
+resolved in APG's favour when `cw--combobox` shipped; see that presenter's own class docstring.*
+
+---
+
 ## A note on what's missing here
 
 One row from the research corpus's own corrections log — a citation to an Evil Martians post dated

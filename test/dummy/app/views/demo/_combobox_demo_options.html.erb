@@ -1,0 +1,16 @@
+<%# Rendered by DemoController#combobox_demo — the same <turbo-frame>/<ul
+    role=listbox> shape Crosswire::Presenters::Combobox's own partial produces for
+    filter: "remote", so this is exactly what a consumer's real endpoint would
+    render, not a simplified stand-in.
+
+    Locals:
+      combobox  Crosswire::Presenters::Combobox (filter: "remote")
+      options   Array<{value:, display:}> — already filtered by the controller
+%>
+<turbo-frame <%= cw_attrs(combobox.frame_attrs) %>>
+  <ul <%= cw_attrs(combobox.listbox_attrs, class: "cw-combobox__listbox") %>>
+    <% options.each do |option| %>
+      <li <%= cw_attrs(combobox.option_attrs(value: option[:value], display: option[:display]), class: "cw-combobox__option") %>><%= option[:display] %></li>
+    <% end %>
+  </ul>
+</turbo-frame>

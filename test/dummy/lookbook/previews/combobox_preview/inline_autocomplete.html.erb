@@ -1,0 +1,6 @@
+<%# autocomplete: "both" — typing completes to the first case-insensitive prefix
+    match and selects the completed portion, so the next keystroke overwrites it.
+    Try typing "m" then "i": Michigan completes first, then Minnesota (not "Mia..."
+    — Backspace/Delete never re-triggers completion, see the controller docstring). %>
+<%= cw.combobox id: "state-autocomplete", name: "state", label: "State",
+      options: states, autocomplete: "both" %>

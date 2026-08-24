@@ -1,0 +1,7 @@
+<%# filter: "remote" against a REAL route on this dummy app (/combobox_demo — see
+    test/dummy/config/routes.rb and DemoController#combobox_demo), the same "a live
+    backend beats a simulated one" choice sortable's own preview makes. No options
+    are rendered here at all — cw--combobox debounces the query and writes
+    frameTarget.src; Turbo owns the fetch and the swap entirely. %>
+<%= cw.combobox id: "country-remote", name: "country", label: "Country",
+      filter: "remote", src: combobox_demo_path, options: [] %>

@@ -22,6 +22,11 @@ Rails.application.routes.draw do
   get "/survivability_demo/slow", to: "demo#survivability_demo_slow"
   get "/survivability_demo/fail", to: "demo#survivability_demo_fail"
 
+  # A real GET target for the `combobox` Lookbook preview's `filter: "remote"`
+  # scenario, so the debounced Turbo Frame fetch exercises an actual round trip
+  # instead of a simulated one — same D2 rationale as /sortable_demo above.
+  get "/combobox_demo", to: "demo#combobox_demo"
+
   # crosswire ships no routes of its own (D2 — the consumer writes their own endpoints),
   # but mounting it proves the engine is a well-formed mountable engine.
   mount Crosswire::Engine => "/crosswire"

@@ -65,6 +65,41 @@ JavaScript beyond what `cw.popover` already ships:
 For a `button_to`-shaped item (a DELETE with CSRF), use `cw.menu_for` instead — see
 `Crosswire::Presenters::Menu`'s docstring for the compose-it-yourself form.
 
+## Searchable select
+
+**Rule 0 ladder, read top to bottom — stop at the first rung that fits.** A native
+`<select>` for a short, fixed list (zero JS, real constraint validation, a native
+mobile picker — do not replace it merely to restyle it). A text input plus
+`<datalist>` when free text with suggestions is fine and the *typed text itself*
+is the value being submitted (also zero JS). A plain search input plus a Turbo
+Frame rendering results as ordinary links when the outcome is navigation, not
+filling in a field — that is not a combobox and must not carry `role="combobox"`.
+Only reach for `cw.combobox` at the bottom rung, when all three are true at once:
+the submitted value differs from the displayed text (a record, not a string), the
+list is long enough that filtering is the point, and the result has to land in a
+form field rather than navigate:
+
+```erb
+<%= cw.combobox id: "state", name: "record[state]", label: "State",
+      options: State.all.map { |s| { value: s.code, display: s.name } } %>
+```
+
+For a long, server-backed list, switch `filter:` to `"remote"` and point `src:` at
+a real endpoint — the controller only ever debounces and writes the Turbo Frame's
+`src`; your endpoint filters and re-renders the same listbox partial:
+
+```erb
+<%= cw.combobox id: "country", name: "record[country]", label: "Country",
+      filter: "remote", src: country_search_path, options: [] %>
+```
+
+`cw--combobox` deliberately does NOT compose `cw--roving-focus` — DOM focus never
+leaves the input, and the "active" option is tracked purely through
+`aria-activedescendant`, not a roving `tabindex` (see
+`Crosswire::Presenters::Combobox`'s docstring for why "combobox = roving-focus +
+listbox" is the wrong guess). The one real composition it has is `cw--click-outside`,
+stacked on the same root and armed only while the listbox is open.
+
 ## Toast / flash message
 
 `dismiss` + `transition` + `timeout` on one element — the R6 reference seam:

@@ -1,0 +1,10 @@
+<%= cw.combobox id: "state-default", name: "state", label: "State",
+      options: states, autocomplete: autocomplete, min_length: min_length %>
+
+<p>Selected: <output id="combobox-default-status">none yet</output></p>
+
+<script type="module">
+  document.addEventListener("cw--combobox:selected", (event) => {
+    document.getElementById("combobox-default-status").textContent = event.detail.value || "(cleared)"
+  })
+</script>

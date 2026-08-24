@@ -1,0 +1,53 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. Every accessibility decision — role=combobox, the
+  aria-activedescendant/aria-autocomplete wiring, the hidden-field-as-rendering
+  form integration, and the click-outside composition — lives in
+  Crosswire::Presenters::Combobox, so this file is safe to restyle, shadow, or
+  eject. See docs/DECISIONS.md D6.
+
+  Locals:
+    combobox  Crosswire::Presenters::Combobox
+    label     String, optional — rendered as a real <label>; omit to label this
+              element some other way (labelling is still not optional — see
+              Crosswire::Presenters::Combobox#label_attrs)
+    options   Array<{value:, display:}> — ordered; leave empty for
+              filter: "remote", where the listbox's contents arrive from the
+              server instead of being rendered here
+%>
+<div <%= cw_attrs(combobox.root_attrs, class: "cw-combobox") %>>
+  <% if label %>
+    <label <%= cw_attrs(combobox.label_attrs, class: "cw-combobox__label") %>><%= label %></label>
+  <% end %>
+
+  <div class="cw-combobox__control">
+    <input type="text" <%= cw_attrs(combobox.input_attrs, class: "cw-combobox__input") %>>
+    <input <%= cw_attrs(combobox.field_attrs) %>>
+    <button type="button" <%= cw_attrs(combobox.clear_attrs, class: "cw-combobox__clear") %>>&times;</button>
+  </div>
+
+  <% listbox = capture do %>
+    <ul <%= cw_attrs(combobox.listbox_attrs, class: "cw-combobox__listbox") %>>
+      <% options.each do |option| %>
+        <li <%= cw_attrs(
+              combobox.option_attrs(
+                value: option[:value],
+                display: option[:display],
+                selected: option[:value].to_s == combobox.value.to_s
+              ),
+              class: "cw-combobox__option"
+            ) %>><%= option[:display] %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if combobox.filter == "remote" %>
+    <turbo-frame <%= cw_attrs(combobox.frame_attrs) %>><%= listbox %></turbo-frame>
+  <% else %>
+    <%= listbox %>
+  <% end %>
+
+  <p <%= cw_attrs(combobox.empty_attrs, class: "cw-combobox__empty") %>><%= combobox.empty_message %></p>
+
+  <div <%= cw_attrs(combobox.status_attrs, class: "cw-combobox__status") %>></div>
+</div>

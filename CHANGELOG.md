@@ -29,3 +29,13 @@
   the right item roles, and rescues focus (R8) when the focused item is removed while
   open. `Crosswire::Builder::COMPOSITE_HINTS[:dropdown]` now distinguishes navigation
   links (`cw.popover`, plain `<a>`, no `role="menu"`) from commands (`cw.menu`).
+- Add `combobox` — WAI-ARIA APG Combobox (editable, list autocomplete), maintaining
+  the active option purely through `aria-activedescendant` — an ANTI-composition with
+  `roving-focus`, not the obvious "combobox = roving-focus + listbox" guess (DOM focus
+  never leaves the input; no option ever carries `tabindex`). Composes `click-outside`
+  (R5a mechanism 2: the controller keeps its `enabled` value in lockstep with its own
+  `expanded` state). A sibling hidden `<input>` carries the submitted value — the
+  visible input carries none — written by exactly one path (`valueValueChanged`, R4).
+  `filter:` supports `"client"` (hide non-matching, server-rendered options),
+  `"remote"` (debounce, then write a Turbo Frame's `src` — no fetch path of its own),
+  and `"none"`. `usePreserve` guards `value`/`expanded` across a Turbo 8 morph.

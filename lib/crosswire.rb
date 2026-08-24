@@ -23,6 +23,7 @@ require "crosswire/presenters/autosubmit"
 require "crosswire/presenters/char_count"
 require "crosswire/presenters/click_outside"
 require "crosswire/presenters/clipboard"
+require "crosswire/presenters/combobox"
 require "crosswire/presenters/confirm"
 require "crosswire/presenters/countdown"
 require "crosswire/presenters/dialog"
@@ -95,7 +96,8 @@ module Crosswire
     confirm: Crosswire::Presenters::Confirm,
     tabs: Crosswire::Presenters::Tabs,
     popover: Crosswire::Presenters::Popover,
-    menu: Crosswire::Presenters::Menu
+    menu: Crosswire::Presenters::Menu,
+    combobox: Crosswire::Presenters::Combobox
   }.freeze
 
   def self.component_names = COMPONENTS.keys.map(&:to_s)
