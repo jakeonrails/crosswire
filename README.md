@@ -131,7 +131,7 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 `preserve` · `loading` · `fallback` · `Crosswire::Streams`
 
 **Styled components** (own tier — presenter + partial + CSS, see "Styled components" below)
-`button` · `badge` · `card` · `input` · `field` · `select`
+`button` · `badge` · `card` · `input` · `field` · `select` · `alert` · `toast`
 
 Every component exposes `cw.<name>_for` (yields the presenter) and `cw.<name>_attrs`
 (returns the merged attribute hash); widgets additionally get the bare `cw.<name>`
@@ -144,8 +144,8 @@ code isn't written.
 ## Styled components
 
 A second, separate tier: purely presentational components — `button`, `badge`,
-`card`, `input`, `field`, `select`, and more to come — that ship a Ruby presenter, an
-ejectable partial, and real CSS built on
+`card`, `input`, `field`, `select`, `alert`, `toast`, and more to come — that ship a
+Ruby presenter, an ejectable partial, and real CSS built on
 ~67 design tokens (`--cw-<category>-<step>` globals, `--cw-<component>-<prop>` knobs
 that default to them). Same accessibility-in-the-presenter contract as the primitives
 above, same `cw.<name>` / `cw.<name>_for` / `cw.<name>_attrs` helper triple, and its

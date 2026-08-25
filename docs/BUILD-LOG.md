@@ -252,6 +252,28 @@ Recorded because negative results stop the next person re-investigating.
   pins a specifier for `import`/`pin_all_from` to resolve on its own. Recorded here so
   it isn't reassumed the next time a new piece needs to gate on turbo-rails being
   merely present versus fully installed.
+- **Bare `morphElements()` DOES honour `data-turbo-permanent`, unconditionally.**
+  ui-tier-spec.md §5 item 11 flagged this as an open question while scoping
+  `Crosswire::UI::Toast`'s Excluded morph verdict: "bare morphElements may not honor
+  turbo-permanent the way page renders do — investigate what actually preserves it at
+  this layer." It does, and there was never a distinct "page render" code path for it
+  to differ from. Read against the vendored source
+  (`test/dummy/vendor/javascript/@hotwired--turbo.js`): the exported `morphElements()`
+  — the same function every `*.browser.test.js` file in this suite already drives
+  directly, not a stand-in for it — constructs `DefaultIdiomorphCallbacks` itself,
+  inline (`Idiomorph.morph(currentElement, newElement, { callbacks: new
+  DefaultIdiomorphCallbacks(callbacks) })`). `DefaultIdiomorphCallbacks#beforeNodeMorphed`
+  short-circuits on `currentElement.hasAttribute("data-turbo-permanent")` before even
+  dispatching a `turbo:before-morph-element` event, and `beforeNodeRemoved` delegates
+  to that identical check — so a permanent node is neither morphed NOR removed,
+  regardless of what (or whether) a matching node exists in the incoming HTML.
+  `MorphingPageRenderer` (what a real Turbo page visit uses) never overrides or adds to
+  this; it is baked into the shared low-level callback object both a real page morph
+  and a bare `morphElements()` call route through identically. Verified behaviourally,
+  not just read, in `test/js/toast.browser.test.js` — a live `cw--timeout` timer and
+  its exact controller instance (checked via `application.getControllerForElementAndIdentifier`
+  strict-equality across the morph) survive a page-level morph whose incoming HTML
+  doesn't even render the permanent container's contents.
 
 ---
 

@@ -1,0 +1,25 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every class/composition decision lives in Crosswire::UI::Toast,
+  so this file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Carries NO role/aria-live of its own — see the presenter's own docstring for why an
+  individual toast must never compete with Crosswire::UI::ToastViewport's one real
+  live region. The dismiss button (rendered only when `toast.dismissible`) is the same
+  composed `cw--dismiss` trigger Crosswire::UI::Alert's partial renders — see that
+  file's own comment.
+
+  Locals:
+    toast    Crosswire::UI::Toast
+    message  String or nil — plain-text toast content
+    content  String or nil — already-captured block content; takes precedence over
+             `message` when both are given
+%>
+<div <%= cw_attrs(toast.root_attrs) %>>
+  <div class="cw-toast__body"><%= content ? content : message %></div>
+  <% if toast.dismissible %>
+    <button <%= cw_attrs(toast.dismiss_trigger_attrs, class: "cw-toast__dismiss cw-focusable") %>>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  <% end %>
+</div>

@@ -1,0 +1,5 @@
+<%# The live-region container, rendered once, holding one server-rendered toast on
+    first paint — see Crosswire::UI::Toast's "server-rendered flash toasts" path. %>
+<%= cw.toast_viewport do %>
+  <%= cw.toast "Draft saved." %>
+<% end %>

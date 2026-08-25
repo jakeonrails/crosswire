@@ -1,0 +1,4 @@
+<%# Morph: Server-owned — a dismissed alert must stop being server-rendered on the
+    next response, or a morph brings it right back. See Crosswire::UI::Alert's own
+    docstring and test/js/alert.browser.test.js. %>
+<%= cw.alert "Only 2 left in stock.", severity: :warning, dismissible: true %>

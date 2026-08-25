@@ -288,5 +288,110 @@
       "--cw-select-px",
       "--cw-select-py"
     ]
+  },
+  {
+    "name": "alert",
+    "type": "registry:ui",
+    "description": "A severity-coded message (role status/alert picked from the severity, never both a role and a redundant aria-live) with an optional dismiss — the tier's composition showcase, stacking the existing cw--dismiss primitive onto one element.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/alert.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/alert_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_alert.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/alert.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/alert/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/alert/dismissible.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/alert/severities.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/alert/subtle.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-alert-bg",
+      "--cw-alert-body-flex",
+      "--cw-alert-border",
+      "--cw-alert-dismiss-hover-opacity",
+      "--cw-alert-dismiss-size",
+      "--cw-alert-fg",
+      "--cw-alert-px",
+      "--cw-alert-py",
+      "--cw-alert-radius"
+    ]
+  },
+  {
+    "name": "toast",
+    "type": "registry:ui",
+    "description": "A viewport-fixed live-region container plus individual toasts composing cw--dismiss + cw--timeout + cw--transition — server-rendered on first paint or Turbo-Stream-appended later; the container survives a page morph via data-turbo-permanent.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/toast.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/toast_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_toast.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/toast.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/toast/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/toast/severities.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/toast/stream-append.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-toast-bg",
+      "--cw-toast-body-flex",
+      "--cw-toast-border",
+      "--cw-toast-dismiss-hover-opacity",
+      "--cw-toast-dismiss-size",
+      "--cw-toast-enter-offset",
+      "--cw-toast-fg",
+      "--cw-toast-opacity-visible",
+      "--cw-toast-px",
+      "--cw-toast-py",
+      "--cw-toast-radius",
+      "--cw-toast-viewport-gap",
+      "--cw-toast-viewport-inset",
+      "--cw-toast-viewport-max-width"
+    ]
   }
 ]

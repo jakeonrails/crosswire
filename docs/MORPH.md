@@ -81,3 +81,59 @@ Morph: Server-owned
     thing: which `<option>` carries the `selected` attribute in the HTML the
     server sends.
 ```
+
+## alert
+
+```
+Morph: Server-owned
+  DOM-only state: whether the alert has been dismissed. Dismissal here is a DOM
+    REMOVAL driven by a Stimulus action (`cw--dismiss`), not a Stimulus VALUE —
+    there is no server-rendered `dismissed="true"` attribute a morph could ever
+    see and decide to honour, the way `Crosswire::UI::Select`'s Server-owned
+    verdict has a `selected` attribute to patch. That absence IS the hazard.
+  On morph: this is the flash-message trap. If the SAME alert keeps being
+    server-rendered on the next response that could be followed by a morph (the
+    session still holds the flash, a background `broadcasts_refreshes`, a page
+    that simply re-renders the same instance variable), idiomorph has no way to
+    know the node the user just dismissed ever existed — the incoming HTML
+    carries an element idiomorph has never been told to treat as gone, so it adds
+    it right back, identical to the one the user removed. A morph does not
+    "clobber" a dismissed alert; it resurrects it, because dismissal was never
+    expressed anywhere the server could see. Proven, not merely asserted, against
+    real `@hotwired/turbo` in `test/js/alert.browser.test.js` — that file
+    DEMONSTRATES the trap (a morph brings the alert back), it does not claim to
+    fix it, because nothing at this layer can: the fix is server-side.
+  The app must: stop rendering a dismissed alert on the very next response that
+    could be followed by a morph — consume the flash after it is read once,
+    track acknowledgement server-side and stop emitting the alert once
+    acknowledged, or equivalent. Client-side dismissal alone never survives a
+    morph if the server does not also agree, server-side, that the alert is gone.
+```
+
+## toast
+
+```
+Morph: Excluded
+  DOM-only state: which toasts currently exist in the viewport, and each one's
+    live `cw--timeout` timer (paused/remaining, armed by hover) and any in-flight
+    `cw--transition` leave animation. None of that has a server-side
+    representation at all — a toast is never re-derived from a page's own
+    instance variables the way, say, a flash `<div>` embedded in the page body
+    is; it is either rendered once at the moment it was pushed (path 1 above) or
+    appended once via a Turbo Stream (path 2) and never again.
+  On morph: `Crosswire::UI::ToastViewport`'s shipped partial carries
+    `data-turbo-permanent`, which — proven in `test/js/toast.browser.test.js`
+    against real `@hotwired/turbo`, not merely asserted — a bare `morphElements()`
+    call already honours on its own: `data-turbo-permanent` is checked inside
+    `DefaultIdiomorphCallbacks`, the callback object `morphElements()` itself
+    constructs internally, not something layered on only by Turbo's page-level
+    renderer. A permanent node is skipped by the morph entirely — idiomorph never
+    compares its children against the incoming HTML at all — so every toast
+    inside it, and every live timer/transition driving one, survives a page-level
+    morph completely untouched. See docs/BUILD-LOG.md for the full finding.
+  The app must: give the viewport a STABLE id across responses (the whole reason
+    `data-turbo-permanent` id-matches at all) and never rely on server-rendered
+    HTML to describe which toasts are currently showing — the container's
+    CONTENTS are the only source of truth once the page has loaded, exactly like
+    `data-turbo-permanent`'s other shipped use (`cw--autosubmit`'s search box).
+```

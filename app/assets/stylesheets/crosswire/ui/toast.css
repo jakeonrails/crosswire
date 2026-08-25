@@ -1,0 +1,145 @@
+/* crosswire/ui/toast.css — cw-toast (one item) and cw-toast-viewport (the live-region
+   container, Crosswire::UI::ToastViewport) — the tier's other composition showcase
+   (ui-tier-spec.md §5 item 11). Every color/length below is either a global token or
+   one of THIS component's own `--cw-toast-*` knobs, always consumed through
+   `var(...)` — see tokens.css's own header for the override ladder.
+
+   `position: fixed` + `--cw-z-toast` on the viewport is the whole "stack toasts above
+   everything else, in one fixed corner" story — CSS only, exactly as
+   skills/crosswire-composing/RECIPES.md's toast recipe already documents. */
+
+@layer crosswire.components {
+  .cw-toast-viewport {
+    --cw-toast-viewport-inset: var(--cw-space-4);
+    --cw-toast-viewport-gap: var(--cw-space-2);
+    --cw-toast-viewport-max-width: 24rem;
+
+    position: fixed;
+    inset-block-start: var(--cw-toast-viewport-inset);
+    inset-inline-end: var(--cw-toast-viewport-inset);
+    z-index: var(--cw-z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-toast-viewport-gap);
+    max-width: var(--cw-toast-viewport-max-width);
+    width: max-content;
+    /* The viewport itself is not a hit target — only the toasts (and their dismiss
+       buttons) inside it are, so nothing about this fixed-position box blocks clicks
+       on whatever page content happens to sit underneath its empty corners. */
+    pointer-events: none;
+  }
+
+  .cw-toast {
+    --cw-toast-bg: var(--cw-color-surface-raised);
+    --cw-toast-fg: var(--cw-color-fg);
+    --cw-toast-border: var(--cw-color-border);
+    --cw-toast-px: var(--cw-space-4);
+    --cw-toast-py: var(--cw-space-3);
+    --cw-toast-radius: var(--cw-radius-md);
+    --cw-toast-dismiss-size: var(--cw-text-lg);
+    --cw-toast-dismiss-hover-opacity: 0.7;
+    --cw-toast-enter-offset: -0.5rem;
+    --cw-toast-opacity-visible: 1;
+    --cw-toast-body-flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-space-3);
+    border-radius: var(--cw-toast-radius);
+    border: var(--cw-border-width) solid var(--cw-toast-border);
+    padding: var(--cw-toast-py) var(--cw-toast-px);
+    background: var(--cw-toast-bg);
+    color: var(--cw-toast-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+    pointer-events: auto;
+
+    /* Rule 0 (see Crosswire::Presenters::Transition's own docstring): the ENTER
+       animation is CSS-only, `@starting-style`, no JavaScript, working identically
+       whether the toast was server-rendered on first paint or Turbo-Stream-appended
+       later — `@starting-style` fires on "first rendered", not on any particular
+       insertion method. Only the LEAVE side needs `cw--transition` (composed by the
+       presenter when `dismissible: true`): `Node.remove()` is synchronous, so CSS
+       alone cannot animate a removal. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(var(--cw-toast-enter-offset));
+    }
+  }
+
+  .cw-toast__body {
+    flex: var(--cw-toast-body-flex);
+  }
+
+  .cw-toast__dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--cw-toast-dismiss-size);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-toast__dismiss:hover {
+    opacity: var(--cw-toast-dismiss-hover-opacity);
+  }
+
+  /* ---- leave sequence (cw--transition classes, composed by the presenter) ------- */
+  /* Composed onto the SAME element cw--dismiss removes — see Crosswire::UI::Toast's
+     own docstring for the full `leave_on` wiring. `.cw-toast--leaving` only needs to
+     exist as a selector for a host that wants to target "currently animating out"; the
+     transition itself is already declared on `.cw-toast` above, shared by enter/leave. */
+  .cw-toast--leave-from {
+    opacity: var(--cw-toast-opacity-visible);
+    transform: translateY(0);
+  }
+
+  .cw-toast--leave-to {
+    opacity: 0;
+    transform: translateY(var(--cw-toast-enter-offset));
+  }
+
+  /* ---- severity (styling only — see the presenter's own docstring for why) ------ */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-toast--info {
+    --cw-toast-bg: var(--cw-color-info-subtle);
+    --cw-toast-fg: var(--cw-color-info);
+    --cw-toast-border: var(--cw-color-info-subtle);
+  }
+
+  .cw-toast--success {
+    --cw-toast-bg: var(--cw-color-success-subtle);
+    --cw-toast-fg: var(--cw-color-success);
+    --cw-toast-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-toast--warning {
+    --cw-toast-bg: var(--cw-color-warning-subtle);
+    --cw-toast-fg: var(--cw-color-warning);
+    --cw-toast-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-toast--danger {
+    --cw-toast-bg: var(--cw-color-danger-subtle);
+    --cw-toast-fg: var(--cw-color-danger);
+    --cw-toast-border: var(--cw-color-danger-subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-toast {
+      transition: none;
+    }
+  }
+}

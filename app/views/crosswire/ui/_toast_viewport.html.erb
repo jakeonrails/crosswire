@@ -1,0 +1,18 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every attribute decision lives in Crosswire::UI::ToastViewport,
+  so this file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Render this ONCE per politeness level, in the layout, BEFORE any toast exists — "the
+  aria-live rule from the corpus", see the presenter's own docstring. `content` is
+  populated only by the server-rendered-flash-toasts rendering path
+  (`cw.toast_viewport { ... }`); the Turbo-Stream-appended path targets this same
+  element's `id` later and needs no block here at all — an empty container on first
+  paint is the normal, expected case, not a gap.
+
+  Locals:
+    viewport  Crosswire::UI::ToastViewport
+    content   String or nil — already-captured block content (zero or more `cw.toast`
+              calls)
+%>
+<div <%= cw_attrs(viewport.root_attrs) %>><%= content %></div>

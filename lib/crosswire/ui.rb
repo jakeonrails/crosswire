@@ -26,6 +26,11 @@ require "crosswire/ui/field"
 require "crosswire/ui/field_helper"
 require "crosswire/ui/select"
 require "crosswire/ui/select_helper"
+require "crosswire/ui/alert"
+require "crosswire/ui/alert_helper"
+require "crosswire/ui/toast_viewport"
+require "crosswire/ui/toast"
+require "crosswire/ui/toast_helper"
 
 module Crosswire
   module UI
@@ -68,6 +73,19 @@ module Crosswire
       select: {
         description: "A styled NATIVE <select> — the tier's Rule 0 exemplar: no " \
                       "reimplemented listbox, just the platform control, styled."
+      }.freeze,
+      alert: {
+        description: "A severity-coded message (role status/alert picked from the " \
+                      "severity, never both a role and a redundant aria-live) with " \
+                      "an optional dismiss — the tier's composition showcase, " \
+                      "stacking the existing cw--dismiss primitive onto one element."
+      }.freeze,
+      toast: {
+        description: "A viewport-fixed live-region container plus individual " \
+                      "toasts composing cw--dismiss + cw--timeout + cw--transition " \
+                      "— server-rendered on first paint or Turbo-Stream-appended " \
+                      "later; the container survives a page morph via " \
+                      "data-turbo-permanent."
       }.freeze
     }.freeze
 

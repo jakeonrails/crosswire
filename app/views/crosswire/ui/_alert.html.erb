@@ -1,0 +1,25 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every class/role/dismiss decision lives in Crosswire::UI::Alert,
+  so this file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  The dismiss button renders ONLY when `alert.dismissible` — its attributes come
+  straight from `alert.dismiss_trigger_attrs` (the composed `cw--dismiss` primitive;
+  see the presenter's own "composition showcase" docstring). `aria-label` on that
+  button already names it ("Dismiss") — the glyph is `aria-hidden` so it is not
+  announced a second time as literal text.
+
+  Locals:
+    alert    Crosswire::UI::Alert
+    message  String or nil — plain-text alert content
+    content  String or nil — already-captured block content; takes precedence over
+             `message` when both are given
+%>
+<div <%= cw_attrs(alert.root_attrs) %>>
+  <div class="cw-alert__body"><%= content ? content : message %></div>
+  <% if alert.dismissible %>
+    <button <%= cw_attrs(alert.dismiss_trigger_attrs, class: "cw-alert__dismiss cw-focusable") %>>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  <% end %>
+</div>

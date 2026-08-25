@@ -1,0 +1,93 @@
+/* crosswire/ui/alert.css — cw-alert, the composition showcase (ui-tier-spec.md §5
+   item 7): the optional dismiss button below is styled here, but it is the composed
+   `cw--dismiss` primitive's real trigger element — see Crosswire::UI::Alert's own
+   docstring for the presenter-side half of that composition. Every color/length below
+   is either a global token or one of THIS component's own `--cw-alert-*` knobs,
+   always consumed through `var(...)` — see tokens.css's own header for the override
+   ladder. */
+
+@layer crosswire.components {
+  .cw-alert {
+    --cw-alert-bg: var(--cw-color-surface-sunk);
+    --cw-alert-fg: var(--cw-color-fg);
+    --cw-alert-border: var(--cw-color-border);
+    --cw-alert-px: var(--cw-space-4);
+    --cw-alert-py: var(--cw-space-3);
+    --cw-alert-radius: var(--cw-radius-md);
+    --cw-alert-dismiss-size: var(--cw-text-lg);
+    --cw-alert-dismiss-hover-opacity: 0.7;
+    --cw-alert-body-flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-space-3);
+    border-radius: var(--cw-alert-radius);
+    border: var(--cw-border-width) solid var(--cw-alert-border);
+    padding: var(--cw-alert-py) var(--cw-alert-px);
+    background: var(--cw-alert-bg);
+    color: var(--cw-alert-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+  }
+
+  .cw-alert__body {
+    flex: var(--cw-alert-body-flex);
+  }
+
+  .cw-alert__dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--cw-alert-dismiss-size);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-alert__dismiss:hover {
+    opacity: var(--cw-alert-dismiss-hover-opacity);
+  }
+
+  /* ---- severity --------------------------------------------------------------- */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2) — the knob
+     values above ARE the neutral styling, so there is nothing to declare for it. */
+
+  .cw-alert--info {
+    --cw-alert-bg: var(--cw-color-info-subtle);
+    --cw-alert-fg: var(--cw-color-info);
+    --cw-alert-border: var(--cw-color-info-subtle);
+  }
+
+  .cw-alert--success {
+    --cw-alert-bg: var(--cw-color-success-subtle);
+    --cw-alert-fg: var(--cw-color-success);
+    --cw-alert-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-alert--warning {
+    --cw-alert-bg: var(--cw-color-warning-subtle);
+    --cw-alert-fg: var(--cw-color-warning);
+    --cw-alert-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-alert--danger {
+    --cw-alert-bg: var(--cw-color-danger-subtle);
+    --cw-alert-fg: var(--cw-color-danger);
+    --cw-alert-border: var(--cw-color-danger-subtle);
+  }
+
+  /* ---- subtle ------------------------------------------------------------------- */
+  /* A lower-emphasis treatment — transparent surface, border carries the color
+     instead. Composes with every severity above (Variants rule 1: declaration order
+     puts `subtle` after `severity` in the class string, and CSS specificity here is
+     equal so LATER still wins for the properties this rule actually touches). */
+  .cw-alert--subtle {
+    background: transparent;
+  }
+}

@@ -1,0 +1,15 @@
+<%# Path 2 — Turbo-Stream-appended toasts. The container below is rendered once (in
+    a real app: once, in the layout, outside any frame — data-turbo-permanent keeps
+    it and its contents untouched across a page morph). A later controller response
+    only ever appends into it; the whole server-side story is one line:
+      def create
+        @order.save!
+        render turbo_stream: turbo_stream.append(
+          Crosswire::UI::ToastViewport::DEFAULT_ID) { cw.toast("Order placed.", severity: :success) }
+      end
+    This example renders the container plus what that append would add, standing in
+    for the Turbo Stream round trip a static gallery page cannot itself perform. %>
+<%= cw.toast_viewport %>
+<%= turbo_stream.append Crosswire::UI::ToastViewport::DEFAULT_ID do %>
+  <%= cw.toast "Order placed.", severity: :success %>
+<% end %>

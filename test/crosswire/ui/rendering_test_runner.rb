@@ -160,4 +160,74 @@ module CrosswireUIRendering
       assert_equal "Upgrade", root.at_css(".cw-card__footer").text.strip
     end
   end
+
+  # ---------------------------------------------------------------------------------
+  # Alert's composition showcase, in real rendered DOM (ui-tier-spec.md §5 item 7):
+  # the dismiss button renders only when asked for, and — the one thing a presenter
+  # unit test cannot see without a real ActionView `id`/`for` cycle — its `aria-label`
+  # actually resolves on a real element in the tree.
+  # ---------------------------------------------------------------------------------
+  class AlertRenderTest < HelperCase
+    def test_not_dismissible_renders_no_dismiss_button
+      html = view.cw.alert("Draft saved.")
+      root = dom(html).at_css(".cw-alert")
+
+      assert_nil root.at_css(".cw-alert__dismiss")
+      assert_equal "Draft saved.", root.at_css(".cw-alert__body").text.strip
+    end
+
+    def test_dismissible_renders_a_labelled_dismiss_button
+      html = view.cw.alert("Only 2 left.", severity: :warning, dismissible: true)
+      root = dom(html).at_css(".cw-alert")
+      button = root.at_css(".cw-alert__dismiss")
+
+      refute_nil button
+      assert_equal "button", button["type"]
+      assert_equal "Dismiss", button["aria-label"]
+      assert_equal "click->cw--dismiss#dismiss", button["data-action"]
+    end
+
+    def test_role_reflects_severity_in_real_dom
+      assert_equal "status", dom(view.cw.alert("x", severity: :success)).at_css(".cw-alert")["role"]
+      assert_equal "alert", dom(view.cw.alert("x", severity: :danger)).at_css(".cw-alert")["role"]
+    end
+  end
+
+  # ---------------------------------------------------------------------------------
+  # Toast's two-part composite, in real rendered DOM: the container's live-region
+  # attributes land on a real element, and a toast rendered inside its block actually
+  # ends up nested inside that container carrying all three composed controllers.
+  # ---------------------------------------------------------------------------------
+  class ToastRenderTest < HelperCase
+    def test_viewport_renders_the_live_region_container_attrs
+      html = view.cw.toast_viewport
+      root = dom(html).at_css(".cw-toast-viewport")
+
+      assert_equal "cw-toast-viewport", root["id"]
+      assert_equal "status", root["role"]
+      assert_equal "polite", root["aria-live"]
+      assert_equal "", root["data-turbo-permanent"]
+    end
+
+    def test_a_toast_rendered_inside_the_viewport_block_lands_inside_the_container
+      html = view.cw.toast_viewport { view.cw.toast("Saved!", severity: :success) }
+      container = dom(html).at_css(".cw-toast-viewport")
+      toast = container.at_css(".cw-toast")
+
+      refute_nil toast
+      assert_includes tokens(toast, "class"), "cw-toast--success"
+      assert_equal "Saved!", toast.at_css(".cw-toast__body").text.strip
+      tokens(toast, "data-controller").tap do |controllers|
+        assert_equal %w[cw--dismiss cw--timeout cw--transition], controllers
+      end
+    end
+
+    def test_toast_carries_no_role_or_aria_live_of_its_own
+      html = view.cw.toast("Saved!")
+      root = dom(html).at_css(".cw-toast")
+
+      assert_nil root["role"]
+      assert_nil root["aria-live"]
+    end
+  end
 end

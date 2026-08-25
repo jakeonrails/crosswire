@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.toast — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>toast</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A viewport-fixed live-region container plus individual toasts composing cw--dismiss + cw--timeout + cw--transition — server-rendered on first paint or Turbo-Stream-appended later; the container survives a page morph via data-turbo-permanent.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><div id="cw-toast-viewport" class="cw-toast-viewport" role="status" aria-live="polite" aria-atomic="false" data-turbo-permanent="">
+  <div class="cw-toast" data-controller="cw--dismiss cw--timeout cw--transition" data-cw--dismiss-remove-value="true" data-cw--timeout-delay-value="5000" data-cw--timeout-start-on-connect-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave mouseenter-&gt;cw--timeout#cancel mouseleave-&gt;cw--timeout#restart cw--timeout:elapsed-&gt;cw--dismiss#dismiss">
+  <div class="cw-toast__body">Draft saved.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/toast/basic.html.erb</p>
+    <pre><code>&lt;%# The live-region container, rendered once, holding one server-rendered toast on
+    first paint — see Crosswire::UI::Toast&#39;s &quot;server-rendered flash toasts&quot; path. %&gt;
+&lt;%= cw.toast_viewport do %&gt;
+  &lt;%= cw.toast &quot;Draft saved.&quot; %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div id="cw-toast-viewport" class="cw-toast-viewport" role="status" aria-live="polite" aria-atomic="false" data-turbo-permanent="">
+  <div class="cw-toast cw-toast--info" data-controller="cw--dismiss cw--timeout cw--transition" data-cw--dismiss-remove-value="true" data-cw--timeout-delay-value="5000" data-cw--timeout-start-on-connect-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave mouseenter-&gt;cw--timeout#cancel mouseleave-&gt;cw--timeout#restart cw--timeout:elapsed-&gt;cw--dismiss#dismiss">
+  <div class="cw-toast__body">Renews on March 4.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+  <div class="cw-toast cw-toast--success" data-controller="cw--dismiss cw--timeout cw--transition" data-cw--dismiss-remove-value="true" data-cw--timeout-delay-value="5000" data-cw--timeout-start-on-connect-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave mouseenter-&gt;cw--timeout#cancel mouseleave-&gt;cw--timeout#restart cw--timeout:elapsed-&gt;cw--dismiss#dismiss">
+  <div class="cw-toast__body">Payment method updated.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+  <div class="cw-toast cw-toast--warning" data-controller="cw--dismiss cw--timeout cw--transition" data-cw--dismiss-remove-value="true" data-cw--timeout-delay-value="5000" data-cw--timeout-start-on-connect-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave mouseenter-&gt;cw--timeout#cancel mouseleave-&gt;cw--timeout#restart cw--timeout:elapsed-&gt;cw--dismiss#dismiss">
+  <div class="cw-toast__body">Your trial ends in 3 days.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+  <div class="cw-toast cw-toast--danger" data-controller="cw--dismiss cw--transition" data-cw--dismiss-remove-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave">
+  <div class="cw-toast__body">Upload failed.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/toast/severities.html.erb</p>
+    <pre><code>&lt;%= cw.toast_viewport do %&gt;
+  &lt;%= cw.toast &quot;Renews on March 4.&quot;, severity: :info %&gt;
+  &lt;%= cw.toast &quot;Payment method updated.&quot;, severity: :success %&gt;
+  &lt;%= cw.toast &quot;Your trial ends in 3 days.&quot;, severity: :warning %&gt;
+  &lt;%= cw.toast &quot;Upload failed.&quot;, severity: :danger, timeout: nil %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div id="cw-toast-viewport" class="cw-toast-viewport" role="status" aria-live="polite" aria-atomic="false" data-turbo-permanent=""></div>
+
+<turbo-stream action="append" target="cw-toast-viewport"><template>
+  <div class="cw-toast cw-toast--success" data-controller="cw--dismiss cw--timeout cw--transition" data-cw--dismiss-remove-value="true" data-cw--timeout-delay-value="5000" data-cw--timeout-start-on-connect-value="true" data-cw--transition-leave-class="cw-toast--leaving" data-cw--transition-leave-from-class="cw-toast--leave-from" data-cw--transition-leave-to-class="cw-toast--leave-to" data-action="cw--dismiss:dismissing-&gt;cw--transition#leave mouseenter-&gt;cw--timeout#cancel mouseleave-&gt;cw--timeout#restart cw--timeout:elapsed-&gt;cw--dismiss#dismiss">
+  <div class="cw-toast__body">Order placed.</div>
+    <button data-action="click-&gt;cw--dismiss#dismiss" type="button" aria-label="Dismiss" class="cw-toast__dismiss cw-focusable">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+</template></turbo-stream></div>
+  <div class="source">
+    <p class="name">site/examples/toast/stream-append.html.erb</p>
+    <pre><code>&lt;%# Path 2 — Turbo-Stream-appended toasts. The container below is rendered once (in
+    a real app: once, in the layout, outside any frame — data-turbo-permanent keeps
+    it and its contents untouched across a page morph). A later controller response
+    only ever appends into it; the whole server-side story is one line:
+      def create
+        @order.save!
+        render turbo_stream: turbo_stream.append(
+          Crosswire::UI::ToastViewport::DEFAULT_ID) { cw.toast(&quot;Order placed.&quot;, severity: :success) }
+      end
+    This example renders the container plus what that append would add, standing in
+    for the Turbo Stream round trip a static gallery page cannot itself perform. %&gt;
+&lt;%= cw.toast_viewport %&gt;
+&lt;%= turbo_stream.append Crosswire::UI::ToastViewport::DEFAULT_ID do %&gt;
+  &lt;%= cw.toast &quot;Order placed.&quot;, severity: :success %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <table class="props">
+  <thead><tr><th>Prop</th><th>Values</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr>
+  <td><code>severity</code></td>
+  <td><code>:neutral, :info, :success, :warning, :danger</code></td>
+  <td><code>:neutral</code></td>
+</tr>
+
+  </tbody>
+</table>
+
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Excluded
+  DOM-only state: which toasts currently exist in the viewport, and each one&#39;s
+    live `cw--timeout` timer (paused/remaining, armed by hover) and any in-flight
+    `cw--transition` leave animation. None of that has a server-side
+    representation at all — a toast is never re-derived from a page&#39;s own
+    instance variables the way, say, a flash `&lt;div&gt;` embedded in the page body
+    is; it is either rendered once at the moment it was pushed (path 1 above) or
+    appended once via a Turbo Stream (path 2) and never again.
+  On morph: `Crosswire::UI::ToastViewport`&#39;s shipped partial carries
+    `data-turbo-permanent`, which — proven in `test/js/toast.browser.test.js`
+    against real `@hotwired/turbo`, not merely asserted — a bare `morphElements()`
+    call already honours on its own: `data-turbo-permanent` is checked inside
+    `DefaultIdiomorphCallbacks`, the callback object `morphElements()` itself
+    constructs internally, not something layered on only by Turbo&#39;s page-level
+    renderer. A permanent node is skipped by the morph entirely — idiomorph never
+    compares its children against the incoming HTML at all — so every toast
+    inside it, and every live timer/transition driving one, survives a page-level
+    morph completely untouched. See docs/BUILD-LOG.md for the full finding.
+  The app must: give the viewport a STABLE id across responses (the whole reason
+    `data-turbo-permanent` id-matches at all) and never rely on server-rendered
+    HTML to describe which toasts are currently showing — the container&#39;s
+    CONTENTS are the only source of truth once the page has loaded, exactly like
+    `data-turbo-permanent`&#39;s other shipped use (`cw--autosubmit`&#39;s search box).</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/toast.css — cw-toast (one item) and cw-toast-viewport (the live-region
+   container, Crosswire::UI::ToastViewport) — the tier&#39;s other composition showcase
+   (ui-tier-spec.md §5 item 11). Every color/length below is either a global token or
+   one of THIS component&#39;s own `--cw-toast-*` knobs, always consumed through
+   `var(...)` — see tokens.css&#39;s own header for the override ladder.
+
+   `position: fixed` + `--cw-z-toast` on the viewport is the whole &quot;stack toasts above
+   everything else, in one fixed corner&quot; story — CSS only, exactly as
+   skills/crosswire-composing/RECIPES.md&#39;s toast recipe already documents. */
+
+@layer crosswire.components {
+  .cw-toast-viewport {
+    --cw-toast-viewport-inset: var(--cw-space-4);
+    --cw-toast-viewport-gap: var(--cw-space-2);
+    --cw-toast-viewport-max-width: 24rem;
+
+    position: fixed;
+    inset-block-start: var(--cw-toast-viewport-inset);
+    inset-inline-end: var(--cw-toast-viewport-inset);
+    z-index: var(--cw-z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-toast-viewport-gap);
+    max-width: var(--cw-toast-viewport-max-width);
+    width: max-content;
+    /* The viewport itself is not a hit target — only the toasts (and their dismiss
+       buttons) inside it are, so nothing about this fixed-position box blocks clicks
+       on whatever page content happens to sit underneath its empty corners. */
+    pointer-events: none;
+  }
+
+  .cw-toast {
+    --cw-toast-bg: var(--cw-color-surface-raised);
+    --cw-toast-fg: var(--cw-color-fg);
+    --cw-toast-border: var(--cw-color-border);
+    --cw-toast-px: var(--cw-space-4);
+    --cw-toast-py: var(--cw-space-3);
+    --cw-toast-radius: var(--cw-radius-md);
+    --cw-toast-dismiss-size: var(--cw-text-lg);
+    --cw-toast-dismiss-hover-opacity: 0.7;
+    --cw-toast-enter-offset: -0.5rem;
+    --cw-toast-opacity-visible: 1;
+    --cw-toast-body-flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-space-3);
+    border-radius: var(--cw-toast-radius);
+    border: var(--cw-border-width) solid var(--cw-toast-border);
+    padding: var(--cw-toast-py) var(--cw-toast-px);
+    background: var(--cw-toast-bg);
+    color: var(--cw-toast-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+    pointer-events: auto;
+
+    /* Rule 0 (see Crosswire::Presenters::Transition&#39;s own docstring): the ENTER
+       animation is CSS-only, `@starting-style`, no JavaScript, working identically
+       whether the toast was server-rendered on first paint or Turbo-Stream-appended
+       later — `@starting-style` fires on &quot;first rendered&quot;, not on any particular
+       insertion method. Only the LEAVE side needs `cw--transition` (composed by the
+       presenter when `dismissible: true`): `Node.remove()` is synchronous, so CSS
+       alone cannot animate a removal. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(var(--cw-toast-enter-offset));
+    }
+  }
+
+  .cw-toast__body {
+    flex: var(--cw-toast-body-flex);
+  }
+
+  .cw-toast__dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--cw-toast-dismiss-size);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-toast__dismiss:hover {
+    opacity: var(--cw-toast-dismiss-hover-opacity);
+  }
+
+  /* ---- leave sequence (cw--transition classes, composed by the presenter) ------- */
+  /* Composed onto the SAME element cw--dismiss removes — see Crosswire::UI::Toast&#39;s
+     own docstring for the full `leave_on` wiring. `.cw-toast--leaving` only needs to
+     exist as a selector for a host that wants to target &quot;currently animating out&quot;; the
+     transition itself is already declared on `.cw-toast` above, shared by enter/leave. */
+  .cw-toast--leave-from {
+    opacity: var(--cw-toast-opacity-visible);
+    transform: translateY(0);
+  }
+
+  .cw-toast--leave-to {
+    opacity: 0;
+    transform: translateY(var(--cw-toast-enter-offset));
+  }
+
+  /* ---- severity (styling only — see the presenter&#39;s own docstring for why) ------ */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-toast--info {
+    --cw-toast-bg: var(--cw-color-info-subtle);
+    --cw-toast-fg: var(--cw-color-info);
+    --cw-toast-border: var(--cw-color-info-subtle);
+  }
+
+  .cw-toast--success {
+    --cw-toast-bg: var(--cw-color-success-subtle);
+    --cw-toast-fg: var(--cw-color-success);
+    --cw-toast-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-toast--warning {
+    --cw-toast-bg: var(--cw-color-warning-subtle);
+    --cw-toast-fg: var(--cw-color-warning);
+    --cw-toast-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-toast--danger {
+    --cw-toast-bg: var(--cw-color-danger-subtle);
+    --cw-toast-fg: var(--cw-color-danger);
+    --cw-toast-border: var(--cw-color-danger-subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-toast {
+      transition: none;
+    }
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject toast</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

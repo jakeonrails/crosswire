@@ -119,3 +119,50 @@
   `ui:bundle` → `ui:registry` → `build_site.rb` → `ui:gallery` → `smoke_site.mjs`,
   which now also walks every component page and fails on a console error or a
   zero-height rendered root.
+- Add `alert` — the styled tier's composition showcase (ui-tier-spec.md §5 item 7):
+  `severity` (neutral/info/success/warning/danger) picks BOTH the visual variant and
+  the ARIA role (`status` for polite severities, `alert` for danger/warning) — never
+  a role alongside a redundant, possibly-disagreeing `aria-live`. An optional
+  `dismissible: true` composes the existing `cw--dismiss` primitive onto the root
+  element by stacking its `root_attrs`, exactly the way
+  `skills/crosswire-composing/RECIPES.md`'s "Toast / flash message" recipe already
+  documents by hand — `dismiss_trigger_attrs` hands back the composed trigger's
+  attributes, raising if called on a non-dismissible alert. Morph: **Server-owned**
+  — the tier's second non-Safe verdict, and a new shape of one: dismissal is a DOM
+  removal with no server-visible trace at all (no `dismissed` value for a morph to
+  patch), so a subsequent response that keeps rendering the same alert resurrects it
+  — the flash-message trap. `test/js/alert.browser.test.js` DEMONSTRATES the trap
+  against real `@hotwired/turbo` (a morph brings a dismissed alert back) rather than
+  claiming to fix it; the fix is server-side, and the presenter's docstring says so.
+- Add `toast` — new markup, the tier's other composition showcase: a viewport-fixed
+  live-region container (`Crosswire::UI::ToastViewport`, `cw.toast_viewport`) that
+  must render server-side before any toast exists ("the aria-live rule from the
+  corpus" — a live region's `role`/`aria-live` has to already be in the DOM before
+  content is injected for reliable screen-reader announcement), plus individual
+  toasts (`cw.toast`) composing `cw--dismiss` + `cw--timeout` + `cw--transition` via
+  stacked `root_attrs`, wired together (hover pauses/resumes the auto-dismiss timer;
+  the timer's `elapsed` event dismisses; dismissal's cancelable `dismissing` event
+  runs the leave transition before removal). Each composed piece is independently
+  optional (`dismissible: false`, `timeout: nil`) — only the wiring between two
+  present pieces is ever emitted. Two rendering paths, both in the docstring: toasts
+  rendered inside `cw.toast_viewport`'s block on first paint, or Turbo-Stream-appended
+  into the same (already-rendered) container later — a one-line controller response.
+  Morph: **Excluded** — the container's shipped partial carries
+  `data-turbo-permanent` — which toasts exist, and each one's live timer/transition
+  state, is DOM-only, with no server-side representation at all.
+  `test/js/toast.browser.test.js` proves it against real `@hotwired/turbo`: a
+  page-level morph whose incoming HTML doesn't even render the container's toasts
+  leaves the live toast stack — and the exact same running `cw--timeout` controller
+  instances — untouched. That test also settled an open question the spec itself
+  raised (§5 item 11: "bare morphElements may not honor turbo-permanent the way page
+  renders do — investigate") — it does, unconditionally, because `data-turbo-permanent`
+  is checked inside `DefaultIdiomorphCallbacks`, which the exported `morphElements()`
+  constructs itself; there was never a distinct "page render" path for it to differ
+  from. Full finding in `docs/BUILD-LOG.md`.
+- Add `test/js/field.browser.test.js` — the tier's other required browser-tier
+  component (ui-tier-spec.md §7.3 names toast and field; field shipped without one in
+  Phase 2). `Crosswire::UI::Field` ships no controller (Morph: Safe), so this is a
+  pure DOM proof that `aria-describedby`/`aria-errormessage` genuinely resolve to
+  real elements in a real document — the same lookup a screen reader's accessibility
+  tree builder performs — not just matching strings, which the presenter unit suite
+  already pins with no DOM at all.
