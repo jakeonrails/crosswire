@@ -26,8 +26,22 @@ EXAMPLES_DIR = File.join(ROOT, "site/examples")
 UI_CSS_DIR = File.join(ROOT, "app/assets/stylesheets/crosswire/ui")
 UI_LIB_DIR = File.join(ROOT, "lib/crosswire/ui")
 OUT_DIR = File.join(ROOT, "site/components")
+ASSETS_DIR = File.join(ROOT, "site/assets")
+SITE_CSS_PATH = File.join(ASSETS_DIR, "crosswire-ui.css")
 
 abort "missing #{TEMPLATE}" unless File.exist?(TEMPLATE)
+
+# The site must stay self-contained (nothing a built page links to may live outside
+# site/), but the ONE source of truth for the bundle's content stays
+# `Crosswire::UI::Bundle.source` (also written to `app/assets/stylesheets/crosswire/
+# ui.css` by `rake ui:bundle`, and pinned there byte-for-byte by
+# `ui_contract_audit_test.rb` check 9). This is a COPY of that same generated source,
+# not a second place that algorithm lives — regenerated here via the identical code
+# path `rake ui:bundle` uses, so it can never drift even if `ui:bundle` was skipped
+# before this script ran.
+require_relative "../lib/crosswire/ui/bundle"
+FileUtils.mkdir_p(ASSETS_DIR)
+File.write(SITE_CSS_PATH, Crosswire::UI::Bundle.source)
 
 MORPH_CLAUSE = /^\s*# Morph:.*(?:\n\s*#.*)*/
 
@@ -125,6 +139,93 @@ def eject_command_for(name)
   "rails g crosswire:eject #{name}"
 end
 
+# The gallery index (site/components/index.html) — one card per registered UI
+# component, grouped by kind (spec §2b: `kind: :new` ships its own presenter/helper/
+# partial/CSS; `kind: :css` styles an EXISTING primitive-tier widget with no new
+# markup of its own). Same shell styling approach as site/component_template.html —
+# the --cw-* tokens from the bundled stylesheet, not a second hand-rolled palette —
+# just laid out as a card grid instead of one component's own page.
+def component_card(name)
+  description = Crosswire::UI::COMPONENTS.fetch(name.to_sym).fetch(:description)
+  <<~HTML
+    <a class="card" href="#{CGI.escapeHTML(name)}/index.html">
+      <h3>cw.<code>#{CGI.escapeHTML(name)}</code></h3>
+      <p>#{CGI.escapeHTML(description)}</p>
+    </a>
+  HTML
+end
+
+def gallery_index_html(new_names, css_names)
+  <<~HTML
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Component gallery — crosswire</title>
+    <link rel="stylesheet" href="../assets/crosswire-ui.css">
+    <style>
+      :root { --shell-max: 64rem; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--cw-color-bg);
+        color: var(--cw-color-fg);
+        font-family: var(--cw-font-sans);
+        line-height: var(--cw-leading-normal);
+      }
+      header.page {
+        border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+        padding: var(--cw-space-4) var(--cw-space-5);
+      }
+      header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+      header.page a.back:hover { color: var(--cw-color-accent); }
+      h1 { font-size: var(--cw-text-2xl); margin: var(--cw-space-2) 0 0; }
+      p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) 0 0; }
+      main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+      h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-3); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--cw-space-4); }
+      .card {
+        display: block; border: var(--cw-border-width) solid var(--cw-color-border);
+        border-radius: var(--cw-radius-lg); padding: var(--cw-space-4);
+        background: var(--cw-color-surface-raised); color: inherit; text-decoration: none;
+      }
+      .card:hover { border-color: var(--cw-color-accent); }
+      .card h3 { margin: 0 0 var(--cw-space-2); font-size: var(--cw-text-base); }
+      .card h3 code { font-family: var(--cw-font-mono); }
+      .card p { margin: 0; font-size: var(--cw-text-sm); color: var(--cw-color-fg-muted); }
+      footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+    </style>
+    </head>
+    <body>
+      <header class="page">
+        <a class="back" href="../index.html">← crosswire</a>
+        <h1>Component gallery</h1>
+        <p class="description">Every registered UI-tier component (ui-tier-spec.md §9), rendered from the gem's real source at build time.</p>
+      </header>
+
+      <main>
+        <h2>New components</h2>
+        <p class="description" style="margin-bottom:var(--cw-space-3)">Ship their own presenter, helper, partial and CSS.</p>
+        <div class="grid">
+          #{new_names.map { |name| component_card(name) }.join}
+        </div>
+
+        <h2>Styled widgets</h2>
+        <p class="description" style="margin-bottom:var(--cw-space-3)">CSS only, over an existing shipped primitive — no new markup.</p>
+        <div class="grid">
+          #{css_names.map { |name| component_card(name) }.join}
+        </div>
+      </main>
+
+      <footer class="page">
+        Rendered from the gem's real source at build time — nothing on this page is a mock.
+      </footer>
+    </body>
+    </html>
+  HTML
+end
+
 FileUtils.rm_rf(OUT_DIR)
 FileUtils.mkdir_p(OUT_DIR)
 
@@ -160,5 +261,13 @@ built = Crosswire::UI.component_names.map do |name|
   [name, out_path]
 end
 
+new_names = Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }
+css_names = Crosswire::UI.component_names.select { |name| Crosswire::UI.css_only?(name) }
+
+index_path = File.join(OUT_DIR, "index.html")
+File.write(index_path, gallery_index_html(new_names, css_names))
+
 puts "built #{built.size} component page#{"s" unless built.size == 1}:"
 built.each { |name, path| puts "  #{name} -> #{path.delete_prefix("#{ROOT}/")}" }
+puts "  index -> #{index_path.delete_prefix("#{ROOT}/")}"
+puts "wrote #{SITE_CSS_PATH.delete_prefix("#{ROOT}/")}"

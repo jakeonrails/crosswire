@@ -1,0 +1,1524 @@
+@layer crosswire.tokens, crosswire.base, crosswire.components;
+
+/* crosswire/ui/tokens.css — the styled component tier's design tokens (~67).
+   Two depths only: a global (--cw-color-accent) and a component knob defaulting to
+   one (--cw-button-bg, in button.css, defaults to var(--cw-color-surface)). Override
+   system-wide via a global, per-component via a knob, per-instance via style="".
+   Knobs never chain to a GUESSED host token name — the escalation ladder below is
+   the mechanism for host overrides instead (ui-tier-spec.md §1).
+
+   Convention: a surface-group token (bg/surface/border/...) names what it paints;
+   bare `fg` = the text color to use on it. A role token (accent/danger/success/
+   warning/info) names an action or state; `<role>-fg` = text color ON that role's
+   background — shadcn's --foreground/--primary-foreground split, renamed to
+   crosswire's flat --cw-<category>-<step> scheme.
+
+   Host override ladder, no !important ever: (1) redefine any --cw-* in your own
+   unlayered CSS; (2) plain rules against .cw-button — unlayered app CSS beats every
+   layer; (3) `rails g crosswire:eject button --css`. ui.css (the bundle) declares
+   `@layer crosswire.tokens, crosswire.base, crosswire.components;` once; this file
+   wraps its own rules in the matching `@layer` so it stays ordered standalone too.
+
+   Colors below are paired two-per-line to fit this file's ≤160-line budget with the
+   dark palette necessarily duplicated twice (see the note lower down) — every other
+   category stays one token per line. */
+
+@layer crosswire.tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* color (27, semantic) — light values */
+    --cw-color-bg: #fbfcfd; --cw-color-surface: #f8fafc;
+    --cw-color-surface-raised: #ffffff; --cw-color-surface-sunk: #f1f5f9;
+    --cw-color-fg: #0f172a; --cw-color-fg-muted: #475569;
+    --cw-color-fg-subtle: #94a3b8; --cw-color-border: #e2e8f0;
+    --cw-color-border-strong: #7c8ba1; --cw-color-accent: #4f46e5;
+    --cw-color-accent-fg: #ffffff; --cw-color-accent-hover: #4338ca;
+    --cw-color-accent-subtle: #eef2ff; --cw-color-danger: #dc2626;
+    --cw-color-danger-fg: #ffffff; --cw-color-danger-subtle: #fef2f2;
+    --cw-color-success: #15803d; --cw-color-success-fg: #ffffff;
+    --cw-color-success-subtle: #f0fdf4; --cw-color-warning: #d97706;
+    --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #fffbeb;
+    --cw-color-info: #1d4ed8; --cw-color-info-fg: #ffffff;
+    --cw-color-info-subtle: #eff6ff; --cw-color-focus: #4f46e5;
+    --cw-color-overlay: rgb(15 23 42 / 0.5);
+
+    /* space (9) */
+    --cw-space-0: 0; --cw-space-1: 0.25rem; --cw-space-2: 0.5rem;
+    --cw-space-3: 0.75rem; --cw-space-4: 1rem; --cw-space-5: 1.5rem;
+    --cw-space-6: 2rem; --cw-space-7: 3rem; --cw-space-8: 4rem;
+
+    /* radius (5) — one knob, four derived steps */
+    --cw-radius: 0.5rem; --cw-radius-sm: calc(var(--cw-radius) - 4px);
+    --cw-radius-md: calc(var(--cw-radius) - 2px); --cw-radius-lg: var(--cw-radius);
+    --cw-radius-full: 9999px;
+
+    /* type (14) */
+    --cw-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --cw-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --cw-text-xs: 0.75rem; --cw-text-sm: 0.875rem; --cw-text-base: 1rem;
+    --cw-text-lg: 1.125rem; --cw-text-xl: 1.25rem; --cw-text-2xl: 1.5rem;
+    --cw-weight-normal: 400; --cw-weight-medium: 500;
+    --cw-weight-semibold: 600; --cw-weight-bold: 700;
+    --cw-leading-tight: 1.25; --cw-leading-normal: 1.5;
+
+    /* shadow (4) — focus ring travels as a shadow so it composes with elevation */
+    --cw-shadow-1: 0 1px 2px rgb(15 23 42 / 0.06);
+    --cw-shadow-2: 0 4px 12px -2px rgb(15 23 42 / 0.12);
+    --cw-shadow-3: 0 16px 40px -12px rgb(15 23 42 / 0.22);
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-focus);
+
+    /* motion (3) */
+    --cw-duration-fast: 120ms; --cw-duration-base: 200ms;
+    --cw-ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+    /* layering (5) */
+    --cw-z-dropdown: 1000; --cw-z-overlay: 1010; --cw-z-modal: 1020;
+    --cw-z-toast: 1030; --cw-border-width: 1px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-cw-theme="light"]):not([data-theme="light"]) {
+      color-scheme: dark;
+      --cw-color-bg: #0b1220; --cw-color-surface: #111827;
+      --cw-color-surface-raised: #1f2937; --cw-color-surface-sunk: #070b13;
+      --cw-color-fg: #f1f5f9; --cw-color-fg-muted: #94a3b8;
+      --cw-color-fg-subtle: #64748b; --cw-color-border: #1f2937;
+      --cw-color-border-strong: #5b6675; --cw-color-accent: #818cf8;
+      --cw-color-accent-fg: #1e1b4b; --cw-color-accent-hover: #a5b4fc;
+      --cw-color-accent-subtle: #1e1b4b; --cw-color-danger: #f87171;
+      --cw-color-danger-fg: #450a0a; --cw-color-danger-subtle: #450a0a;
+      --cw-color-success: #4ade80; --cw-color-success-fg: #052e16;
+      --cw-color-success-subtle: #052e16; --cw-color-warning: #fbbf24;
+      --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #451a03;
+      --cw-color-info: #60a5fa; --cw-color-info-fg: #0c1e3d;
+      --cw-color-info-subtle: #0c1e3d; --cw-color-focus: #818cf8;
+      --cw-color-overlay: rgb(0 0 0 / 0.6);
+    }
+  }
+
+  /* Same declarations as the @media block above, verbatim (a test asserts the two
+     dark blocks stay byte-identical). `data-cw-theme` is canonical; `data-theme` is
+     honoured as a bridge, but cw wins if both are set. */
+  :root[data-cw-theme="dark"],
+  :root[data-theme="dark"]:not([data-cw-theme="light"]) {
+    color-scheme: dark;
+    --cw-color-bg: #0b1220; --cw-color-surface: #111827;
+    --cw-color-surface-raised: #1f2937; --cw-color-surface-sunk: #070b13;
+    --cw-color-fg: #f1f5f9; --cw-color-fg-muted: #94a3b8;
+    --cw-color-fg-subtle: #64748b; --cw-color-border: #1f2937;
+    --cw-color-border-strong: #5b6675; --cw-color-accent: #818cf8;
+    --cw-color-accent-fg: #1e1b4b; --cw-color-accent-hover: #a5b4fc;
+    --cw-color-accent-subtle: #1e1b4b; --cw-color-danger: #f87171;
+    --cw-color-danger-fg: #450a0a; --cw-color-danger-subtle: #450a0a;
+    --cw-color-success: #4ade80; --cw-color-success-fg: #052e16;
+    --cw-color-success-subtle: #052e16; --cw-color-warning: #fbbf24;
+    --cw-color-warning-fg: #451a03; --cw-color-warning-subtle: #451a03;
+    --cw-color-info: #60a5fa; --cw-color-info-fg: #0c1e3d;
+    --cw-color-info-subtle: #0c1e3d; --cw-color-focus: #818cf8;
+    --cw-color-overlay: rgb(0 0 0 / 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --cw-duration-fast: 1ms;
+      --cw-duration-base: 1ms;
+    }
+  }
+}
+
+/* crosswire/ui/base.css — the handful of rules every UI component can assume are
+   already in effect, so no individual component.css has to re-declare them.
+   See ui-tier-spec.md §6. */
+
+@layer crosswire.base {
+  /* Visually hidden but still announced — the same shape as Bootstrap's
+     .visually-hidden / Tailwind's .sr-only. Components reach for this instead of
+     `display: none` wherever sighted users don't need the text but a screen reader
+     still should (e.g. a toast's live-region label). */
+  .cw-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Belt-and-braces: the `hidden` attribute already does this natively, but a
+     component that also toggles a class (rather than the attribute) for a transition
+     needs this to still win over any `display` a caller's own CSS might set. */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* One shared focus-visible treatment, built from --cw-shadow-focus (a shadow, not
+     an outline) specifically so it COMPOSES with a component's own box-shadow
+     elevation instead of replacing it — see tokens.css's shadow section. Individual
+     components opt in with `.cw-focusable` on whichever element is the real focus
+     target; nothing here applies unprompted. */
+  .cw-focusable:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  /* Scoped to .cw-* only — never the bare `*` selector. A universal box-sizing reset
+     is exactly the kind of global rule a component LIBRARY must not impose on a host
+     app's own markup; every crosswire UI component opts itself in by carrying this
+     class, and nothing outside cw-* is touched. */
+  [class^="cw-"],
+  [class*=" cw-"] {
+    box-sizing: border-box;
+  }
+}
+
+/* crosswire/ui/button.css — cw-button, the UI tier's worked example (ui-tier-spec.md
+   §3/§6.2). Every color/length below is either a global token or one of THIS
+   component's own `--cw-button-*` knobs, always consumed through `var(...)` — see
+   tokens.css's own header for the three-rung override ladder (globals, knobs,
+   style="") this file exists to make possible.
+
+   Focus is deliberately NOT redeclared here — base.css's shared focus-visible rule
+   (a box-shadow built from `--cw-shadow-focus`) is the ONE treatment every
+   interactive UI component opts into by carrying the `cw-focusable` class (the
+   Button presenter's `attrs` method adds it) — see that file's own docstring. */
+
+@layer crosswire.components {
+  .cw-button {
+    /* Knobs — override per-component with a plain rule against .cw-button
+       (unlayered beats layered), or per-instance with style="". */
+    --cw-button-bg: var(--cw-color-surface);
+    --cw-button-fg: var(--cw-color-fg);
+    --cw-button-border: var(--cw-color-border-strong);
+    --cw-button-px: var(--cw-space-3);
+    --cw-button-py: var(--cw-space-2);
+
+    /* Implementation-only knobs (still `--cw-button-*`, still overridable, just not
+       part of the five headline knobs above) — kept as custom properties rather than
+       inlined literals so every actual length/number below stays a `var(...)`
+       reference, never a bare token, wherever the literal itself is not on the
+       token-discipline audit's small allowlist (0/1px/100%/9999px/transparent/
+       currentColor — see `test_token_discipline` in ui_contract_audit_test.rb).
+       `.cw-button--block`'s `width: 100%` further down needs no knob of its own for
+       exactly that reason: `100%` is allowlisted outright. */
+    --cw-button-disabled-opacity: .6;
+    --cw-button-danger-hover-brightness: 1.08;
+    --cw-button-icon-ratio: 1;
+    --cw-button-spinner-size: 1em;
+    --cw-button-spinner-thickness: .15em;
+    --cw-button-spinner-duration: calc(var(--cw-duration-base) * 4);
+    --cw-button-spin-turn: 360deg;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cw-space-2);
+    appearance: none;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+    border-radius: var(--cw-radius-md);
+    border: var(--cw-border-width) solid var(--cw-button-border);
+    padding: var(--cw-button-py) var(--cw-button-px);
+    background: var(--cw-button-bg);
+    color: var(--cw-button-fg);
+    transition: background-color var(--cw-duration-fast) var(--cw-ease),
+                border-color var(--cw-duration-fast) var(--cw-ease),
+                color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  /* Guarded against :disabled/[aria-disabled] so a disabled anchor (which has no
+     native :hover suppression the way a disabled <button> does) never shows a live
+     hover treatment — see Crosswire::UI::Button's own docstring on why a disabled
+     anchor is real ARIA state, not a cosmetic afterthought. */
+  .cw-button:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button:disabled,
+  .cw-button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: var(--cw-button-disabled-opacity);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+
+  .cw-button--primary {
+    --cw-button-bg: var(--cw-color-accent);
+    --cw-button-fg: var(--cw-color-accent-fg);
+    --cw-button-border: var(--cw-color-accent);
+  }
+  .cw-button--primary:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-accent-hover);
+    --cw-button-border: var(--cw-color-accent-hover);
+  }
+
+  /* secondary is the default — cw-button's own knob values above ARE the secondary
+     styling, so its variant map entry is `nil` (Variants rule 2) and there is
+     nothing to declare here. */
+
+  .cw-button--ghost {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+  }
+  .cw-button--ghost:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-bg: var(--cw-color-surface-sunk);
+  }
+
+  .cw-button--danger {
+    --cw-button-bg: var(--cw-color-danger);
+    --cw-button-fg: var(--cw-color-danger-fg);
+    --cw-button-border: var(--cw-color-danger);
+  }
+  .cw-button--danger:not(:disabled):not([aria-disabled="true"]):hover {
+    filter: brightness(var(--cw-button-danger-hover-brightness));
+  }
+
+  .cw-button--link {
+    --cw-button-bg: transparent;
+    --cw-button-border: transparent;
+    --cw-button-fg: var(--cw-color-accent);
+    text-decoration: underline;
+  }
+  .cw-button--link:not(:disabled):not([aria-disabled="true"]):hover {
+    --cw-button-fg: var(--cw-color-accent-hover);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, same reasoning as secondary above)
+     — only the other three sizes need a rule. */
+
+  .cw-button--sm {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-button--lg {
+    --cw-button-px: var(--cw-space-4);
+    --cw-button-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  .cw-button--icon {
+    --cw-button-px: var(--cw-space-2);
+    --cw-button-py: var(--cw-space-2);
+    aspect-ratio: var(--cw-button-icon-ratio);
+  }
+
+  /* ---- block ---------------------------------------------------------------- */
+
+  .cw-button--block {
+    display: flex;
+    width: 100%;
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — the same attribute name Crosswire::UI::Button sets
+     server-side and `Crosswire::Presenters::Loading`'s controller sets at runtime
+     (D7a, docs/DECISIONS.md) — so either path lights up this exact rule with zero
+     configuration. The spinner is an ::after flex item (the root is already
+     `display: inline-flex` with a `gap`), not an absolutely-positioned overlay, so
+     it needs no centering math of its own. */
+  .cw-button[data-loading] {
+    cursor: progress;
+  }
+
+  .cw-button[data-loading]::after {
+    content: "";
+    width: var(--cw-button-spinner-size);
+    height: var(--cw-button-spinner-size);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-button-spinner-thickness) solid currentColor;
+    border-top-color: transparent;
+    animation: cw-button-spin var(--cw-button-spinner-duration) linear infinite;
+  }
+
+  @keyframes cw-button-spin {
+    to { transform: rotate(var(--cw-button-spin-turn)); }
+  }
+
+  /* A fast-but-still-spinning animation is not "stopped" — tokens.css's own
+     prefers-reduced-motion block already collapses every *duration* token to 1ms,
+     which would just make this spin imperceptibly FAST rather than actually still,
+     so the spinner needs its own explicit stop. */
+  @media (prefers-reduced-motion: reduce) {
+    .cw-button[data-loading]::after {
+      animation: none;
+    }
+  }
+}
+
+/* crosswire/ui/badge.css — cw-badge, the smallest UI-tier component (ui-tier-spec.md
+   §5). Every color/length below is either a global token or one of THIS component's
+   own `--cw-badge-*` knobs, always consumed through `var(...)` — see tokens.css's own
+   header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-badge {
+    --cw-badge-bg: var(--cw-color-surface-sunk);
+    --cw-badge-fg: var(--cw-color-fg-muted);
+    --cw-badge-border: var(--cw-color-border);
+    --cw-badge-px: var(--cw-space-2);
+    --cw-badge-py: var(--cw-space-1);
+    --cw-badge-dot-size: .4em;
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cw-space-1);
+    border-radius: var(--cw-radius-full);
+    border: var(--cw-border-width) solid var(--cw-badge-border);
+    padding: var(--cw-badge-py) var(--cw-badge-px);
+    background: var(--cw-badge-bg);
+    color: var(--cw-badge-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    line-height: var(--cw-leading-tight);
+    white-space: nowrap;
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2) — the knob
+     values above ARE the neutral styling, so there is nothing to declare for it. */
+
+  .cw-badge--accent {
+    --cw-badge-bg: var(--cw-color-accent-subtle);
+    --cw-badge-fg: var(--cw-color-accent);
+    --cw-badge-border: var(--cw-color-accent-subtle);
+  }
+
+  .cw-badge--danger {
+    --cw-badge-bg: var(--cw-color-danger-subtle);
+    --cw-badge-fg: var(--cw-color-danger);
+    --cw-badge-border: var(--cw-color-danger-subtle);
+  }
+
+  .cw-badge--success {
+    --cw-badge-bg: var(--cw-color-success-subtle);
+    --cw-badge-fg: var(--cw-color-success);
+    --cw-badge-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-badge--warning {
+    --cw-badge-bg: var(--cw-color-warning-subtle);
+    --cw-badge-fg: var(--cw-color-warning);
+    --cw-badge-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-badge--info {
+    --cw-badge-bg: var(--cw-color-info-subtle);
+    --cw-badge-fg: var(--cw-color-info);
+    --cw-badge-border: var(--cw-color-info-subtle);
+  }
+
+  /* ---- dot -------------------------------------------------------------------- */
+  /* Pure CSS — no extra markup, no slot; a leading status dot drawn from a single
+     `::before`, colored with `currentColor` so it always matches whichever variant
+     it's combined with without a knob of its own. */
+
+  .cw-badge--dot::before {
+    content: "";
+    width: var(--cw-badge-dot-size);
+    height: var(--cw-badge-dot-size);
+    border-radius: var(--cw-radius-full);
+    background: currentColor;
+  }
+}
+
+/* crosswire/ui/card.css — cw-card, the Slots proof's styling half (ui-tier-spec.md
+   §6.3). Every color/length below is either a global token or one of THIS
+   component's own `--cw-card-*` knobs, always consumed through `var(...)` — see
+   tokens.css's own header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-card {
+    --cw-card-bg: var(--cw-color-surface-raised);
+    --cw-card-fg: var(--cw-color-fg);
+    --cw-card-border: var(--cw-color-border);
+    --cw-card-radius: var(--cw-radius-lg);
+    --cw-card-gap: var(--cw-space-4);
+    --cw-card-padding: var(--cw-space-4);
+    --cw-card-hover-lift: -2px;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-card-gap);
+    border-radius: var(--cw-card-radius);
+    background: var(--cw-card-bg);
+    color: var(--cw-card-fg);
+    transition: box-shadow var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+  }
+
+  .cw-card__header,
+  .cw-card__body,
+  .cw-card__footer {
+    padding: 0 var(--cw-card-padding);
+  }
+
+  .cw-card__header:first-child,
+  .cw-card__body:first-child {
+    padding-top: var(--cw-card-padding);
+  }
+
+  .cw-card__body:last-child,
+  .cw-card__footer:last-child {
+    padding-bottom: var(--cw-card-padding);
+  }
+
+  .cw-card__header {
+    font-weight: var(--cw-weight-semibold);
+    font-size: var(--cw-text-lg);
+  }
+
+  .cw-card__footer {
+    display: flex;
+    gap: var(--cw-space-2);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `plain` is the default (nil in the variant map, Variants rule 2) — a flat
+     surface with no border and no shadow, which the knob values above already are. */
+
+  .cw-card--raised {
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-card--outlined {
+    border: var(--cw-border-width) solid var(--cw-card-border);
+  }
+
+  /* ---- interactive -------------------------------------------------------------- */
+  /* Styling ONLY — no role, no tabindex, no click handler ships here or anywhere
+     else in this component. `position: relative` is what makes the stretched-link
+     trick below work: `.cw-card__link::after` positions itself `inset: 0` relative
+     to THIS element, not the viewport. See Crosswire::UI::Card's own docstring for
+     the full a11y doctrine and why a wrapper role="button" is not an alternative. */
+  .cw-card--interactive {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .cw-card--interactive:hover {
+    box-shadow: var(--cw-shadow-2);
+    transform: translateY(var(--cw-card-hover-lift));
+  }
+
+  /* `:focus-within`, not `:focus` — the card itself is never focusable (no
+     tabindex); this rings the card when the real `<a class="cw-card__link">` inside
+     it receives focus, composing the same `--cw-shadow-focus` token every other
+     focusable UI component uses via `.cw-focusable`. */
+  .cw-card--interactive:focus-within {
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-card--interactive:hover {
+      transform: none;
+    }
+  }
+
+  /* The one real, ejectable-markup anchor an interactive card's header carries
+     (`site/examples/card/interactive.html.erb`) — its `::after` stretches to cover
+     the whole card, so clicking anywhere activates this one link. A positioned
+     pseudo-element always paints above a plain static-positioned sibling, so any
+     OTHER interactive element inside the card (e.g. a footer button) needs its own
+     `position: relative` to become positioned too — once it is, later DOM order
+     alone (no z-index knob needed) puts it back on top of the overlay. */
+  .cw-card__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cw-card__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .cw-card__link:hover {
+    text-decoration: underline;
+  }
+}
+
+/* crosswire/ui/input.css — cw-input, the styled native input/textarea shell
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-input-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into. */
+
+@layer crosswire.components {
+  .cw-input {
+    --cw-input-bg: var(--cw-color-surface);
+    --cw-input-fg: var(--cw-color-fg);
+    --cw-input-border: var(--cw-color-border-strong);
+    --cw-input-placeholder: var(--cw-color-fg-subtle);
+    --cw-input-px: var(--cw-space-3);
+    --cw-input-py: var(--cw-space-2);
+    --cw-input-disabled-opacity: .6;
+    --cw-input-loading-opacity: .7;
+    --cw-input-textarea-min-height: 6em;
+
+    display: block;
+    width: 100%;
+    appearance: none;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-input-fg);
+    background: var(--cw-input-bg);
+    border: var(--cw-border-width) solid var(--cw-input-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-input-py) var(--cw-input-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-input::placeholder {
+    color: var(--cw-input-placeholder);
+  }
+
+  .cw-input:hover:not(:disabled) {
+    --cw-input-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-input:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-input-disabled-opacity);
+  }
+
+  textarea.cw-input {
+    min-height: var(--cw-input-textarea-min-height);
+    resize: vertical;
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-input--sm {
+    --cw-input-px: var(--cw-space-2);
+    --cw-input-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-input--lg {
+    --cw-input-px: var(--cw-space-4);
+    --cw-input-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* The "aria-invalid styling hook" (ui-tier-spec.md §5) — the SAME attribute a
+     screen reader announces drives the visual treatment, so the two can never drift
+     apart the way a separate `invalid: true` class would. See
+     Crosswire::UI::Input's own docstring for why this is an attribute selector, not
+     a Variants boolean. */
+  .cw-input[aria-invalid="true"] {
+    --cw-input-border: var(--cw-color-danger);
+  }
+
+  .cw-input[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button's own `[data-loading]` rule
+     (button.css). No spinner overlay here: a text field mid-fetch (e.g. an async
+     validation) reads better as a quieted control than a spinning icon fighting the
+     caret for attention. */
+  .cw-input[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-input-loading-opacity);
+  }
+}
+
+/* crosswire/ui/field.css — cw-field, the label+control+hint+error wrapper
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-field-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Deliberately styles ONLY the wrapper, label, hint and error — the control itself
+   (cw-input, cw-select, or a caller's own markup) styles itself; this file has no
+   business reaching into it. */
+
+@layer crosswire.components {
+  .cw-field {
+    --cw-field-gap: var(--cw-space-1);
+    --cw-field-hint-fg: var(--cw-color-fg-muted);
+    --cw-field-error-fg: var(--cw-color-danger);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-field-gap);
+  }
+
+  .cw-field__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg);
+  }
+
+  .cw-field__hint {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    color: var(--cw-field-hint-fg);
+  }
+
+  .cw-field__error {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-field-error-fg);
+  }
+}
+
+/* crosswire/ui/select.css — cw-select, the styled NATIVE <select> (ui-tier-spec.md
+   §5's Rule 0 exemplar — see Crosswire::UI::Select's own docstring for why this
+   file styles the platform's control instead of rebuilding it). Every color/length
+   below is either a global token or one of THIS component's own `--cw-select-*`
+   knobs, always consumed through `var(...)` — see tokens.css's own header for the
+   override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into.
+   `color-scheme` is deliberately NOT redeclared here either — tokens.css's `:root`
+   already sets it in every light/dark branch, and that single global governs the
+   native option popup for every `<select>` on the page, styled or not (see this
+   component's own docstring for why that is load-bearing). */
+
+@layer crosswire.components {
+  .cw-select {
+    --cw-select-bg: var(--cw-color-surface);
+    --cw-select-fg: var(--cw-color-fg);
+    --cw-select-border: var(--cw-color-border-strong);
+    --cw-select-px: var(--cw-space-3);
+    --cw-select-py: var(--cw-space-2);
+    --cw-select-disabled-opacity: .6;
+    --cw-select-loading-opacity: .7;
+
+    display: block;
+    width: 100%;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-select-fg);
+    background: var(--cw-select-bg);
+    border: var(--cw-border-width) solid var(--cw-select-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-select-py) var(--cw-select-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-select:hover:not(:disabled) {
+    --cw-select-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-select:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-select-disabled-opacity);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-select--sm {
+    --cw-select-px: var(--cw-space-2);
+    --cw-select-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-select--lg {
+    --cw-select-px: var(--cw-space-4);
+    --cw-select-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* Same one-signal-drives-both reasoning as cw-input's own rule (input.css). */
+  .cw-select[aria-invalid="true"] {
+    --cw-select-border: var(--cw-color-danger);
+  }
+
+  .cw-select[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button/cw-input's own rule. */
+  .cw-select[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-select-loading-opacity);
+  }
+}
+
+/* crosswire/ui/alert.css — cw-alert, the composition showcase (ui-tier-spec.md §5
+   item 7): the optional dismiss button below is styled here, but it is the composed
+   `cw--dismiss` primitive's real trigger element — see Crosswire::UI::Alert's own
+   docstring for the presenter-side half of that composition. Every color/length below
+   is either a global token or one of THIS component's own `--cw-alert-*` knobs,
+   always consumed through `var(...)` — see tokens.css's own header for the override
+   ladder. */
+
+@layer crosswire.components {
+  .cw-alert {
+    --cw-alert-bg: var(--cw-color-surface-sunk);
+    --cw-alert-fg: var(--cw-color-fg);
+    --cw-alert-border: var(--cw-color-border);
+    --cw-alert-px: var(--cw-space-4);
+    --cw-alert-py: var(--cw-space-3);
+    --cw-alert-radius: var(--cw-radius-md);
+    --cw-alert-dismiss-size: var(--cw-text-lg);
+    --cw-alert-dismiss-hover-opacity: 0.7;
+    --cw-alert-body-flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-space-3);
+    border-radius: var(--cw-alert-radius);
+    border: var(--cw-border-width) solid var(--cw-alert-border);
+    padding: var(--cw-alert-py) var(--cw-alert-px);
+    background: var(--cw-alert-bg);
+    color: var(--cw-alert-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+  }
+
+  .cw-alert__body {
+    flex: var(--cw-alert-body-flex);
+  }
+
+  .cw-alert__dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--cw-alert-dismiss-size);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-alert__dismiss:hover {
+    opacity: var(--cw-alert-dismiss-hover-opacity);
+  }
+
+  /* ---- severity --------------------------------------------------------------- */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2) — the knob
+     values above ARE the neutral styling, so there is nothing to declare for it. */
+
+  .cw-alert--info {
+    --cw-alert-bg: var(--cw-color-info-subtle);
+    --cw-alert-fg: var(--cw-color-info);
+    --cw-alert-border: var(--cw-color-info-subtle);
+  }
+
+  .cw-alert--success {
+    --cw-alert-bg: var(--cw-color-success-subtle);
+    --cw-alert-fg: var(--cw-color-success);
+    --cw-alert-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-alert--warning {
+    --cw-alert-bg: var(--cw-color-warning-subtle);
+    --cw-alert-fg: var(--cw-color-warning);
+    --cw-alert-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-alert--danger {
+    --cw-alert-bg: var(--cw-color-danger-subtle);
+    --cw-alert-fg: var(--cw-color-danger);
+    --cw-alert-border: var(--cw-color-danger-subtle);
+  }
+
+  /* ---- subtle ------------------------------------------------------------------- */
+  /* A lower-emphasis treatment — transparent surface, border carries the color
+     instead. Composes with every severity above (Variants rule 1: declaration order
+     puts `subtle` after `severity` in the class string, and CSS specificity here is
+     equal so LATER still wins for the properties this rule actually touches). */
+  .cw-alert--subtle {
+    background: transparent;
+  }
+}
+
+/* crosswire/ui/toast.css — cw-toast (one item) and cw-toast-viewport (the live-region
+   container, Crosswire::UI::ToastViewport) — the tier's other composition showcase
+   (ui-tier-spec.md §5 item 11). Every color/length below is either a global token or
+   one of THIS component's own `--cw-toast-*` knobs, always consumed through
+   `var(...)` — see tokens.css's own header for the override ladder.
+
+   `position: fixed` + `--cw-z-toast` on the viewport is the whole "stack toasts above
+   everything else, in one fixed corner" story — CSS only, exactly as
+   skills/crosswire-composing/RECIPES.md's toast recipe already documents. */
+
+@layer crosswire.components {
+  .cw-toast-viewport {
+    --cw-toast-viewport-inset: var(--cw-space-4);
+    --cw-toast-viewport-gap: var(--cw-space-2);
+    --cw-toast-viewport-max-width: 24rem;
+
+    position: fixed;
+    inset-block-start: var(--cw-toast-viewport-inset);
+    inset-inline-end: var(--cw-toast-viewport-inset);
+    z-index: var(--cw-z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-toast-viewport-gap);
+    max-width: var(--cw-toast-viewport-max-width);
+    width: max-content;
+    /* The viewport itself is not a hit target — only the toasts (and their dismiss
+       buttons) inside it are, so nothing about this fixed-position box blocks clicks
+       on whatever page content happens to sit underneath its empty corners. */
+    pointer-events: none;
+  }
+
+  .cw-toast {
+    --cw-toast-bg: var(--cw-color-surface-raised);
+    --cw-toast-fg: var(--cw-color-fg);
+    --cw-toast-border: var(--cw-color-border);
+    --cw-toast-px: var(--cw-space-4);
+    --cw-toast-py: var(--cw-space-3);
+    --cw-toast-radius: var(--cw-radius-md);
+    --cw-toast-dismiss-size: var(--cw-text-lg);
+    --cw-toast-dismiss-hover-opacity: 0.7;
+    --cw-toast-enter-offset: -0.5rem;
+    --cw-toast-opacity-visible: 1;
+    --cw-toast-body-flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-space-3);
+    border-radius: var(--cw-toast-radius);
+    border: var(--cw-border-width) solid var(--cw-toast-border);
+    padding: var(--cw-toast-py) var(--cw-toast-px);
+    background: var(--cw-toast-bg);
+    color: var(--cw-toast-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+    pointer-events: auto;
+
+    /* Rule 0 (see Crosswire::Presenters::Transition's own docstring): the ENTER
+       animation is CSS-only, `@starting-style`, no JavaScript, working identically
+       whether the toast was server-rendered on first paint or Turbo-Stream-appended
+       later — `@starting-style` fires on "first rendered", not on any particular
+       insertion method. Only the LEAVE side needs `cw--transition` (composed by the
+       presenter when `dismissible: true`): `Node.remove()` is synchronous, so CSS
+       alone cannot animate a removal. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(var(--cw-toast-enter-offset));
+    }
+  }
+
+  .cw-toast__body {
+    flex: var(--cw-toast-body-flex);
+  }
+
+  .cw-toast__dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--cw-toast-dismiss-size);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-toast__dismiss:hover {
+    opacity: var(--cw-toast-dismiss-hover-opacity);
+  }
+
+  /* ---- leave sequence (cw--transition classes, composed by the presenter) ------- */
+  /* Composed onto the SAME element cw--dismiss removes — see Crosswire::UI::Toast's
+     own docstring for the full `leave_on` wiring. `.cw-toast--leaving` only needs to
+     exist as a selector for a host that wants to target "currently animating out"; the
+     transition itself is already declared on `.cw-toast` above, shared by enter/leave. */
+  .cw-toast--leave-from {
+    opacity: var(--cw-toast-opacity-visible);
+    transform: translateY(0);
+  }
+
+  .cw-toast--leave-to {
+    opacity: 0;
+    transform: translateY(var(--cw-toast-enter-offset));
+  }
+
+  /* ---- severity (styling only — see the presenter's own docstring for why) ------ */
+  /* `neutral` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-toast--info {
+    --cw-toast-bg: var(--cw-color-info-subtle);
+    --cw-toast-fg: var(--cw-color-info);
+    --cw-toast-border: var(--cw-color-info-subtle);
+  }
+
+  .cw-toast--success {
+    --cw-toast-bg: var(--cw-color-success-subtle);
+    --cw-toast-fg: var(--cw-color-success);
+    --cw-toast-border: var(--cw-color-success-subtle);
+  }
+
+  .cw-toast--warning {
+    --cw-toast-bg: var(--cw-color-warning-subtle);
+    --cw-toast-fg: var(--cw-color-warning);
+    --cw-toast-border: var(--cw-color-warning-subtle);
+  }
+
+  .cw-toast--danger {
+    --cw-toast-bg: var(--cw-color-danger-subtle);
+    --cw-toast-fg: var(--cw-color-danger);
+    --cw-toast-border: var(--cw-color-danger-subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-toast {
+      transition: none;
+    }
+  }
+}
+
+/* crosswire/ui/dialog.css — CSS over the shipped `_dialog.html.erb` widget
+   (Crosswire::Presenters::Dialog): the modal-composition showcase (ui-tier-spec.md §5
+   item 8). NO markup, NO presenter, NO helper change — every class below already
+   exists on the shipped partial (cw-dialog / cw-dialog__trigger / cw-dialog__panel /
+   cw-dialog__title / cw-dialog__close / cw-dialog__body), and this file only paints
+   them. Every color/length below is either a global token or one of THIS component's
+   own `--cw-dialog-*` knobs, always consumed through `var(...)` — see tokens.css's own
+   header for the override ladder.
+
+   `.cw-dialog__panel` IS the native `<dialog>` element (see the partial) — every rule
+   below that targets it is therefore also styling `::backdrop`, `:modal` and
+   `@starting-style`, none of which exist on any other kind of element. */
+
+@layer crosswire.components {
+  .cw-dialog__trigger {
+    /* Deliberately no chrome of its own — compose `cw.button` for a styled trigger
+       (see site/examples/dialog/composed-with-card.html.erb); this knob exists so a
+       host CAN restyle the bare default without ejecting. */
+    --cw-dialog-trigger-font: inherit;
+
+    font: var(--cw-dialog-trigger-font);
+  }
+
+  .cw-dialog__panel {
+    --cw-dialog-bg: var(--cw-color-surface-raised);
+    --cw-dialog-fg: var(--cw-color-fg);
+    --cw-dialog-border: var(--cw-color-border);
+    --cw-dialog-radius: var(--cw-radius-lg);
+    --cw-dialog-padding: var(--cw-space-5);
+    --cw-dialog-gap: var(--cw-space-4);
+    --cw-dialog-width: min(32rem, calc(100vw - var(--cw-space-6)));
+    --cw-dialog-max-height: min(85vh, 40rem);
+    --cw-dialog-enter-scale: 0.96;
+    --cw-dialog-enter-offset: 1rem;
+    --cw-dialog-backdrop: var(--cw-color-overlay);
+
+    /* The panel is its own flex column so the title/close row can stay put while
+       .cw-dialog__body (below) is the ONE thing that scrolls internally — "internal
+       scroll containment" per the showcase brief, rather than letting a tall body
+       grow the panel past the viewport. `position: relative` makes it an explicit
+       positioning root for .cw-dialog__close below, rather than depending on
+       whatever `position` the UA stylesheet happens to give a top-layer <dialog>. */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-dialog-gap);
+    margin: auto;
+    border: var(--cw-border-width) solid var(--cw-dialog-border);
+    border-radius: var(--cw-dialog-radius);
+    padding: var(--cw-dialog-padding);
+    background: var(--cw-dialog-bg);
+    color: var(--cw-dialog-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-3);
+    max-height: var(--cw-dialog-max-height);
+
+    /* `transition-behavior: allow-discrete` keeps the panel PAINTED (rather than
+       vanishing the instant `open` is removed) for the duration of the opacity/
+       transform transition below — the modern CSS-only dialog open/close recipe.
+       `@starting-style` supplies the FROM state for the enter transition (fires on
+       "newly rendered from display:none/closed", regardless of whether the dialog
+       was opened by a trigger click or a controller call); the EXIT transition is
+       simply this same rule running backwards as `[open]` is removed. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease),
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  /* :modal — only a dialog opened via showModal() (the presenter's `modal: true`
+     default) gets this pseudo-class; a non-modal panel (`modal: false`, opened via
+     show()) keeps the browser's normal static-flow box instead of being centered
+     and width-capped like this. */
+  .cw-dialog__panel:modal {
+    inset: 0;
+    width: var(--cw-dialog-width);
+  }
+
+  .cw-dialog__panel:not([open]) {
+    opacity: 0;
+    transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+  }
+
+  @starting-style {
+    .cw-dialog__panel:modal {
+      opacity: 0;
+      transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+    }
+  }
+
+  /* ::backdrop only exists for a MODAL dialog (showModal()'s top layer) — a
+     non-modal panel (show()) never gets one, so nothing here needs to guard for
+     `modal: false`. Same allow-discrete/@starting-style shape as the panel itself,
+     so the dim-in and the panel's own enter transition read as one motion. */
+  .cw-dialog__panel::backdrop {
+    background: var(--cw-dialog-backdrop);
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  .cw-dialog__panel:not([open])::backdrop {
+    opacity: 0;
+  }
+
+  @starting-style {
+    .cw-dialog__panel[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .cw-dialog__title {
+    margin: 0;
+    padding-inline-end: var(--cw-space-6);
+    font-size: var(--cw-text-lg);
+    font-weight: var(--cw-weight-semibold);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-dialog__close {
+    --cw-dialog-close-size: var(--cw-text-lg);
+
+    position: absolute;
+    top: var(--cw-space-3);
+    right: var(--cw-space-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: var(--cw-space-1);
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-dialog-close-size);
+    line-height: var(--cw-leading-tight);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-dialog__close:hover {
+    color: var(--cw-color-fg);
+    background: var(--cw-color-surface-sunk);
+  }
+
+  /* The one thing that scrolls — see the panel's own flex-column comment above.
+     `scrollbar-gutter: stable` (the same property `cw--dialog`'s own scroll-lock
+     reaches for on the page behind the modal) reserves the scrollbar's track up
+     front, so content does not visually reflow the instant a tall body actually
+     needs to scroll. */
+  .cw-dialog__body {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-dialog__panel,
+    .cw-dialog__panel::backdrop {
+      transition: none;
+    }
+  }
+}
+
+/* crosswire/ui/popover.css — CSS over the shipped `_popover.html.erb` widget
+   (Crosswire::Presenters::Popover), ui-tier-spec.md §5 item 9. NO markup, NO
+   presenter, NO helper change — cw-popover__trigger/cw-popover__panel already exist
+   on the shipped partial. Kept deliberately LEAN per the spec brief: placement
+   (anchor-name/position-anchor, the JS fallback positioner) lives entirely in the
+   primitive — this file adds elevation, radius and padding rhythm, nothing else.
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-popover-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-popover__panel {
+    --cw-popover-bg: var(--cw-color-surface-raised);
+    --cw-popover-fg: var(--cw-color-fg);
+    --cw-popover-border: var(--cw-color-border);
+    --cw-popover-radius: var(--cw-radius-lg);
+    --cw-popover-px: var(--cw-space-4);
+    --cw-popover-py: var(--cw-space-3);
+
+    /* The native `popover` UA stylesheet ships its own margin/border/padding
+       (roughly `margin: auto; border: solid; padding: 0.25em 0.75em;`) — every one
+       of those is overridden explicitly below rather than left to fight ours. */
+    margin: 0;
+    border: var(--cw-border-width) solid var(--cw-popover-border);
+    border-radius: var(--cw-popover-radius);
+    padding: var(--cw-popover-py) var(--cw-popover-px);
+    background: var(--cw-popover-bg);
+    color: var(--cw-popover-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  /* Nothing else — the trigger stays whatever element the caller composed (a plain
+     button by default; compose `cw.button` for a fully styled trigger, as
+     site/examples/popover/composed-with-card.html.erb does). A focus-visible ring
+     is the one thing worth a rule of its own here, since a raw `<button>` gets no
+     visual focus treatment beyond the UA default otherwise. */
+  .cw-popover__trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+}
+
+/* crosswire/ui/menu.css — CSS over the shipped `_menu.html.erb` widget
+   (Crosswire::Presenters::Menu), ui-tier-spec.md §5 item 10. NO markup, NO presenter,
+   NO helper change — cw-menu / cw-menu__button / cw-menu__list / cw-menu__item all
+   already exist on the shipped partial. Two classes below are NEW and documented,
+   not emitted by the partial itself (a caller adds them via `cw.menu_for`/an
+   `item_attrs` override — see site/examples/menu/danger-and-separators.html.erb):
+
+     .cw-menu__item--danger   a destructive command (Delete, Remove…)
+     .cw-menu__separator      an alias for [role="separator"] — style either one; the
+                               partial never emits an element with this role at all
+                               (a caller renders one by hand inside `cw.menu_for`), so
+                               `[role="separator"]` alone is the real, load-bearing
+                               selector and the class is a documented convenience.
+
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-menu-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-menu {
+    display: inline-block;
+  }
+
+  .cw-menu__button {
+    --cw-menu-button-font: inherit;
+
+    font: var(--cw-menu-button-font);
+  }
+
+  .cw-menu__button:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-menu__list {
+    --cw-menu-bg: var(--cw-color-surface-raised);
+    --cw-menu-fg: var(--cw-color-fg);
+    --cw-menu-border: var(--cw-color-border);
+    --cw-menu-radius: var(--cw-radius-lg);
+    --cw-menu-py: var(--cw-space-2);
+    --cw-menu-min-width: 12rem;
+
+    margin: 0;
+    min-width: var(--cw-menu-min-width);
+    border: var(--cw-border-width) solid var(--cw-menu-border);
+    border-radius: var(--cw-menu-radius);
+    padding: var(--cw-menu-py) 0;
+    background: var(--cw-menu-bg);
+    color: var(--cw-menu-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-menu__item {
+    --cw-menu-item-px: var(--cw-space-4);
+    --cw-menu-item-py: var(--cw-space-2);
+    --cw-menu-item-checked-width: var(--cw-space-5);
+    --cw-menu-item-hover-bg: var(--cw-color-surface-sunk);
+    --cw-menu-item-danger-fg: var(--cw-color-danger);
+    --cw-menu-item-danger-hover-bg: var(--cw-color-danger-subtle);
+    --cw-menu-item-check-top: 50%;
+    --cw-menu-item-check-transform: translateY(-50%);
+
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    font: inherit;
+    padding: var(--cw-menu-item-py) var(--cw-menu-item-px);
+  }
+
+  /* Reserve room for the checkmark that [aria-checked="true"] adds below, on EVERY
+     checkbox/radio item — checked or not — so unchecked siblings don't jump when one
+     item toggles. Plain "menuitem"s (no role attribute check needed: this selector
+     only matches the two roles that ever carry aria-checked) get no reserved gutter. */
+  .cw-menu__item[role="menuitemcheckbox"],
+  .cw-menu__item[role="menuitemradio"] {
+    position: relative;
+    padding-left: calc(var(--cw-menu-item-px) + var(--cw-menu-item-checked-width));
+  }
+
+  .cw-menu__item[aria-checked="true"]::before {
+    content: "✓";
+    position: absolute;
+    left: var(--cw-menu-item-px);
+    top: var(--cw-menu-item-check-top);
+    transform: var(--cw-menu-item-check-transform);
+    color: var(--cw-color-accent);
+  }
+
+  .cw-menu__item:hover,
+  .cw-menu__item:focus-visible {
+    background: var(--cw-menu-item-hover-bg);
+  }
+
+  .cw-menu__item:focus-visible {
+    outline: none;
+  }
+
+  .cw-menu__item[disabled],
+  .cw-menu__item[aria-disabled="true"] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-menu__item[disabled]:hover,
+  .cw-menu__item[aria-disabled="true"]:hover {
+    background: transparent;
+  }
+
+  /* ---- danger modifier — NOT emitted by the partial; see the header comment ----- */
+  .cw-menu__item--danger {
+    color: var(--cw-menu-item-danger-fg);
+  }
+
+  .cw-menu__item--danger:hover,
+  .cw-menu__item--danger:focus-visible {
+    background: var(--cw-menu-item-danger-hover-bg);
+  }
+
+  /* ---- separator — [role="separator"] is the real selector; see header comment -- */
+  [role="separator"].cw-menu__separator,
+  .cw-menu__list [role="separator"] {
+    height: var(--cw-border-width);
+    margin: var(--cw-space-2) var(--cw-space-3);
+    background: var(--cw-color-border);
+    border: 0;
+  }
+}
+
+/* crosswire/ui/combobox.css — CSS over the shipped `_combobox.html.erb` widget
+   (Crosswire::Presenters::Combobox), ui-tier-spec.md §5 item 12. NO markup, NO
+   presenter, NO helper change — every class below already exists on the shipped
+   partial (cw-combobox / __label / __control / __input / __clear / __listbox /
+   __option / __empty / __status).
+
+   ACTIVE OPTION — the controller (combobox_controller.js) applies its `activeClass`
+   to the currently-active option ONLY when the presenter was given `active_class:`
+   (Stimulus's Classes API: `this.hasActiveClass` guards it, per that controller's
+   own docstring on why every crosswire controller must guard an optional class this
+   way) — there is no default active-option class emitted for free. `.cw-combobox__
+   option--active` below is the CONVENTION this file styles; wire it up with
+   `active_class: "cw-combobox__option--active"` on `cw.combobox`/`cw.combobox_for`
+   (see site/examples/combobox/active-option.html.erb). [aria-selected="true"] is
+   separate and always available with zero configuration — it marks the PRESELECTED
+   option (R4, from `value:`/`display:`), independent of which option is merely
+   "active" during keyboard navigation.
+
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-combobox-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-combobox {
+    --cw-combobox-gap: var(--cw-space-1);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-combobox-gap);
+    position: relative;
+  }
+
+  .cw-combobox__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg-muted);
+  }
+
+  .cw-combobox__control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .cw-combobox__input {
+    --cw-combobox-bg: var(--cw-color-surface);
+    --cw-combobox-fg: var(--cw-color-fg);
+    --cw-combobox-border: var(--cw-color-border);
+    --cw-combobox-radius: var(--cw-radius-md);
+    --cw-combobox-px: var(--cw-space-3);
+    --cw-combobox-py: var(--cw-space-2);
+    --cw-combobox-clear-space: var(--cw-space-6);
+
+    width: 100%;
+    box-sizing: border-box;
+    border: var(--cw-border-width) solid var(--cw-combobox-border);
+    border-radius: var(--cw-combobox-radius);
+    padding: var(--cw-combobox-py) var(--cw-combobox-clear-space) var(--cw-combobox-py) var(--cw-combobox-px);
+    background: var(--cw-combobox-bg);
+    color: var(--cw-combobox-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+  }
+
+  .cw-combobox__input:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  .cw-combobox__input[aria-invalid="true"] {
+    border-color: var(--cw-color-danger);
+  }
+
+  .cw-combobox__input:disabled {
+    background: var(--cw-color-surface-sunk);
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__clear {
+    position: absolute;
+    inset-inline-end: var(--cw-space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-text-lg);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-combobox__clear:hover {
+    color: var(--cw-color-fg);
+  }
+
+  .cw-combobox__listbox {
+    --cw-combobox-listbox-bg: var(--cw-color-surface-raised);
+    --cw-combobox-listbox-border: var(--cw-color-border);
+    --cw-combobox-listbox-radius: var(--cw-radius-lg);
+    --cw-combobox-listbox-max-height: 16rem;
+
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 100%;
+    z-index: var(--cw-z-dropdown);
+    width: 100%;
+    box-sizing: border-box;
+    margin: var(--cw-space-1) 0 0;
+    padding: var(--cw-space-2) 0;
+    max-height: var(--cw-combobox-listbox-max-height);
+    overflow-y: auto;
+    border: var(--cw-border-width) solid var(--cw-combobox-listbox-border);
+    border-radius: var(--cw-combobox-listbox-radius);
+    background: var(--cw-combobox-listbox-bg);
+    box-shadow: var(--cw-shadow-2);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+  }
+
+  .cw-combobox__option {
+    --cw-combobox-option-px: var(--cw-space-3);
+    --cw-combobox-option-py: var(--cw-space-2);
+    --cw-combobox-option-active-bg: var(--cw-color-surface-sunk);
+    --cw-combobox-option-selected-fg: var(--cw-color-accent);
+
+    padding: var(--cw-combobox-option-py) var(--cw-combobox-option-px);
+    cursor: pointer;
+  }
+
+  /* Wired up via `active_class:` — see the header comment. Also matched by hover,
+     so pointer users get the identical highlight keyboard navigation produces. */
+  .cw-combobox__option--active,
+  .cw-combobox__option:hover {
+    background: var(--cw-combobox-option-active-bg);
+  }
+
+  .cw-combobox__option[aria-selected="true"] {
+    color: var(--cw-combobox-option-selected-fg);
+    font-weight: var(--cw-weight-medium);
+  }
+
+  .cw-combobox__option[aria-disabled="true"] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__empty {
+    margin: 0;
+    padding: var(--cw-space-2) var(--cw-space-3);
+    color: var(--cw-color-fg-muted);
+    font-size: var(--cw-text-sm);
+  }
+
+  /* A live region, present from first paint (see the presenter's own docstring on
+     why) — announced, not seen. Same clip-rect technique base.css's own
+     .cw-visually-hidden uses, inlined here rather than requiring a caller to also
+     add that class by hand onto an element this partial always renders itself. */
+  .cw-combobox__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

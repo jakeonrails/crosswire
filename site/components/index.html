@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Component gallery — crosswire</title>
+<link rel="stylesheet" href="../assets/crosswire-ui.css">
+<style>
+  :root { --shell-max: 64rem; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: var(--cw-space-2) 0 0; }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) 0 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-3); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--cw-space-4); }
+  .card {
+    display: block; border: var(--cw-border-width) solid var(--cw-color-border);
+    border-radius: var(--cw-radius-lg); padding: var(--cw-space-4);
+    background: var(--cw-color-surface-raised); color: inherit; text-decoration: none;
+  }
+  .card:hover { border-color: var(--cw-color-accent); }
+  .card h3 { margin: 0 0 var(--cw-space-2); font-size: var(--cw-text-base); }
+  .card h3 code { font-family: var(--cw-font-mono); }
+  .card p { margin: 0; font-size: var(--cw-text-sm); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <a class="back" href="../index.html">← crosswire</a>
+    <h1>Component gallery</h1>
+    <p class="description">Every registered UI-tier component (ui-tier-spec.md §9), rendered from the gem's real source at build time.</p>
+  </header>
+
+  <main>
+    <h2>New components</h2>
+    <p class="description" style="margin-bottom:var(--cw-space-3)">Ship their own presenter, helper, partial and CSS.</p>
+    <div class="grid">
+      <a class="card" href="button/index.html">
+  <h3>cw.<code>button</code></h3>
+  <p>A button or link with five variants, three sizes, and the three accessibility guarantees a plain &lt;button&gt;/&lt;a&gt; gets wrong by default (type=button, disabled-anchor semantics, aria-busy/data-loading).</p>
+</a>
+<a class="card" href="badge/index.html">
+  <h3>cw.<code>badge</code></h3>
+  <p>Inert status text with six variants and an optional leading dot — the smallest UI-tier component.</p>
+</a>
+<a class="card" href="card/index.html">
+  <h3>cw.<code>card</code></h3>
+  <p>A grouping container with header/body/footer slots (plain, raised, or outlined) — the tier&#39;s Slots proof, and the a11y doctrine for making a whole card clickable without a fake role or tabindex.</p>
+</a>
+<a class="card" href="input/index.html">
+  <h3>cw.<code>input</code></h3>
+  <p>A styled native &lt;input&gt;/&lt;textarea&gt; shell — size variant, an aria-invalid styling hook, and a data-loading state. No JS.</p>
+</a>
+<a class="card" href="field/index.html">
+  <h3>cw.<code>field</code></h3>
+  <p>A label + control + hint + error wrapper that wires for/id, aria-describedby, aria-errormessage and aria-invalid — composes cw.input by default, any control via field_for.</p>
+</a>
+<a class="card" href="select/index.html">
+  <h3>cw.<code>select</code></h3>
+  <p>A styled NATIVE &lt;select&gt; — the tier&#39;s Rule 0 exemplar: no reimplemented listbox, just the platform control, styled.</p>
+</a>
+<a class="card" href="alert/index.html">
+  <h3>cw.<code>alert</code></h3>
+  <p>A severity-coded message (role status/alert picked from the severity, never both a role and a redundant aria-live) with an optional dismiss — the tier&#39;s composition showcase, stacking the existing cw--dismiss primitive onto one element.</p>
+</a>
+<a class="card" href="toast/index.html">
+  <h3>cw.<code>toast</code></h3>
+  <p>A viewport-fixed live-region container plus individual toasts composing cw--dismiss + cw--timeout + cw--transition — server-rendered on first paint or Turbo-Stream-appended later; the container survives a page morph via data-turbo-permanent.</p>
+</a>
+
+    </div>
+
+    <h2>Styled widgets</h2>
+    <p class="description" style="margin-bottom:var(--cw-space-3)">CSS only, over an existing shipped primitive — no new markup.</p>
+    <div class="grid">
+      <a class="card" href="dialog/index.html">
+  <h3>cw.<code>dialog</code></h3>
+  <p>CSS over the shipped native &lt;dialog&gt; widget — ::backdrop, @starting-style enter/exit transitions, :modal sizing, and internal scroll containment. The modal-composition showcase: no new markup, no new presenter, styles cw.dialog as-is.</p>
+</a>
+<a class="card" href="popover/index.html">
+  <h3>cw.<code>popover</code></h3>
+  <p>CSS over the shipped native popovertarget/popover widget — elevation, radius, padding rhythm. Positioning stays entirely in the primitive; this tier adds nothing but paint.</p>
+</a>
+<a class="card" href="menu/index.html">
+  <h3>cw.<code>menu</code></h3>
+  <p>CSS over the shipped role=menu widget — item hover/focus/checked states, a documented [role=separator] treatment the partial itself never emits, a .cw-menu__item--danger modifier, and disabled styling.</p>
+</a>
+<a class="card" href="combobox/index.html">
+  <h3>cw.<code>combobox</code></h3>
+  <p>CSS over the shipped APG combobox widget — listbox elevation, [aria-selected] and the controller&#39;s opt-in active-option class, empty-state and status styling.</p>
+</a>
+
+    </div>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+  </footer>
+</body>
+</html>

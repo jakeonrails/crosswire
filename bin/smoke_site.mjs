@@ -86,6 +86,62 @@ for (const name of componentNames) {
   check(`site/components/${name}: no console or page errors`, pageErrors.length === 0, pageErrors.join(" | "))
 }
 
+// ---- stylesheets stay inside site/ (bug 1) -------------------------------------
+// The bug this guards against: site/component_template.html linked its stylesheet
+// with a path that escaped site/ (`../../../app/assets/stylesheets/crosswire/ui.css`)
+// — it 404s on GitHub Pages, where only site/ is deployed, but resolves fine locally
+// against the repo checkout, so nothing short of resolving the href against the
+// filesystem and checking where it lands would have caught it. Checked on every page
+// this script already visits (site/index.html, every component page, and the gallery
+// index below), not just the one page that happened to be wrong.
+const siteRoot = path.join(root, "site")
+const pagesToCheckStylesheets = [
+  path.join(root, "site/index.html"),
+  path.join(componentsDir, "index.html"),
+  ...componentNames.map((name) => path.join(componentsDir, name, "index.html"))
+]
+
+for (const pagePath of pagesToCheckStylesheets) {
+  const relPage = path.relative(root, pagePath)
+  if (!fs.existsSync(pagePath)) {
+    check(`${relPage}: exists`, false)
+    continue
+  }
+
+  const html = fs.readFileSync(pagePath, "utf8")
+  const hrefs = [...html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/gi)]
+    .map((m) => m[0].match(/href=["']([^"']+)["']/i)?.[1])
+    .filter(Boolean)
+
+  // site/index.html is fully self-contained (its CSS is an inline <style> block, no
+  // <link> at all) — only the gallery pages link an external stylesheet. So this does
+  // NOT assert every page HAS a stylesheet link, only that any it DOES have resolve
+  // inside site/ — that's the actual bug-catching check.
+  for (const href of hrefs) {
+    const resolved = path.resolve(path.dirname(pagePath), href)
+    const insideSite = resolved === siteRoot || resolved.startsWith(siteRoot + path.sep)
+    check(`${relPage}: stylesheet href "${href}" resolves inside site/`, insideSite, resolved)
+    if (insideSite) {
+      check(`${relPage}: stylesheet href "${href}" resolves to an existing file`, fs.existsSync(resolved), resolved)
+    }
+  }
+}
+
+// ---- gallery index exists and links every component (bug 2) -------------------
+const galleryIndexPath = path.join(componentsDir, "index.html")
+if (fs.existsSync(galleryIndexPath)) {
+  const galleryHtml = fs.readFileSync(galleryIndexPath, "utf8")
+  for (const name of componentNames) {
+    check(`site/components/index.html: links to ${name}/`, galleryHtml.includes(`${name}/index.html`))
+  }
+} else {
+  check("site/components/index.html exists", false)
+}
+
+// ---- main site links to the gallery (bug 2) ------------------------------------
+const siteIndexHtml = fs.readFileSync(path.join(root, "site/index.html"), "utf8")
+check("site/index.html: links to components/", /href=["']components\//.test(siteIndexHtml))
+
 await browser.close()
 
 for (const c of checks) console.log(`${c.ok ? "  ok  " : "  FAIL"}  ${c.name}${c.detail ? "  — " + c.detail : ""}`)
