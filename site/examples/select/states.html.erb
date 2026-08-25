@@ -1,0 +1,11 @@
+<p>
+  <%= cw.select name: "invalid", invalid: true do %>
+    <option value="">Choose one…</option>
+  <% end %>
+  <%= cw.select name: "loading", loading: true do %>
+    <option value="">Loading options…</option>
+  <% end %>
+  <%= cw.select name: "disabled", disabled: true do %>
+    <option>Unavailable</option>
+  <% end %>
+</p>

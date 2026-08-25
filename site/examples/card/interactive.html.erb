@@ -1,0 +1,12 @@
+<%# The whole-card-is-clickable pattern — NO role or tabindex on the card itself.
+    One real <a class="cw-card__link"> in the header does the actual linking; its
+    ::after (card.css) stretches to cover the whole card, so a click anywhere
+    activates that one real link. The footer button stays independently clickable
+    by carrying its own `position: relative` (card.css's own docstring explains why
+    that's what it takes to paint above the stretched overlay). See
+    Crosswire::UI::Card's docstring for the full a11y doctrine. %>
+<%= cw.card variant: :raised, interactive: true do |c| %>
+  <% c.header { tag.a "Realtime sync", class: "cw-card__link", href: "#" } %>
+  <% c.body { "Every collaborator sees every keystroke, with no merge step." } %>
+  <% c.footer { cw.button "Star", variant: :ghost, size: :sm, style: "position: relative" } %>
+<% end %>

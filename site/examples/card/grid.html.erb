@@ -1,0 +1,15 @@
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+  <%= cw.card variant: :outlined do |c| %>
+    <% c.header { "Free" } %>
+    <% c.body { "For side projects." } %>
+  <% end %>
+  <%= cw.card variant: :raised do |c| %>
+    <% c.header { "Pro" } %>
+    <% c.body { "For small teams." } %>
+    <% c.footer { cw.badge "Popular", variant: :accent } %>
+  <% end %>
+  <%= cw.card variant: :outlined do |c| %>
+    <% c.header { "Enterprise" } %>
+    <% c.body { "For everyone else." } %>
+  <% end %>
+</div>

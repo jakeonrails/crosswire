@@ -16,3 +16,68 @@ Morph: Safe
   A badge carries no DOM-only state — its class list is a pure function of the
   presenter's constructor arguments, so any morph re-renders it identically.
 ```
+
+## card
+
+```
+Morph: Safe
+  A card carries no DOM-only state of its own (no open/expanded/selected) — its
+  class list and slot contents are a pure function of the presenter's
+  constructor arguments and the caller's block, so any morph re-renders it
+  identically. (The real `<a>` inside an interactive card is an ordinary link;
+  it has nothing for a morph to clobber either.)
+```
+
+## input
+
+```
+Morph: Safe
+  An input's OWN classes/attributes are a pure function of the presenter's
+  constructor arguments, so any morph re-renders those identically. The thing a
+  morph could clobber — text the user is actively typing — is native browser
+  state Turbo 8 already protects on its own: idiomorph does not overwrite the
+  `value` of a focused form field during a page-level morph. Nothing here needs
+  to add anything on top of that (contrast `Crosswire::UI::Select`, whose
+  Server-owned verdict is about a DIFFERENT DOM/attribute-sync gap idiomorph
+  does NOT cover for `<option selected>`).
+```
+
+## field
+
+```
+Morph: Safe
+  A field's own wrapper/label/hint/error markup is a pure function of the
+  presenter's constructor arguments, so any morph re-renders it identically.
+  The control it wraps carries its own Morph verdict independently (`cw.input`
+  is Safe; a `cw.select` composed in via `field_for` is Server-owned on its own
+  terms — this presenter neither changes nor needs to know that).
+```
+
+## select
+
+```
+Morph: Server-owned
+  DOM-only state: which `<option>` the browser currently shows as selected.
+    Once a user (or script) has changed a `<select>`'s value, the browser does
+    not keep re-deriving `.selectedIndex`/`.value` from each `<option>`'s
+    `selected` HTML ATTRIBUTE — the attribute and the live IDL property can
+    legitimately disagree from that point on. A DOM diff that patches the
+    `selected` ATTRIBUTE onto the right `<option>` element is therefore not
+    guaranteed to make the SELECT actually show that option as chosen.
+  On morph: the server-rendered `<option selected>` in the new HTML is what
+    must win. Turbo/idiomorph's own morph (`morphElements`) patches attributes
+    correctly; the risk this verdict names is specifically whether the LIVE
+    `.value` visibly follows that patched attribute for a `<select>` whose
+    value has already diverged client-side — the same class of gap
+    `Crosswire::UI::Select`'s sibling primitive `cw--preserve` exists to close
+    for CONTROLLER-owned values, except here there is no controller to run
+    `usePreserve` at all (select ships none — Rule 0). See
+    `test/js/select.browser.test.js` for the proof against real
+    `@hotwired/turbo`, not jsdom.
+  The app must: always render the CURRENTLY correct `selected` option
+    server-side on every response that could be followed by a morph (a
+    redirect-after-submit, a Turbo Stream update) — never rely on the client
+    to remember a selection across one. The value named here is exactly one
+    thing: which `<option>` carries the `selected` attribute in the HTML the
+    server sends.
+```

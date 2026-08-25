@@ -1,0 +1,28 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every id relationship (for/id, aria-describedby,
+  aria-errormessage, aria-invalid) lives in Crosswire::UI::Field, so this file is
+  safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Label, hint and error each render only when given — an absent one emits no
+  element at all, same "presence decides, nothing else" rule `_card.html.erb` uses
+  for its header/footer slots.
+
+  Locals:
+    field    Crosswire::UI::Field
+    label    String or nil
+    control  String — already-rendered control markup (cw.input by default, or
+             whatever `field_for`'s block rendered)
+%>
+<div <%= cw_attrs(field.root_attrs) %>>
+  <% if label %>
+    <label <%= cw_attrs(field.label_attrs) %>><%= label %></label>
+  <% end %>
+  <%= control %>
+  <% if field.hint %>
+    <p <%= cw_attrs(field.hint_attrs) %>><%= field.hint %></p>
+  <% end %>
+  <% if field.error %>
+    <p <%= cw_attrs(field.error_attrs) %>><%= field.error %></p>
+  <% end %>
+</div>

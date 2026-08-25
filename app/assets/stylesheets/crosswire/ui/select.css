@@ -1,0 +1,79 @@
+/* crosswire/ui/select.css — cw-select, the styled NATIVE <select> (ui-tier-spec.md
+   §5's Rule 0 exemplar — see Crosswire::UI::Select's own docstring for why this
+   file styles the platform's control instead of rebuilding it). Every color/length
+   below is either a global token or one of THIS component's own `--cw-select-*`
+   knobs, always consumed through `var(...)` — see tokens.css's own header for the
+   override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into.
+   `color-scheme` is deliberately NOT redeclared here either — tokens.css's `:root`
+   already sets it in every light/dark branch, and that single global governs the
+   native option popup for every `<select>` on the page, styled or not (see this
+   component's own docstring for why that is load-bearing). */
+
+@layer crosswire.components {
+  .cw-select {
+    --cw-select-bg: var(--cw-color-surface);
+    --cw-select-fg: var(--cw-color-fg);
+    --cw-select-border: var(--cw-color-border-strong);
+    --cw-select-px: var(--cw-space-3);
+    --cw-select-py: var(--cw-space-2);
+    --cw-select-disabled-opacity: .6;
+    --cw-select-loading-opacity: .7;
+
+    display: block;
+    width: 100%;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-select-fg);
+    background: var(--cw-select-bg);
+    border: var(--cw-border-width) solid var(--cw-select-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-select-py) var(--cw-select-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-select:hover:not(:disabled) {
+    --cw-select-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-select:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-select-disabled-opacity);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-select--sm {
+    --cw-select-px: var(--cw-space-2);
+    --cw-select-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-select--lg {
+    --cw-select-px: var(--cw-space-4);
+    --cw-select-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* Same one-signal-drives-both reasoning as cw-input's own rule (input.css). */
+  .cw-select[aria-invalid="true"] {
+    --cw-select-border: var(--cw-color-danger);
+  }
+
+  .cw-select[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button/cw-input's own rule. */
+  .cw-select[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-select-loading-opacity);
+  }
+}

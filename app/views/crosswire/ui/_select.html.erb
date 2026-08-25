@@ -1,0 +1,15 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every class/state decision lives in Crosswire::UI::Select, so
+  this file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  `content` is the caller's own <option>/<optgroup> markup — crosswire generates
+  none of its own (Rule 0; see the presenter's docstring). The server-rendered
+  `selected` attribute on one of those options is the Morph: Server-owned value —
+  see the presenter's docstring and test/js/select.browser.test.js.
+
+  Locals:
+    select   Crosswire::UI::Select
+    content  String or nil — already-captured <option> markup
+%>
+<%= content_tag(:select, select.attrs) { content } %>

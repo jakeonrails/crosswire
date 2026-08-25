@@ -1,0 +1,25 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb — every class decision lives in Crosswire::UI::Card, so this
+  file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  Header and footer render ONLY when present (the caller named that slot) — an
+  absent slot emits no wrapper element at all, not an empty one. Body always
+  renders: either the caller's `c.body { ... }` content, or (arity-0 shorthand) the
+  whole block's own captured output.
+
+  Locals:
+    card    Crosswire::UI::Card
+    header  String or nil — captured `c.header { ... }` content
+    body    String or nil — captured `c.body { ... }` content, or the whole block
+    footer  String or nil — captured `c.footer { ... }` content
+%>
+<div <%= cw_attrs(card.root_attrs) %>>
+  <% if header %>
+    <div <%= cw_attrs(card.header_attrs) %>><%= header %></div>
+  <% end %>
+  <div <%= cw_attrs(card.body_attrs) %>><%= body %></div>
+  <% if footer %>
+    <div <%= cw_attrs(card.footer_attrs) %>><%= footer %></div>
+  <% end %>
+</div>

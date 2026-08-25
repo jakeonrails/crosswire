@@ -57,6 +57,57 @@
 - Add `badge` — the smallest UI-tier component (one six-value `variant`, one
   `boolean`), built specifically to exercise `Crosswire::UI::Variants` under a
   second component; no engine gap turned up. Morph: Safe.
+- Add `card` — the Slots proof (ui-tier-spec.md §6.3): `plain`/`raised`/`outlined`
+  variants, an `interactive` boolean, and `Crosswire::UI::Slots`-backed
+  header/body/footer regions (arity-0 shorthand = the whole block is the body; a
+  slot renders only when the caller named it). The interactive-card a11y doctrine —
+  no `role`/`tabindex` on the wrapper; one real `<a class="cw-card__link">` in the
+  header, stretched over the whole card with `::after { inset: 0 }` — lives in both
+  the presenter's docstring and `site/examples/card/interactive.html.erb`. Morph:
+  Safe.
+- Add `input` — a styled native `<input>`/`<textarea>` shell (`multiline:` picks the
+  tag): a `size` variant, an `aria-invalid` styling hook (an attribute, not a
+  `Variants` class, so the screen-reader signal and the visual one can never drift
+  apart), and the same bare `data-loading` convention as `button`. No JS. Morph:
+  Safe.
+- Add `field` — a label + control + hint + error wrapper whose whole job is
+  accessibility wiring: the label's `for` and the control's `id` come from one
+  shared value so they cannot drift; a hint wires `aria-describedby`; an error wires
+  `aria-errormessage` + `aria-invalid` (presence alone decides invalidity — no
+  separate flag to keep in sync). Composes `cw.input` by default; any other control
+  (`cw.select`, a hand-rolled radio group) goes through `cw.field_for` and
+  `f.control_attrs`, a Symbol-keyed hash deliberately safe to double-splat into any
+  `cw.<control>` helper. Morph: Safe.
+- Add `select` — a styled NATIVE `<select>`, this tier's Rule 0 exemplar: no
+  reimplemented listbox, no controller, just the platform control with crosswire's
+  classes on it — the `<option>`s are whatever the caller writes. The tier's first
+  non-Safe Morph verdict (**Server-owned**): once a `<select>`'s live value has
+  diverged from its `selected` HTML attribute, a DOM diff that patches the attribute
+  is not guaranteed to make the control visibly follow it, so the server-rendered
+  `selected` option is what a morph must land — proven against real
+  `@hotwired/turbo` in `test/js/select.browser.test.js` (jsdom cannot be trusted for
+  this; see that file's header). `cw.select` deliberately shadows
+  `ActionView::Helpers::FormOptionsHelper#select` inside `Crosswire::Builder` only —
+  pinned by `test/crosswire/ui/select_test.rb`'s
+  `Crosswire::Builder.instance_method(:select).owner` assertion.
+- Add `test/crosswire/ui/rendering_test.rb` (+ `rendering_test_runner.rb`, the
+  child-process pattern `integration_test.rb`/`streams_test.rb` already use) — every
+  registered UI component rendered through a real `ActionView` context under a real
+  Rails boot: renders with defaults, the root carries its base class, a caller's own
+  `class:` survives, and card's four header/body/footer slot combinations actually
+  produce the right DOM (not just the right Ruby-level `Slots` bookkeeping the
+  presenter unit suite can't observe on its own).
+- Fix `ui_contract_audit_test.rb`'s token-discipline check (#7): the raw-token
+  regex's trailing `\b` treated `%` as a non-word boundary, so an allowlisted value
+  like `100%` was scanned as bare `100` (not on the allowlist) and reported as a
+  false violation — replaced with a `(?![\w%])` lookahead that keeps `%` attached to
+  its number. The scanner is now comment-aware too (CSS comments are stripped before
+  either token-discipline rule runs), so explanatory prose mentioning a raw value or
+  a `--cw-*` name can no longer be mistaken for a declaration. `button.css`'s
+  `--cw-button-block-width` knob — a custom-property workaround for exactly this bug
+  (a regular declaration's raw `100%` value has nowhere to hide from the lint except
+  inside a custom property, which the lint never inspects) — is no longer needed and
+  is gone; `.cw-button--block` sets `width: 100%` directly.
 - Add `bin/build_gallery.rb` and `site/component_template.html` — renders every
   `site/examples/<component>/*.html.erb` through the real Rails view stack (demo ==
   copy-paste snippet, same "boot test/dummy for real" approach as the integration

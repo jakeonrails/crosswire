@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.field — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>field</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A label + control + hint + error wrapper that wires for/id, aria-describedby, aria-errormessage and aria-invalid — composes cw.input by default, any control via field_for.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><div class="cw-field">
+    <label class="cw-field__label" for="field-basic-email">Email</label>
+    <input class="cw-input cw-focusable" type="email" id="field-basic-email" placeholder="you@example.com" />
+
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/field/basic.html.erb</p>
+    <pre><code>&lt;%= cw.field &quot;Email&quot;, id: &quot;field-basic-email&quot;, control: { type: &quot;email&quot;, placeholder: &quot;you@example.com&quot; } %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div class="cw-field">
+    <label class="cw-field__label" for="field-error-username">Username</label>
+    <input class="cw-input cw-focusable" type="text" value="admin" id="field-error-username" aria-errormessage="field-error-username-error" aria-invalid="true" />
+
+    <p class="cw-field__error" id="field-error-username-error">is already taken.</p>
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/field/error.html.erb</p>
+    <pre><code>&lt;%= cw.field &quot;Username&quot;, id: &quot;field-error-username&quot;,
+             error: &quot;is already taken.&quot;,
+             control: { value: &quot;admin&quot; } %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div class="cw-field">
+    <label class="cw-field__label" for="field-hint-password">Password</label>
+    <input class="cw-input cw-focusable" type="password" id="field-hint-password" aria-describedby="field-hint-password-hint" />
+
+    <p class="cw-field__hint" id="field-hint-password-hint">At least 8 characters, with one number.</p>
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/field/hint.html.erb</p>
+    <pre><code>&lt;%= cw.field &quot;Password&quot;, id: &quot;field-hint-password&quot;,
+             hint: &quot;At least 8 characters, with one number.&quot;,
+             control: { type: &quot;password&quot; } %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage">
+  <label class="cw-field__label" for="field-with-select-country">Country</label>
+  <select class="cw-select cw-focusable" id="field-with-select-country" aria-describedby="field-with-select-country-hint">
+    <option value="us">United States</option>
+    <option value="ca">Canada</option>
+    <option value="mx">Mexico</option>
+</select>
+  <p class="cw-field__hint" id="field-with-select-country-hint">Used for shipping only.</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/field/with-select.html.erb</p>
+    <pre><code>&lt;%# field_for + any control: the a11y wiring composes onto cw.select just as well
+    as the default cw.input, via f.control_attrs (see Crosswire::UI::Field&#39;s own
+    docstring for why that hash stays Symbol-keyed). %&gt;
+&lt;%= cw.field_for id: &quot;field-with-select-country&quot;, hint: &quot;Used for shipping only.&quot; do |f| %&gt;
+  &lt;label class=&quot;cw-field__label&quot; for=&quot;field-with-select-country&quot;&gt;Country&lt;/label&gt;
+  &lt;%= cw.select(**f.control_attrs) do %&gt;
+    &lt;option value=&quot;us&quot;&gt;United States&lt;/option&gt;
+    &lt;option value=&quot;ca&quot;&gt;Canada&lt;/option&gt;
+    &lt;option value=&quot;mx&quot;&gt;Mexico&lt;/option&gt;
+  &lt;% end %&gt;
+  &lt;p class=&quot;cw-field__hint&quot; id=&quot;field-with-select-country-hint&quot;&gt;Used for shipping only.&lt;/p&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <p><em>No declared variants.</em></p>
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Safe
+  A field&#39;s own wrapper/label/hint/error markup is a pure function of the
+  presenter&#39;s constructor arguments, so any morph re-renders it identically.
+  The control it wraps carries its own Morph verdict independently (`cw.input`
+  is Safe; a `cw.select` composed in via `field_for` is Server-owned on its own
+  terms — this presenter neither changes nor needs to know that).</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/field.css — cw-field, the label+control+hint+error wrapper
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component&#39;s own `--cw-field-*` knobs, always consumed through `var(...)` —
+   see tokens.css&#39;s own header for the override ladder.
+
+   Deliberately styles ONLY the wrapper, label, hint and error — the control itself
+   (cw-input, cw-select, or a caller&#39;s own markup) styles itself; this file has no
+   business reaching into it. */
+
+@layer crosswire.components {
+  .cw-field {
+    --cw-field-gap: var(--cw-space-1);
+    --cw-field-hint-fg: var(--cw-color-fg-muted);
+    --cw-field-error-fg: var(--cw-color-danger);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-field-gap);
+  }
+
+  .cw-field__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg);
+  }
+
+  .cw-field__hint {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    color: var(--cw-field-hint-fg);
+  }
+
+  .cw-field__error {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-field-error-fg);
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject field</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

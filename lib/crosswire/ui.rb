@@ -18,6 +18,14 @@ require "crosswire/ui/button"
 require "crosswire/ui/button_helper"
 require "crosswire/ui/badge"
 require "crosswire/ui/badge_helper"
+require "crosswire/ui/card"
+require "crosswire/ui/card_helper"
+require "crosswire/ui/input"
+require "crosswire/ui/input_helper"
+require "crosswire/ui/field"
+require "crosswire/ui/field_helper"
+require "crosswire/ui/select"
+require "crosswire/ui/select_helper"
 
 module Crosswire
   module UI
@@ -41,6 +49,25 @@ module Crosswire
       badge: {
         description: "Inert status text with six variants and an optional leading " \
                       "dot — the smallest UI-tier component."
+      }.freeze,
+      card: {
+        description: "A grouping container with header/body/footer slots (plain, " \
+                      "raised, or outlined) — the tier's Slots proof, and the a11y " \
+                      "doctrine for making a whole card clickable without a fake " \
+                      "role or tabindex."
+      }.freeze,
+      input: {
+        description: "A styled native <input>/<textarea> shell — size variant, an " \
+                      "aria-invalid styling hook, and a data-loading state. No JS."
+      }.freeze,
+      field: {
+        description: "A label + control + hint + error wrapper that wires for/id, " \
+                      "aria-describedby, aria-errormessage and aria-invalid — " \
+                      "composes cw.input by default, any control via field_for."
+      }.freeze,
+      select: {
+        description: "A styled NATIVE <select> — the tier's Rule 0 exemplar: no " \
+                      "reimplemented listbox, just the platform control, styled."
       }.freeze
     }.freeze
 

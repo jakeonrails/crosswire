@@ -1,0 +1,115 @@
+/* crosswire/ui/card.css — cw-card, the Slots proof's styling half (ui-tier-spec.md
+   §6.3). Every color/length below is either a global token or one of THIS
+   component's own `--cw-card-*` knobs, always consumed through `var(...)` — see
+   tokens.css's own header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-card {
+    --cw-card-bg: var(--cw-color-surface-raised);
+    --cw-card-fg: var(--cw-color-fg);
+    --cw-card-border: var(--cw-color-border);
+    --cw-card-radius: var(--cw-radius-lg);
+    --cw-card-gap: var(--cw-space-4);
+    --cw-card-padding: var(--cw-space-4);
+    --cw-card-hover-lift: -2px;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-card-gap);
+    border-radius: var(--cw-card-radius);
+    background: var(--cw-card-bg);
+    color: var(--cw-card-fg);
+    transition: box-shadow var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+  }
+
+  .cw-card__header,
+  .cw-card__body,
+  .cw-card__footer {
+    padding: 0 var(--cw-card-padding);
+  }
+
+  .cw-card__header:first-child,
+  .cw-card__body:first-child {
+    padding-top: var(--cw-card-padding);
+  }
+
+  .cw-card__body:last-child,
+  .cw-card__footer:last-child {
+    padding-bottom: var(--cw-card-padding);
+  }
+
+  .cw-card__header {
+    font-weight: var(--cw-weight-semibold);
+    font-size: var(--cw-text-lg);
+  }
+
+  .cw-card__footer {
+    display: flex;
+    gap: var(--cw-space-2);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `plain` is the default (nil in the variant map, Variants rule 2) — a flat
+     surface with no border and no shadow, which the knob values above already are. */
+
+  .cw-card--raised {
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-card--outlined {
+    border: var(--cw-border-width) solid var(--cw-card-border);
+  }
+
+  /* ---- interactive -------------------------------------------------------------- */
+  /* Styling ONLY — no role, no tabindex, no click handler ships here or anywhere
+     else in this component. `position: relative` is what makes the stretched-link
+     trick below work: `.cw-card__link::after` positions itself `inset: 0` relative
+     to THIS element, not the viewport. See Crosswire::UI::Card's own docstring for
+     the full a11y doctrine and why a wrapper role="button" is not an alternative. */
+  .cw-card--interactive {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .cw-card--interactive:hover {
+    box-shadow: var(--cw-shadow-2);
+    transform: translateY(var(--cw-card-hover-lift));
+  }
+
+  /* `:focus-within`, not `:focus` — the card itself is never focusable (no
+     tabindex); this rings the card when the real `<a class="cw-card__link">` inside
+     it receives focus, composing the same `--cw-shadow-focus` token every other
+     focusable UI component uses via `.cw-focusable`. */
+  .cw-card--interactive:focus-within {
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-card--interactive:hover {
+      transform: none;
+    }
+  }
+
+  /* The one real, ejectable-markup anchor an interactive card's header carries
+     (`site/examples/card/interactive.html.erb`) — its `::after` stretches to cover
+     the whole card, so clicking anywhere activates this one link. A positioned
+     pseudo-element always paints above a plain static-positioned sibling, so any
+     OTHER interactive element inside the card (e.g. a footer button) needs its own
+     `position: relative` to become positioned too — once it is, later DOM order
+     alone (no z-index knob needed) puts it back on top of the overlay. */
+  .cw-card__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cw-card__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .cw-card__link:hover {
+    text-decoration: underline;
+  }
+}

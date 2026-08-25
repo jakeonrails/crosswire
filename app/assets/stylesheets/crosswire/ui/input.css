@@ -1,0 +1,92 @@
+/* crosswire/ui/input.css — cw-input, the styled native input/textarea shell
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-input-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into. */
+
+@layer crosswire.components {
+  .cw-input {
+    --cw-input-bg: var(--cw-color-surface);
+    --cw-input-fg: var(--cw-color-fg);
+    --cw-input-border: var(--cw-color-border-strong);
+    --cw-input-placeholder: var(--cw-color-fg-subtle);
+    --cw-input-px: var(--cw-space-3);
+    --cw-input-py: var(--cw-space-2);
+    --cw-input-disabled-opacity: .6;
+    --cw-input-loading-opacity: .7;
+    --cw-input-textarea-min-height: 6em;
+
+    display: block;
+    width: 100%;
+    appearance: none;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-input-fg);
+    background: var(--cw-input-bg);
+    border: var(--cw-border-width) solid var(--cw-input-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-input-py) var(--cw-input-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-input::placeholder {
+    color: var(--cw-input-placeholder);
+  }
+
+  .cw-input:hover:not(:disabled) {
+    --cw-input-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-input:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-input-disabled-opacity);
+  }
+
+  textarea.cw-input {
+    min-height: var(--cw-input-textarea-min-height);
+    resize: vertical;
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-input--sm {
+    --cw-input-px: var(--cw-space-2);
+    --cw-input-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-input--lg {
+    --cw-input-px: var(--cw-space-4);
+    --cw-input-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* The "aria-invalid styling hook" (ui-tier-spec.md §5) — the SAME attribute a
+     screen reader announces drives the visual treatment, so the two can never drift
+     apart the way a separate `invalid: true` class would. See
+     Crosswire::UI::Input's own docstring for why this is an attribute selector, not
+     a Variants boolean. */
+  .cw-input[aria-invalid="true"] {
+    --cw-input-border: var(--cw-color-danger);
+  }
+
+  .cw-input[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button's own `[data-loading]` rule
+     (button.css). No spinner overlay here: a text field mid-fetch (e.g. an async
+     validation) reads better as a quieted control than a spinning icon fighting the
+     caret for attention. */
+  .cw-input[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-input-loading-opacity);
+  }
+}

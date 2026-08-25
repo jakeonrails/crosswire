@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.card — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>card</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A grouping container with header/body/footer slots (plain, raised, or outlined) — the tier&#39;s Slots proof, and the a11y doctrine for making a whole card clickable without a fake role or tabindex.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><div class="cw-card cw-card--raised">
+    <div class="cw-card__header">Plan</div>
+  <div class="cw-card__body">Everything in Free, plus priority support and unlimited projects.</div>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/card/basic.html.erb</p>
+    <pre><code>&lt;%= cw.card variant: :raised do |c| %&gt;
+  &lt;% c.header { &quot;Plan&quot; } %&gt;
+  &lt;% c.body { &quot;Everything in Free, plus priority support and unlimited projects.&quot; } %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+  <div class="cw-card cw-card--outlined">
+    <div class="cw-card__header">Free</div>
+  <div class="cw-card__body">For side projects.</div>
+</div>
+  <div class="cw-card cw-card--raised">
+    <div class="cw-card__header">Pro</div>
+  <div class="cw-card__body">For small teams.</div>
+    <div class="cw-card__footer"><span class="cw-badge cw-badge--accent">Popular</span>
+</div>
+</div>
+  <div class="cw-card cw-card--outlined">
+    <div class="cw-card__header">Enterprise</div>
+  <div class="cw-card__body">For everyone else.</div>
+</div>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/card/grid.html.erb</p>
+    <pre><code>&lt;div style=&quot;display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;&quot;&gt;
+  &lt;%= cw.card variant: :outlined do |c| %&gt;
+    &lt;% c.header { &quot;Free&quot; } %&gt;
+    &lt;% c.body { &quot;For side projects.&quot; } %&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.card variant: :raised do |c| %&gt;
+    &lt;% c.header { &quot;Pro&quot; } %&gt;
+    &lt;% c.body { &quot;For small teams.&quot; } %&gt;
+    &lt;% c.footer { cw.badge &quot;Popular&quot;, variant: :accent } %&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.card variant: :outlined do |c| %&gt;
+    &lt;% c.header { &quot;Enterprise&quot; } %&gt;
+    &lt;% c.body { &quot;For everyone else.&quot; } %&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div class="cw-card cw-card--raised cw-card--interactive">
+    <div class="cw-card__header"><a class="cw-card__link" href="#">Realtime sync</a></div>
+  <div class="cw-card__body">Every collaborator sees every keystroke, with no merge step.</div>
+    <div class="cw-card__footer"><button class="cw-button cw-button--ghost cw-button--sm cw-focusable" type="button" style="position: relative">Star</button>
+</div>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/card/interactive.html.erb</p>
+    <pre><code>&lt;%# The whole-card-is-clickable pattern — NO role or tabindex on the card itself.
+    One real &lt;a class=&quot;cw-card__link&quot;&gt; in the header does the actual linking; its
+    ::after (card.css) stretches to cover the whole card, so a click anywhere
+    activates that one real link. The footer button stays independently clickable
+    by carrying its own `position: relative` (card.css&#39;s own docstring explains why
+    that&#39;s what it takes to paint above the stretched overlay). See
+    Crosswire::UI::Card&#39;s docstring for the full a11y doctrine. %&gt;
+&lt;%= cw.card variant: :raised, interactive: true do |c| %&gt;
+  &lt;% c.header { tag.a &quot;Realtime sync&quot;, class: &quot;cw-card__link&quot;, href: &quot;#&quot; } %&gt;
+  &lt;% c.body { &quot;Every collaborator sees every keystroke, with no merge step.&quot; } %&gt;
+  &lt;% c.footer { cw.button &quot;Star&quot;, variant: :ghost, size: :sm, style: &quot;position: relative&quot; } %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div class="cw-card cw-card--outlined">
+    <div class="cw-card__header">Team plan</div>
+  <div class="cw-card__body">Up to 20 seats, shared workspaces, SSO.</div>
+    <div class="cw-card__footer"><button class="cw-button cw-button--primary cw-focusable" type="button">Upgrade</button>
+</div>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/card/with-footer.html.erb</p>
+    <pre><code>&lt;%= cw.card variant: :outlined do |c| %&gt;
+  &lt;% c.header { &quot;Team plan&quot; } %&gt;
+  &lt;% c.body { &quot;Up to 20 seats, shared workspaces, SSO.&quot; } %&gt;
+  &lt;% c.footer { cw.button &quot;Upgrade&quot;, variant: :primary } %&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <table class="props">
+  <thead><tr><th>Prop</th><th>Values</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr>
+  <td><code>variant</code></td>
+  <td><code>:plain, :raised, :outlined</code></td>
+  <td><code>:plain</code></td>
+</tr>
+<tr>
+  <td><code>interactive</code></td>
+  <td><code>true, false</code></td>
+  <td><code>false</code></td>
+</tr>
+
+  </tbody>
+</table>
+
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Safe
+  A card carries no DOM-only state of its own (no open/expanded/selected) — its
+  class list and slot contents are a pure function of the presenter&#39;s
+  constructor arguments and the caller&#39;s block, so any morph re-renders it
+  identically. (The real `&lt;a&gt;` inside an interactive card is an ordinary link;
+  it has nothing for a morph to clobber either.)</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/card.css — cw-card, the Slots proof&#39;s styling half (ui-tier-spec.md
+   §6.3). Every color/length below is either a global token or one of THIS
+   component&#39;s own `--cw-card-*` knobs, always consumed through `var(...)` — see
+   tokens.css&#39;s own header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-card {
+    --cw-card-bg: var(--cw-color-surface-raised);
+    --cw-card-fg: var(--cw-color-fg);
+    --cw-card-border: var(--cw-color-border);
+    --cw-card-radius: var(--cw-radius-lg);
+    --cw-card-gap: var(--cw-space-4);
+    --cw-card-padding: var(--cw-space-4);
+    --cw-card-hover-lift: -2px;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-card-gap);
+    border-radius: var(--cw-card-radius);
+    background: var(--cw-card-bg);
+    color: var(--cw-card-fg);
+    transition: box-shadow var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+  }
+
+  .cw-card__header,
+  .cw-card__body,
+  .cw-card__footer {
+    padding: 0 var(--cw-card-padding);
+  }
+
+  .cw-card__header:first-child,
+  .cw-card__body:first-child {
+    padding-top: var(--cw-card-padding);
+  }
+
+  .cw-card__body:last-child,
+  .cw-card__footer:last-child {
+    padding-bottom: var(--cw-card-padding);
+  }
+
+  .cw-card__header {
+    font-weight: var(--cw-weight-semibold);
+    font-size: var(--cw-text-lg);
+  }
+
+  .cw-card__footer {
+    display: flex;
+    gap: var(--cw-space-2);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `plain` is the default (nil in the variant map, Variants rule 2) — a flat
+     surface with no border and no shadow, which the knob values above already are. */
+
+  .cw-card--raised {
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-card--outlined {
+    border: var(--cw-border-width) solid var(--cw-card-border);
+  }
+
+  /* ---- interactive -------------------------------------------------------------- */
+  /* Styling ONLY — no role, no tabindex, no click handler ships here or anywhere
+     else in this component. `position: relative` is what makes the stretched-link
+     trick below work: `.cw-card__link::after` positions itself `inset: 0` relative
+     to THIS element, not the viewport. See Crosswire::UI::Card&#39;s own docstring for
+     the full a11y doctrine and why a wrapper role=&quot;button&quot; is not an alternative. */
+  .cw-card--interactive {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .cw-card--interactive:hover {
+    box-shadow: var(--cw-shadow-2);
+    transform: translateY(var(--cw-card-hover-lift));
+  }
+
+  /* `:focus-within`, not `:focus` — the card itself is never focusable (no
+     tabindex); this rings the card when the real `&lt;a class=&quot;cw-card__link&quot;&gt;` inside
+     it receives focus, composing the same `--cw-shadow-focus` token every other
+     focusable UI component uses via `.cw-focusable`. */
+  .cw-card--interactive:focus-within {
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-card--interactive:hover {
+      transform: none;
+    }
+  }
+
+  /* The one real, ejectable-markup anchor an interactive card&#39;s header carries
+     (`site/examples/card/interactive.html.erb`) — its `::after` stretches to cover
+     the whole card, so clicking anywhere activates this one link. A positioned
+     pseudo-element always paints above a plain static-positioned sibling, so any
+     OTHER interactive element inside the card (e.g. a footer button) needs its own
+     `position: relative` to become positioned too — once it is, later DOM order
+     alone (no z-index knob needed) puts it back on top of the overlay. */
+  .cw-card__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cw-card__link::after {
+    content: &quot;&quot;;
+    position: absolute;
+    inset: 0;
+  }
+
+  .cw-card__link:hover {
+    text-decoration: underline;
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject card</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

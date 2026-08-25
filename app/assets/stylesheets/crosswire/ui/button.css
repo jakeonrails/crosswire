@@ -22,7 +22,11 @@
     /* Implementation-only knobs (still `--cw-button-*`, still overridable, just not
        part of the five headline knobs above) — kept as custom properties rather than
        inlined literals so every actual length/number below stays a `var(...)`
-       reference, never a bare token, per this tier's token-discipline audit. */
+       reference, never a bare token, wherever the literal itself is not on the
+       token-discipline audit's small allowlist (0/1px/100%/9999px/transparent/
+       currentColor — see `test_token_discipline` in ui_contract_audit_test.rb).
+       `.cw-button--block`'s `width: 100%` further down needs no knob of its own for
+       exactly that reason: `100%` is allowlisted outright. */
     --cw-button-disabled-opacity: .6;
     --cw-button-danger-hover-brightness: 1.08;
     --cw-button-icon-ratio: 1;
@@ -30,7 +34,6 @@
     --cw-button-spinner-thickness: .15em;
     --cw-button-spinner-duration: calc(var(--cw-duration-base) * 4);
     --cw-button-spin-turn: 360deg;
-    --cw-button-block-width: 100%;
 
     display: inline-flex;
     align-items: center;
@@ -137,7 +140,7 @@
 
   .cw-button--block {
     display: flex;
-    width: var(--cw-button-block-width);
+    width: 100%;
   }
 
   /* ---- [data-loading] -------------------------------------------------------- */

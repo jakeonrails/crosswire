@@ -164,7 +164,7 @@ module Crosswire
 
       def test_token_discipline
         violations = ui_css_files.flat_map do |path|
-          content = File.read(path)
+          content = strip_css_comments(File.read(path))
           component = component_css_name(path)
 
           name_violations = declared_custom_properties(content).reject { |prop| valid_custom_prop_name?(prop, component) }
@@ -269,11 +269,33 @@ module Crosswire
         content.scan(/([a-zA-Z-]+)\s*:\s*([^;]+);/).reject { |prop, _| prop.start_with?("--") }
       end
 
+      # Strip CSS comments before any of the checks above ever scan the content — a
+      # docstring paragraph explaining `--cw-button-*` knobs, or mentioning "100%" in
+      # prose, is not a declaration, and must not be treated like one. `/\*.*?\*/`
+      # matched non-greedily across the whole file (`m` flag lets `.` cross
+      # newlines) is sufficient for CSS's actual comment syntax (no nesting, no
+      # escaping) — this codebase's stylesheets carry no `/*`/`*/` sequence inside a
+      # string or url() that would make a smarter tokenizer worth the complexity.
+      def strip_css_comments(content) = content.gsub(%r{/\*.*?\*/}m, "")
+
       # Strip legitimate `var(--cw-*)` references first, then look for whatever's
       # left that smells like a hardcoded color or length. Deliberately loose — false
       # negatives (missing a real violation) are the acceptable failure mode for a
       # lint this size, not false positives that make people distrust it.
-      RAW_TOKEN = /#[0-9a-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)|-?\d+(?:\.\d+)?(?:px|rem|em|%|ms|s|vh|vw|deg)?\b/
+      #
+      # The trailing boundary is a lookahead, `(?![\w%])`, NOT `\b` — a real bug this
+      # test itself shipped with once, recorded here so it cannot silently come back.
+      # `\b` treats `%` as a non-word character exactly like whitespace or `;`, so for
+      # an allowlisted value like `100%` the engine matches the OPTIONAL `%` suffix
+      # greedily first, finds no `\b` between `%` and the following `;` (neither side
+      # is a word character, so there is no word/non-word transition to assert), and
+      # backtracks to a match of bare `100` instead — which passes its OWN trailing
+      # `\b` (between the word character `0` and the non-word `%`) and is then
+      # checked against `VALUE_ALLOWLIST` as `"100"`, not `"100%"`, and reported as a
+      # violation. `(?![\w%])` treats `%` as part of "the token", not as a boundary,
+      # so the greedy match of `100%` is what actually gets checked — and it is
+      # exactly what `VALUE_ALLOWLIST` allowlists.
+      RAW_TOKEN = /#[0-9a-fA-F]{3,8}(?![\w])|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)|-?\d+(?:\.\d+)?(?:px|rem|em|%|ms|s|vh|vw|deg)?(?![\w%])/
 
       def disallowed_raw_tokens(value)
         scrubbed = value.gsub(/var\([^)]*\)/, "")

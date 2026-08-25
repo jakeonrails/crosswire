@@ -1,0 +1,39 @@
+/* crosswire/ui/field.css — cw-field, the label+control+hint+error wrapper
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-field-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Deliberately styles ONLY the wrapper, label, hint and error — the control itself
+   (cw-input, cw-select, or a caller's own markup) styles itself; this file has no
+   business reaching into it. */
+
+@layer crosswire.components {
+  .cw-field {
+    --cw-field-gap: var(--cw-space-1);
+    --cw-field-hint-fg: var(--cw-color-fg-muted);
+    --cw-field-error-fg: var(--cw-color-danger);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-field-gap);
+  }
+
+  .cw-field__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg);
+  }
+
+  .cw-field__hint {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    color: var(--cw-field-hint-fg);
+  }
+
+  .cw-field__error {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-field-error-fg);
+  }
+}

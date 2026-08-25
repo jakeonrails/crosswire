@@ -199,7 +199,11 @@
     /* Implementation-only knobs (still `--cw-button-*`, still overridable, just not
        part of the five headline knobs above) — kept as custom properties rather than
        inlined literals so every actual length/number below stays a `var(...)`
-       reference, never a bare token, per this tier's token-discipline audit. */
+       reference, never a bare token, wherever the literal itself is not on the
+       token-discipline audit's small allowlist (0/1px/100%/9999px/transparent/
+       currentColor — see `test_token_discipline` in ui_contract_audit_test.rb).
+       `.cw-button--block`'s `width: 100%` further down needs no knob of its own for
+       exactly that reason: `100%` is allowlisted outright. */
     --cw-button-disabled-opacity: .6;
     --cw-button-danger-hover-brightness: 1.08;
     --cw-button-icon-ratio: 1;
@@ -207,7 +211,6 @@
     --cw-button-spinner-thickness: .15em;
     --cw-button-spinner-duration: calc(var(--cw-duration-base) * 4);
     --cw-button-spin-turn: 360deg;
-    --cw-button-block-width: 100%;
 
     display: inline-flex;
     align-items: center;
@@ -314,7 +317,7 @@
 
   .cw-button--block {
     display: flex;
-    width: var(--cw-button-block-width);
+    width: 100%;
   }
 
   /* ---- [data-loading] -------------------------------------------------------- */
@@ -427,5 +430,334 @@
     height: var(--cw-badge-dot-size);
     border-radius: var(--cw-radius-full);
     background: currentColor;
+  }
+}
+
+/* crosswire/ui/card.css — cw-card, the Slots proof's styling half (ui-tier-spec.md
+   §6.3). Every color/length below is either a global token or one of THIS
+   component's own `--cw-card-*` knobs, always consumed through `var(...)` — see
+   tokens.css's own header for the override ladder. */
+
+@layer crosswire.components {
+  .cw-card {
+    --cw-card-bg: var(--cw-color-surface-raised);
+    --cw-card-fg: var(--cw-color-fg);
+    --cw-card-border: var(--cw-color-border);
+    --cw-card-radius: var(--cw-radius-lg);
+    --cw-card-gap: var(--cw-space-4);
+    --cw-card-padding: var(--cw-space-4);
+    --cw-card-hover-lift: -2px;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-card-gap);
+    border-radius: var(--cw-card-radius);
+    background: var(--cw-card-bg);
+    color: var(--cw-card-fg);
+    transition: box-shadow var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease);
+  }
+
+  .cw-card__header,
+  .cw-card__body,
+  .cw-card__footer {
+    padding: 0 var(--cw-card-padding);
+  }
+
+  .cw-card__header:first-child,
+  .cw-card__body:first-child {
+    padding-top: var(--cw-card-padding);
+  }
+
+  .cw-card__body:last-child,
+  .cw-card__footer:last-child {
+    padding-bottom: var(--cw-card-padding);
+  }
+
+  .cw-card__header {
+    font-weight: var(--cw-weight-semibold);
+    font-size: var(--cw-text-lg);
+  }
+
+  .cw-card__footer {
+    display: flex;
+    gap: var(--cw-space-2);
+  }
+
+  /* ---- variant ---------------------------------------------------------------- */
+  /* `plain` is the default (nil in the variant map, Variants rule 2) — a flat
+     surface with no border and no shadow, which the knob values above already are. */
+
+  .cw-card--raised {
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-card--outlined {
+    border: var(--cw-border-width) solid var(--cw-card-border);
+  }
+
+  /* ---- interactive -------------------------------------------------------------- */
+  /* Styling ONLY — no role, no tabindex, no click handler ships here or anywhere
+     else in this component. `position: relative` is what makes the stretched-link
+     trick below work: `.cw-card__link::after` positions itself `inset: 0` relative
+     to THIS element, not the viewport. See Crosswire::UI::Card's own docstring for
+     the full a11y doctrine and why a wrapper role="button" is not an alternative. */
+  .cw-card--interactive {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .cw-card--interactive:hover {
+    box-shadow: var(--cw-shadow-2);
+    transform: translateY(var(--cw-card-hover-lift));
+  }
+
+  /* `:focus-within`, not `:focus` — the card itself is never focusable (no
+     tabindex); this rings the card when the real `<a class="cw-card__link">` inside
+     it receives focus, composing the same `--cw-shadow-focus` token every other
+     focusable UI component uses via `.cw-focusable`. */
+  .cw-card--interactive:focus-within {
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-card--interactive:hover {
+      transform: none;
+    }
+  }
+
+  /* The one real, ejectable-markup anchor an interactive card's header carries
+     (`site/examples/card/interactive.html.erb`) — its `::after` stretches to cover
+     the whole card, so clicking anywhere activates this one link. A positioned
+     pseudo-element always paints above a plain static-positioned sibling, so any
+     OTHER interactive element inside the card (e.g. a footer button) needs its own
+     `position: relative` to become positioned too — once it is, later DOM order
+     alone (no z-index knob needed) puts it back on top of the overlay. */
+  .cw-card__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cw-card__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .cw-card__link:hover {
+    text-decoration: underline;
+  }
+}
+
+/* crosswire/ui/input.css — cw-input, the styled native input/textarea shell
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-input-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into. */
+
+@layer crosswire.components {
+  .cw-input {
+    --cw-input-bg: var(--cw-color-surface);
+    --cw-input-fg: var(--cw-color-fg);
+    --cw-input-border: var(--cw-color-border-strong);
+    --cw-input-placeholder: var(--cw-color-fg-subtle);
+    --cw-input-px: var(--cw-space-3);
+    --cw-input-py: var(--cw-space-2);
+    --cw-input-disabled-opacity: .6;
+    --cw-input-loading-opacity: .7;
+    --cw-input-textarea-min-height: 6em;
+
+    display: block;
+    width: 100%;
+    appearance: none;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-input-fg);
+    background: var(--cw-input-bg);
+    border: var(--cw-border-width) solid var(--cw-input-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-input-py) var(--cw-input-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-input::placeholder {
+    color: var(--cw-input-placeholder);
+  }
+
+  .cw-input:hover:not(:disabled) {
+    --cw-input-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-input:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-input-disabled-opacity);
+  }
+
+  textarea.cw-input {
+    min-height: var(--cw-input-textarea-min-height);
+    resize: vertical;
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-input--sm {
+    --cw-input-px: var(--cw-space-2);
+    --cw-input-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-input--lg {
+    --cw-input-px: var(--cw-space-4);
+    --cw-input-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* The "aria-invalid styling hook" (ui-tier-spec.md §5) — the SAME attribute a
+     screen reader announces drives the visual treatment, so the two can never drift
+     apart the way a separate `invalid: true` class would. See
+     Crosswire::UI::Input's own docstring for why this is an attribute selector, not
+     a Variants boolean. */
+  .cw-input[aria-invalid="true"] {
+    --cw-input-border: var(--cw-color-danger);
+  }
+
+  .cw-input[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button's own `[data-loading]` rule
+     (button.css). No spinner overlay here: a text field mid-fetch (e.g. an async
+     validation) reads better as a quieted control than a spinning icon fighting the
+     caret for attention. */
+  .cw-input[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-input-loading-opacity);
+  }
+}
+
+/* crosswire/ui/field.css — cw-field, the label+control+hint+error wrapper
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component's own `--cw-field-*` knobs, always consumed through `var(...)` —
+   see tokens.css's own header for the override ladder.
+
+   Deliberately styles ONLY the wrapper, label, hint and error — the control itself
+   (cw-input, cw-select, or a caller's own markup) styles itself; this file has no
+   business reaching into it. */
+
+@layer crosswire.components {
+  .cw-field {
+    --cw-field-gap: var(--cw-space-1);
+    --cw-field-hint-fg: var(--cw-color-fg-muted);
+    --cw-field-error-fg: var(--cw-color-danger);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-field-gap);
+  }
+
+  .cw-field__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg);
+  }
+
+  .cw-field__hint {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    color: var(--cw-field-hint-fg);
+  }
+
+  .cw-field__error {
+    margin: 0;
+    font-size: var(--cw-text-xs);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-field-error-fg);
+  }
+}
+
+/* crosswire/ui/select.css — cw-select, the styled NATIVE <select> (ui-tier-spec.md
+   §5's Rule 0 exemplar — see Crosswire::UI::Select's own docstring for why this
+   file styles the platform's control instead of rebuilding it). Every color/length
+   below is either a global token or one of THIS component's own `--cw-select-*`
+   knobs, always consumed through `var(...)` — see tokens.css's own header for the
+   override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into.
+   `color-scheme` is deliberately NOT redeclared here either — tokens.css's `:root`
+   already sets it in every light/dark branch, and that single global governs the
+   native option popup for every `<select>` on the page, styled or not (see this
+   component's own docstring for why that is load-bearing). */
+
+@layer crosswire.components {
+  .cw-select {
+    --cw-select-bg: var(--cw-color-surface);
+    --cw-select-fg: var(--cw-color-fg);
+    --cw-select-border: var(--cw-color-border-strong);
+    --cw-select-px: var(--cw-space-3);
+    --cw-select-py: var(--cw-space-2);
+    --cw-select-disabled-opacity: .6;
+    --cw-select-loading-opacity: .7;
+
+    display: block;
+    width: 100%;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-select-fg);
+    background: var(--cw-select-bg);
+    border: var(--cw-border-width) solid var(--cw-select-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-select-py) var(--cw-select-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-select:hover:not(:disabled) {
+    --cw-select-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-select:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-select-disabled-opacity);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-select--sm {
+    --cw-select-px: var(--cw-space-2);
+    --cw-select-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-select--lg {
+    --cw-select-px: var(--cw-space-4);
+    --cw-select-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* Same one-signal-drives-both reasoning as cw-input's own rule (input.css). */
+  .cw-select[aria-invalid="true"] {
+    --cw-select-border: var(--cw-color-danger);
+  }
+
+  .cw-select[aria-invalid="true"]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button/cw-input's own rule. */
+  .cw-select[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-select-loading-opacity);
   }
 }

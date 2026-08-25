@@ -1,0 +1,19 @@
+<%# crosswire:contract v1 %>
+<%#
+  Deliberately dumb. `input.tag_name` picks `:textarea` or `:input` — everything
+  else (size class, type, invalid, loading) lives in Crosswire::UI::Input, so this
+  file is safe to restyle, shadow, or eject. See docs/DECISIONS.md D6.
+
+  A `<textarea>` has no `value` attribute — its content IS the value, so the ONE
+  conditional below chooses between `content_tag` (textarea, value as content) and
+  `tag` (input, a void element — `input.attrs` already carries `value` as a real
+  attribute when multiline is false, see Crosswire::UI::Input#element_attrs).
+
+  Locals:
+    input  Crosswire::UI::Input
+%>
+<% if input.multiline %>
+  <%= content_tag(:textarea, input.attrs) { input.value } %>
+<% else %>
+  <%= tag("input", input.attrs) %>
+<% end %>

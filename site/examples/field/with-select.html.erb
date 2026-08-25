@@ -1,0 +1,12 @@
+<%# field_for + any control: the a11y wiring composes onto cw.select just as well
+    as the default cw.input, via f.control_attrs (see Crosswire::UI::Field's own
+    docstring for why that hash stays Symbol-keyed). %>
+<%= cw.field_for id: "field-with-select-country", hint: "Used for shipping only." do |f| %>
+  <label class="cw-field__label" for="field-with-select-country">Country</label>
+  <%= cw.select(**f.control_attrs) do %>
+    <option value="us">United States</option>
+    <option value="ca">Canada</option>
+    <option value="mx">Mexico</option>
+  <% end %>
+  <p class="cw-field__hint" id="field-with-select-country-hint">Used for shipping only.</p>
+<% end %>

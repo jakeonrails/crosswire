@@ -130,6 +130,9 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 **Survivability tier** (outside the 39-primitive vocabulary — see D7)
 `preserve` · `loading` · `fallback` · `Crosswire::Streams`
 
+**Styled components** (own tier — presenter + partial + CSS, see "Styled components" below)
+`button` · `badge` · `card` · `input` · `field` · `select`
+
 Every component exposes `cw.<name>_for` (yields the presenter) and `cw.<name>_attrs`
 (returns the merged attribute hash); widgets additionally get the bare `cw.<name>`
 render form — see `Crosswire::Builder` (lib/crosswire/builder.rb).
@@ -140,8 +143,9 @@ code isn't written.
 
 ## Styled components
 
-A second, separate tier: purely presentational components — `button`, `badge`, and
-more to come — that ship a Ruby presenter, an ejectable partial, and real CSS built on
+A second, separate tier: purely presentational components — `button`, `badge`,
+`card`, `input`, `field`, `select`, and more to come — that ship a Ruby presenter, an
+ejectable partial, and real CSS built on
 ~67 design tokens (`--cw-<category>-<step>` globals, `--cw-<component>-<prop>` knobs
 that default to them). Same accessibility-in-the-presenter contract as the primitives
 above, same `cw.<name>` / `cw.<name>_for` / `cw.<name>_attrs` helper triple, and its

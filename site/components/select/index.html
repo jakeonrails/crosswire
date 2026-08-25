@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.select — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>select</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A styled NATIVE &lt;select&gt; — the tier&#39;s Rule 0 exemplar: no reimplemented listbox, just the platform control, styled.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><p>
+  <select class="cw-select cw-focusable" name="country">
+    <option value="us">United States</option>
+    <option value="ca" selected>Canada</option>
+    <option value="mx">Mexico</option>
+</select>
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/select/basic.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.select name: &quot;country&quot; do %&gt;
+    &lt;option value=&quot;us&quot;&gt;United States&lt;/option&gt;
+    &lt;option value=&quot;ca&quot; selected&gt;Canada&lt;/option&gt;
+    &lt;option value=&quot;mx&quot;&gt;Mexico&lt;/option&gt;
+  &lt;% end %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <select class="cw-select cw-select--sm cw-focusable" name="sm">
+    <option>Small</option>
+</select>
+  <select class="cw-select cw-focusable" name="md">
+    <option>Medium (default)</option>
+</select>
+  <select class="cw-select cw-select--lg cw-focusable" name="lg">
+    <option>Large</option>
+</select>
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/select/sizes.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.select size: :sm, name: &quot;sm&quot; do %&gt;
+    &lt;option&gt;Small&lt;/option&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.select name: &quot;md&quot; do %&gt;
+    &lt;option&gt;Medium (default)&lt;/option&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.select size: :lg, name: &quot;lg&quot; do %&gt;
+    &lt;option&gt;Large&lt;/option&gt;
+  &lt;% end %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+  <select class="cw-select cw-focusable" aria-invalid="true" name="invalid">
+    <option value="">Choose one…</option>
+</select>
+  <select class="cw-select cw-focusable" data-loading="" name="loading">
+    <option value="">Loading options…</option>
+</select>
+  <select class="cw-select cw-focusable" name="disabled" disabled="disabled">
+    <option>Unavailable</option>
+</select>
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/select/states.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.select name: &quot;invalid&quot;, invalid: true do %&gt;
+    &lt;option value=&quot;&quot;&gt;Choose one…&lt;/option&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.select name: &quot;loading&quot;, loading: true do %&gt;
+    &lt;option value=&quot;&quot;&gt;Loading options…&lt;/option&gt;
+  &lt;% end %&gt;
+  &lt;%= cw.select name: &quot;disabled&quot;, disabled: true do %&gt;
+    &lt;option&gt;Unavailable&lt;/option&gt;
+  &lt;% end %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <table class="props">
+  <thead><tr><th>Prop</th><th>Values</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr>
+  <td><code>size</code></td>
+  <td><code>:sm, :md, :lg</code></td>
+  <td><code>:md</code></td>
+</tr>
+
+  </tbody>
+</table>
+
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Server-owned
+  DOM-only state: which `&lt;option&gt;` the browser currently shows as selected.
+    Once a user (or script) has changed a `&lt;select&gt;`&#39;s value, the browser does
+    not keep re-deriving `.selectedIndex`/`.value` from each `&lt;option&gt;`&#39;s
+    `selected` HTML ATTRIBUTE — the attribute and the live IDL property can
+    legitimately disagree from that point on. A DOM diff that patches the
+    `selected` ATTRIBUTE onto the right `&lt;option&gt;` element is therefore not
+    guaranteed to make the SELECT actually show that option as chosen.
+  On morph: the server-rendered `&lt;option selected&gt;` in the new HTML is what
+    must win. Turbo/idiomorph&#39;s own morph (`morphElements`) patches attributes
+    correctly; the risk this verdict names is specifically whether the LIVE
+    `.value` visibly follows that patched attribute for a `&lt;select&gt;` whose
+    value has already diverged client-side — the same class of gap
+    `Crosswire::UI::Select`&#39;s sibling primitive `cw--preserve` exists to close
+    for CONTROLLER-owned values, except here there is no controller to run
+    `usePreserve` at all (select ships none — Rule 0). See
+    `test/js/select.browser.test.js` for the proof against real
+    `@hotwired/turbo`, not jsdom.
+  The app must: always render the CURRENTLY correct `selected` option
+    server-side on every response that could be followed by a morph (a
+    redirect-after-submit, a Turbo Stream update) — never rely on the client
+    to remember a selection across one. The value named here is exactly one
+    thing: which `&lt;option&gt;` carries the `selected` attribute in the HTML the
+    server sends.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/select.css — cw-select, the styled NATIVE &lt;select&gt; (ui-tier-spec.md
+   §5&#39;s Rule 0 exemplar — see Crosswire::UI::Select&#39;s own docstring for why this
+   file styles the platform&#39;s control instead of rebuilding it). Every color/length
+   below is either a global token or one of THIS component&#39;s own `--cw-select-*`
+   knobs, always consumed through `var(...)` — see tokens.css&#39;s own header for the
+   override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into.
+   `color-scheme` is deliberately NOT redeclared here either — tokens.css&#39;s `:root`
+   already sets it in every light/dark branch, and that single global governs the
+   native option popup for every `&lt;select&gt;` on the page, styled or not (see this
+   component&#39;s own docstring for why that is load-bearing). */
+
+@layer crosswire.components {
+  .cw-select {
+    --cw-select-bg: var(--cw-color-surface);
+    --cw-select-fg: var(--cw-color-fg);
+    --cw-select-border: var(--cw-color-border-strong);
+    --cw-select-px: var(--cw-space-3);
+    --cw-select-py: var(--cw-space-2);
+    --cw-select-disabled-opacity: .6;
+    --cw-select-loading-opacity: .7;
+
+    display: block;
+    width: 100%;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-select-fg);
+    background: var(--cw-select-bg);
+    border: var(--cw-border-width) solid var(--cw-select-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-select-py) var(--cw-select-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-select:hover:not(:disabled) {
+    --cw-select-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-select:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-select-disabled-opacity);
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-select--sm {
+    --cw-select-px: var(--cw-space-2);
+    --cw-select-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-select--lg {
+    --cw-select-px: var(--cw-space-4);
+    --cw-select-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* Same one-signal-drives-both reasoning as cw-input&#39;s own rule (input.css). */
+  .cw-select[aria-invalid=&quot;true&quot;] {
+    --cw-select-border: var(--cw-color-danger);
+  }
+
+  .cw-select[aria-invalid=&quot;true&quot;]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button/cw-input&#39;s own rule. */
+  .cw-select[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-select-loading-opacity);
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject select</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.input — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>input</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">A styled native &lt;input&gt;/&lt;textarea&gt; shell — size variant, an aria-invalid styling hook, and a data-loading state. No JS.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><p>
+    <input class="cw-input cw-input--sm cw-focusable" type="text" placeholder="Small" />
+
+    <input class="cw-input cw-focusable" type="text" placeholder="Medium (default)" />
+
+    <input class="cw-input cw-input--lg cw-focusable" type="text" placeholder="Large" />
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/input/sizes.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.input size: :sm, placeholder: &quot;Small&quot; %&gt;
+  &lt;%= cw.input placeholder: &quot;Medium (default)&quot; %&gt;
+  &lt;%= cw.input size: :lg, placeholder: &quot;Large&quot; %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+    <input class="cw-input cw-focusable" type="text" value="not-an-email" aria-invalid="true" />
+
+    <input class="cw-input cw-focusable" type="text" data-loading="" placeholder="Checking availability…" />
+
+    <input class="cw-input cw-focusable" type="text" value="Read only" disabled="disabled" />
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/input/states.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.input value: &quot;not-an-email&quot;, invalid: true %&gt;
+  &lt;%= cw.input placeholder: &quot;Checking availability…&quot;, loading: true %&gt;
+  &lt;%= cw.input value: &quot;Read only&quot;, disabled: true %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><p>
+    <textarea class="cw-input cw-focusable" name="notes">
+A longer note that wraps onto a second line.</textarea>
+
+</p>
+</div>
+  <div class="source">
+    <p class="name">site/examples/input/textarea.html.erb</p>
+    <pre><code>&lt;p&gt;
+  &lt;%= cw.input multiline: true, value: &quot;A longer note that wraps onto a second line.&quot;, name: &quot;notes&quot; %&gt;
+&lt;/p&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <table class="props">
+  <thead><tr><th>Prop</th><th>Values</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr>
+  <td><code>size</code></td>
+  <td><code>:sm, :md, :lg</code></td>
+  <td><code>:md</code></td>
+</tr>
+
+  </tbody>
+</table>
+
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Safe
+  An input&#39;s OWN classes/attributes are a pure function of the presenter&#39;s
+  constructor arguments, so any morph re-renders those identically. The thing a
+  morph could clobber — text the user is actively typing — is native browser
+  state Turbo 8 already protects on its own: idiomorph does not overwrite the
+  `value` of a focused form field during a page-level morph. Nothing here needs
+  to add anything on top of that (contrast `Crosswire::UI::Select`, whose
+  Server-owned verdict is about a DIFFERENT DOM/attribute-sync gap idiomorph
+  does NOT cover for `&lt;option selected&gt;`).</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/input.css — cw-input, the styled native input/textarea shell
+   (ui-tier-spec.md §5). Every color/length below is either a global token or one of
+   THIS component&#39;s own `--cw-input-*` knobs, always consumed through `var(...)` —
+   see tokens.css&#39;s own header for the override ladder.
+
+   Focus is deliberately NOT redeclared here — same shared `.cw-focusable`
+   `:focus-visible` rule (base.css) every other focusable UI component opts into. */
+
+@layer crosswire.components {
+  .cw-input {
+    --cw-input-bg: var(--cw-color-surface);
+    --cw-input-fg: var(--cw-color-fg);
+    --cw-input-border: var(--cw-color-border-strong);
+    --cw-input-placeholder: var(--cw-color-fg-subtle);
+    --cw-input-px: var(--cw-space-3);
+    --cw-input-py: var(--cw-space-2);
+    --cw-input-disabled-opacity: .6;
+    --cw-input-loading-opacity: .7;
+    --cw-input-textarea-min-height: 6em;
+
+    display: block;
+    width: 100%;
+    appearance: none;
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    color: var(--cw-input-fg);
+    background: var(--cw-input-bg);
+    border: var(--cw-border-width) solid var(--cw-input-border);
+    border-radius: var(--cw-radius-md);
+    padding: var(--cw-input-py) var(--cw-input-px);
+    transition: border-color var(--cw-duration-fast) var(--cw-ease),
+                background-color var(--cw-duration-fast) var(--cw-ease);
+  }
+
+  .cw-input::placeholder {
+    color: var(--cw-input-placeholder);
+  }
+
+  .cw-input:hover:not(:disabled) {
+    --cw-input-border: var(--cw-color-fg-subtle);
+  }
+
+  .cw-input:disabled {
+    cursor: not-allowed;
+    opacity: var(--cw-input-disabled-opacity);
+  }
+
+  textarea.cw-input {
+    min-height: var(--cw-input-textarea-min-height);
+    resize: vertical;
+  }
+
+  /* ---- size ---------------------------------------------------------------- */
+  /* `md` is the default (nil in the variant map, Variants rule 2). */
+
+  .cw-input--sm {
+    --cw-input-px: var(--cw-space-2);
+    --cw-input-py: var(--cw-space-1);
+    font-size: var(--cw-text-xs);
+  }
+
+  .cw-input--lg {
+    --cw-input-px: var(--cw-space-4);
+    --cw-input-py: var(--cw-space-3);
+    font-size: var(--cw-text-base);
+  }
+
+  /* ---- [aria-invalid] -------------------------------------------------------- */
+  /* The &quot;aria-invalid styling hook&quot; (ui-tier-spec.md §5) — the SAME attribute a
+     screen reader announces drives the visual treatment, so the two can never drift
+     apart the way a separate `invalid: true` class would. See
+     Crosswire::UI::Input&#39;s own docstring for why this is an attribute selector, not
+     a Variants boolean. */
+  .cw-input[aria-invalid=&quot;true&quot;] {
+    --cw-input-border: var(--cw-color-danger);
+  }
+
+  .cw-input[aria-invalid=&quot;true&quot;]:focus-visible {
+    --cw-shadow-focus: 0 0 0 2px var(--cw-color-danger);
+  }
+
+  /* ---- [data-loading] -------------------------------------------------------- */
+  /* Bare, unprefixed — same convention as cw-button&#39;s own `[data-loading]` rule
+     (button.css). No spinner overlay here: a text field mid-fetch (e.g. an async
+     validation) reads better as a quieted control than a spinning icon fighting the
+     caret for attention. */
+  .cw-input[data-loading] {
+    cursor: progress;
+    opacity: var(--cw-input-loading-opacity);
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject input</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

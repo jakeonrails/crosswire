@@ -45,7 +45,6 @@
     ],
     "cssVars": [
       "--cw-button-bg",
-      "--cw-button-block-width",
       "--cw-button-border",
       "--cw-button-danger-hover-brightness",
       "--cw-button-disabled-opacity",
@@ -98,6 +97,196 @@
       "--cw-badge-fg",
       "--cw-badge-px",
       "--cw-badge-py"
+    ]
+  },
+  {
+    "name": "card",
+    "type": "registry:ui",
+    "description": "A grouping container with header/body/footer slots (plain, raised, or outlined) — the tier's Slots proof, and the a11y doctrine for making a whole card clickable without a fake role or tabindex.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/card.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/card_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_card.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/card.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/card/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/card/grid.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/card/interactive.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/card/with-footer.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-card-bg",
+      "--cw-card-border",
+      "--cw-card-fg",
+      "--cw-card-gap",
+      "--cw-card-hover-lift",
+      "--cw-card-padding",
+      "--cw-card-radius"
+    ]
+  },
+  {
+    "name": "input",
+    "type": "registry:ui",
+    "description": "A styled native <input>/<textarea> shell — size variant, an aria-invalid styling hook, and a data-loading state. No JS.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/input.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/input_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_input.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/input.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/input/sizes.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/input/states.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/input/textarea.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-input-bg",
+      "--cw-input-border",
+      "--cw-input-disabled-opacity",
+      "--cw-input-fg",
+      "--cw-input-loading-opacity",
+      "--cw-input-placeholder",
+      "--cw-input-px",
+      "--cw-input-py",
+      "--cw-input-textarea-min-height"
+    ]
+  },
+  {
+    "name": "field",
+    "type": "registry:ui",
+    "description": "A label + control + hint + error wrapper that wires for/id, aria-describedby, aria-errormessage and aria-invalid — composes cw.input by default, any control via field_for.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/field.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/field_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_field.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/field.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/field/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/field/error.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/field/hint.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/field/with-select.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-field-error-fg",
+      "--cw-field-gap",
+      "--cw-field-hint-fg"
+    ]
+  },
+  {
+    "name": "select",
+    "type": "registry:ui",
+    "description": "A styled NATIVE <select> — the tier's Rule 0 exemplar: no reimplemented listbox, just the platform control, styled.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/ui/select.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "lib/crosswire/ui/select_helper.rb",
+        "type": "helper"
+      },
+      {
+        "path": "app/views/crosswire/ui/_select.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/select.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/select/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/select/sizes.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/select/states.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-select-bg",
+      "--cw-select-border",
+      "--cw-select-disabled-opacity",
+      "--cw-select-fg",
+      "--cw-select-loading-opacity",
+      "--cw-select-px",
+      "--cw-select-py"
     ]
   }
 ]
