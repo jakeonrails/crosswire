@@ -60,7 +60,14 @@ module Crosswire
     # landed in `Crosswire::Builder.ancestors`, so the very first UI component to add
     # a name here is checked by the same mechanism the primitive tier already trusts,
     # not by a promise that this loop would have worked.
-    Crosswire::UI.component_names.each do |name|
+    #
+    # `kind: :css` names (spec §2b — dialog/popover/menu/combobox) ship NO
+    # `Crosswire::UI::<Name>Helper` at all: they style an existing PRIMITIVE, whose
+    # own `Crosswire::<Name>Helper` is already included by the loop above this one.
+    # `Crosswire::UI.component_names.reject(&:css_only?)` would read nicer but
+    # `Crosswire::UI` methods take the name, not the reverse — `reject` with an
+    # explicit block it is.
+    Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }.each do |name|
       include Crosswire::UI.const_get(:"#{camelize(name)}Helper")
     end
 

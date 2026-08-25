@@ -1,0 +1,9 @@
+<%# The standard partial's `items:` array already supports role:/checked: per item —
+    aria-checked drives menu.css's checkmark, reserved on every checkbox/radio item
+    (checked or not) so unchecked siblings never jump when one toggles. %>
+<%= cw.menu "View", id: "gallery-menu-checked", items: [
+      { label: "Show hidden files", role: "menuitemcheckbox", checked: true, value: "hidden" },
+      { label: "Show line numbers", role: "menuitemcheckbox", checked: false, value: "lines" },
+      { label: "Compact", role: "menuitemradio", checked: false, value: "compact" },
+      { label: "Comfortable", role: "menuitemradio", checked: true, value: "comfortable" }
+    ] %>

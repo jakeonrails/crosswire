@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.popover — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>popover</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">CSS over the shipped native popovertarget/popover widget — elevation, radius, padding rhythm. Positioning stays entirely in the primitive; this tier adds nothing but paint.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><button id="gallery-popover-basic-trigger" type="button" popovertarget="gallery-popover-basic" style="anchor-name: --cw-popover-gallery-popover-basic;" class="cw-popover__trigger">
+  About this user
+</button>
+<div data-controller="cw--popover" data-cw--popover-placement-value="bottom-start" data-cw--popover-offset-value="8" data-cw--popover-strategy-value="anchor" data-cw--popover-anchor-value="gallery-popover-basic-trigger" data-action="toggle-&gt;cw--popover#toggled" id="gallery-popover-basic" popover="auto" style="position-anchor: --cw-popover-gallery-popover-basic;" class="cw-popover__panel">
+  
+  <p>Member since 2024.</p>
+
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/popover/basic.html.erb</p>
+    <pre><code>&lt;%= cw.popover &quot;About this user&quot;, id: &quot;gallery-popover-basic&quot; do %&gt;
+  &lt;p&gt;Member since 2024.&lt;/p&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage">
+  <button class="cw-button cw-focusable" type="button" id="gallery-popover-composed-trigger" popovertarget="gallery-popover-composed" style="anchor-name: --cw-popover-gallery-popover-composed;">Share…</button>
+
+  <div data-controller="cw--popover" data-cw--popover-placement-value="bottom-start" data-cw--popover-offset-value="8" data-cw--popover-strategy-value="anchor" data-cw--popover-anchor-value="gallery-popover-composed-trigger" data-action="toggle-&gt;cw--popover#toggled" id="gallery-popover-composed" popover="auto" style="position-anchor: --cw-popover-gallery-popover-composed;">
+    <strong>Share this page</strong>
+    <p>Only people with the link can view it.</p>
+  </div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/popover/composed-with-button.html.erb</p>
+    <pre><code>&lt;%# popover.css is deliberately lean (elevation/radius/padding only — placement stays
+    entirely in Crosswire::Presenters::Popover), so the trigger is usually composed
+    from cw.button rather than styled by popover.css itself. %&gt;
+&lt;%= cw.popover_for id: &quot;gallery-popover-composed&quot; do |p| %&gt;
+  &lt;%= cw.button &quot;Share…&quot;, variant: :secondary, **p.trigger_attrs %&gt;
+  &lt;div &lt;%= cw_attrs(p.panel_attrs) %&gt;&gt;
+    &lt;strong&gt;Share this page&lt;/strong&gt;
+    &lt;p&gt;Only people with the link can view it.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <p><em>No declared variants — CSS-only styling of the existing primitive; see its own keyword arguments.</em></p>
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Preserved
+  DOM-only state: whether the panel is currently open. Unlike `dialog`, this
+    controller declares no `open` Stimulus value at all — the native popover
+    API&#39;s own top-layer membership IS the single source of truth (`cw--popover`&#39;s
+    own docstring: &quot;STATE LIVES IN THE BROWSER, NOT A STIMULUS VALUE&quot;), queried
+    only via `matches(&quot;:popover-open&quot;)` when needed, never written by this
+    controller (`toggled()` only ever reacts to the browser&#39;s own `toggle`
+    event).
+  On morph: because open/closed is not expressed as any DOM attribute, there is
+    nothing for Idiomorph to patch and therefore nothing for it to get wrong —
+    an attribute-patching morph over the SAME panel element (Idiomorph matches
+    nodes and patches in place; it does not replace the element outright) simply
+    never touches the browser&#39;s native top-layer state, so an open popover stays
+    open through it with no controller intervention required. This is &quot;preserved&quot;
+    by construction rather than by an active `usePreserve` guard — there is
+    nothing here for that mechanism to name. `placement`/`offset`/`strategy` ARE
+    ordinary Stimulus values, but they are pure, deterministic functions of the
+    presenter&#39;s own constructor arguments, so a morph re-rendering them is a
+    no-op, not a hazard.
+  The app must: nothing beyond the ordinary rule for a Stimulus value — if the
+    SAME panel element is ever replaced outright (not patched) by a morph, its
+    native popover state is lost along with the node, same as any other
+    browser-owned element state (scroll position, `:hover`) would be.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/popover.css — CSS over the shipped `_popover.html.erb` widget
+   (Crosswire::Presenters::Popover), ui-tier-spec.md §5 item 9. NO markup, NO
+   presenter, NO helper change — cw-popover__trigger/cw-popover__panel already exist
+   on the shipped partial. Kept deliberately LEAN per the spec brief: placement
+   (anchor-name/position-anchor, the JS fallback positioner) lives entirely in the
+   primitive — this file adds elevation, radius and padding rhythm, nothing else.
+   Every color/length below is either a global token or one of THIS component&#39;s own
+   `--cw-popover-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-popover__panel {
+    --cw-popover-bg: var(--cw-color-surface-raised);
+    --cw-popover-fg: var(--cw-color-fg);
+    --cw-popover-border: var(--cw-color-border);
+    --cw-popover-radius: var(--cw-radius-lg);
+    --cw-popover-px: var(--cw-space-4);
+    --cw-popover-py: var(--cw-space-3);
+
+    /* The native `popover` UA stylesheet ships its own margin/border/padding
+       (roughly `margin: auto; border: solid; padding: 0.25em 0.75em;`) — every one
+       of those is overridden explicitly below rather than left to fight ours. */
+    margin: 0;
+    border: var(--cw-border-width) solid var(--cw-popover-border);
+    border-radius: var(--cw-popover-radius);
+    padding: var(--cw-popover-py) var(--cw-popover-px);
+    background: var(--cw-popover-bg);
+    color: var(--cw-popover-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  /* Nothing else — the trigger stays whatever element the caller composed (a plain
+     button by default; compose `cw.button` for a fully styled trigger, as
+     site/examples/popover/composed-with-card.html.erb does). A focus-visible ring
+     is the one thing worth a rule of its own here, since a raw `&lt;button&gt;` gets no
+     visual focus treatment beyond the UA default otherwise. */
+  .cw-popover__trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject popover</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

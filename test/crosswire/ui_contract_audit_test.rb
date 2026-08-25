@@ -61,18 +61,25 @@ module Crosswire
 
       # --- 2: every registered component ships its full file set --------------------
       #
-      # Every entry in Crosswire::UI::COMPONENTS is a "new-markup" component (spec
-      # §2's anatomy rule b — the CSS-only shipped widgets never register here at
-      # all), so unlike the primitive tier's conditional "widgets only" bare-render
-      # check, a UI component ALWAYS ships a partial and ALWAYS ships all three
-      # helper-triple methods (checked separately in test 4).
+      # Two shapes now (spec §2's two anatomy rules), branched by `kind_of`:
+      #
+      #   kind: :new (a, the default) — this tier's OWN presenter, helper, partial and
+      #     CSS, plus a gallery example. Every check below is unchanged from before
+      #     `kind:` existed.
+      #   kind: :css (b) — CSS only, over an EXISTING, identically-named primitive.
+      #     There is no `lib/crosswire/ui/<name>.rb`/`_helper.rb` to demand — those
+      #     files were never going to exist by design (see `Crosswire::UI.css_only?`'s
+      #     docstring) — so this branch checks the files that DO have to exist
+      #     instead: the primitive's own presenter and partial (proof the name really
+      #     does name a real, shipped widget, not a typo or a stale registry entry),
+      #     this tier's CSS, and a gallery example.
       def test_every_registered_component_ships_its_full_file_set
         violations = Crosswire::UI.component_names.flat_map do |name|
-          missing = []
-          missing << "lib/crosswire/ui/#{name}.rb (presenter)" unless File.exist?(File.join(UI_LIB_DIR, "#{name}.rb"))
-          missing << "lib/crosswire/ui/#{name}_helper.rb" unless File.exist?(File.join(UI_LIB_DIR, "#{name}_helper.rb"))
-          missing << "app/views/crosswire/ui/_#{name}.html.erb" unless File.exist?(File.join(UI_VIEW_DIR, "_#{name}.html.erb"))
-          missing << "app/assets/stylesheets/crosswire/ui/#{name}.css" unless File.exist?(File.join(UI_CSS_DIR, "#{name}.css"))
+          missing = if Crosswire::UI.css_only?(name)
+                      css_only_missing_files(name)
+                    else
+                      new_markup_missing_files(name)
+                    end
           missing << "site/examples/#{name}/*.html.erb (at least one gallery example)" if Dir[File.join(SITE_EXAMPLES_DIR, name, "*.html.erb")].empty?
 
           missing.map { |m| "#{name}: missing #{m}" }
@@ -82,10 +89,19 @@ module Crosswire
       end
 
       # --- 3: every UI helper is included into Crosswire::Builder --------------------
+      #
+      # `kind: :css` names have no `Crosswire::UI::<Name>Helper` at all — the same
+      # camelized name instead resolves to the PRIMITIVE tier's `Crosswire::<Name>Helper`
+      # (app/helpers/crosswire/<name>_helper.rb), which `Crosswire::Builder`'s OTHER
+      # include loop (`Crosswire.component_names`, lib/crosswire/builder.rb) already
+      # wires in and `test/crosswire/contract_audit_test.rb` already checks — asserting
+      # it again here would just be a second, redundant copy of that check under a
+      # different name. Skipped, not silently vacuous: the primitive-tier suite is
+      # exactly where this belongs.
       def test_every_ui_helper_is_included_into_the_builder
         load_builder_with_every_helper!
 
-        missing = Crosswire::UI.component_names.filter_map do |name|
+        missing = Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }.filter_map do |name|
           mod = Object.const_get("Crosswire::UI::#{camelize(name)}Helper")
           "Crosswire::Builder does not include #{mod}" unless Crosswire::Builder.ancestors.include?(mod)
         end
@@ -94,8 +110,12 @@ module Crosswire
       end
 
       # --- 4: the helper triple (<name>, <name>_for, <name>_attrs) is present -------
+      #
+      # Same `kind: :css` exemption as check 3 — the triple these four names actually
+      # expose (`cw.dialog`/`cw.dialog_for`/`cw.dialog_attrs`, etc.) is the PRIMITIVE
+      # tier's, already pinned by `test/crosswire/contract_audit_test.rb`.
       def test_every_ui_component_defines_the_helper_triple
-        violations = Crosswire::UI.component_names.flat_map do |name|
+        violations = Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }.flat_map do |name|
           path = File.join(UI_LIB_DIR, "#{name}_helper.rb")
           next ["#{name}: #{name}_helper.rb does not exist"] unless File.exist?(path)
 
@@ -110,11 +130,20 @@ module Crosswire
       end
 
       # --- 5: no name collisions ------------------------------------------------------
+      #
+      # `kind: :new` names must be genuinely new — the checks below are exactly as
+      # they were before `kind:` existed. `kind: :css` names are the deliberate
+      # OPPOSITE: they exist ONLY to style an already-shipped, identically-named
+      # primitive (spec §2b), so a "collides with primitive" flag on one of them would
+      # be flagging the entire point of the entry. The real bug this shape could still
+      # hide — a `kind: :css` entry whose name does NOT actually correspond to any
+      # shipped primitive (a typo, a stale rename) — gets its own, inverted assertion
+      # instead of being silently unchecked.
       def test_ui_component_names_do_not_collide
         primitive_names = Crosswire.component_names
         vocabulary_names = Crosswire::VOCABULARY.values.flatten.map { |n| n.tr("-", "_") }
 
-        violations = Crosswire::UI.component_names.flat_map do |name|
+        new_markup_violations = Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }.flat_map do |name|
           reasons = []
           reasons << "collides with primitive Crosswire::COMPONENTS[:#{name}]" if primitive_names.include?(name)
           reasons << "collides with a Crosswire::VOCABULARY entry" if vocabulary_names.include?(name)
@@ -122,6 +151,11 @@ module Crosswire
           reasons.map { |r| "#{name}: #{r}" }
         end
 
+        css_only_violations = Crosswire::UI.component_names.select { |name| Crosswire::UI.css_only?(name) }.filter_map do |name|
+          "#{name}: kind: :css but no primitive Crosswire::COMPONENTS[:#{name}] exists to style" unless primitive_names.include?(name)
+        end
+
+        violations = new_markup_violations + css_only_violations
         assert_empty violations, "UI component name collision:\n#{violations.map { |v| "  #{v}" }.join("\n")}"
       end
 
@@ -217,10 +251,19 @@ module Crosswire
       end
 
       # --- 10: every UI presenter docstring carries a Morph: clause --------------------
+      #
+      # `kind: :css` names carry no `lib/crosswire/ui/<name>.rb` — their Morph: clause
+      # lives on the PRIMITIVE presenter they style instead (see
+      # lib/crosswire/presenters/dialog.rb/popover.rb/menu.rb/combobox.rb), and `rake
+      # morph:doc` reads from that same file for them.
       def test_every_ui_presenter_docstring_carries_a_morph_clause
         violations = Crosswire::UI.component_names.filter_map do |name|
-          path = File.join(UI_LIB_DIR, "#{name}.rb")
-          next "#{name}: #{name}.rb does not exist" unless File.exist?(path)
+          path = if Crosswire::UI.css_only?(name)
+                   File.join(ROOT, "lib/crosswire/presenters/#{name}.rb")
+                 else
+                   File.join(UI_LIB_DIR, "#{name}.rb")
+                 end
+          next "#{name}: #{relative(path)} does not exist" unless File.exist?(path)
 
           verdict = File.read(path)[/^\s*#\s*Morph:\s*(\S+)/, 1]
 
@@ -235,6 +278,29 @@ module Crosswire
       end
 
       private
+
+      # kind: :new (check 2, the default branch) — unchanged from before `kind:`
+      # existed: this tier's own presenter, helper and partial.
+      def new_markup_missing_files(name)
+        missing = []
+        missing << "lib/crosswire/ui/#{name}.rb (presenter)" unless File.exist?(File.join(UI_LIB_DIR, "#{name}.rb"))
+        missing << "lib/crosswire/ui/#{name}_helper.rb" unless File.exist?(File.join(UI_LIB_DIR, "#{name}_helper.rb"))
+        missing << "app/views/crosswire/ui/_#{name}.html.erb" unless File.exist?(File.join(UI_VIEW_DIR, "_#{name}.html.erb"))
+        missing << "app/assets/stylesheets/crosswire/ui/#{name}.css" unless File.exist?(File.join(UI_CSS_DIR, "#{name}.css"))
+        missing
+      end
+
+      # kind: :css (check 2) — no new presenter/helper/partial of its own; instead
+      # checks the PRIMITIVE tier's already-shipped presenter and partial actually
+      # exist (proof this name really does style a real, shipped widget) plus this
+      # tier's own CSS.
+      def css_only_missing_files(name)
+        missing = []
+        missing << "lib/crosswire/presenters/#{name}.rb (the primitive presenter this styles)" unless File.exist?(File.join(ROOT, "lib/crosswire/presenters/#{name}.rb"))
+        missing << "app/views/crosswire/_#{name}.html.erb (the primitive partial this styles)" unless File.exist?(File.join(ROOT, "app/views/crosswire/_#{name}.html.erb"))
+        missing << "app/assets/stylesheets/crosswire/ui/#{name}.css" unless File.exist?(File.join(UI_CSS_DIR, "#{name}.css"))
+        missing
+      end
 
       def relative(path) = path.delete_prefix("#{ROOT}/")
 

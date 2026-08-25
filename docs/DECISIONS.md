@@ -338,3 +338,110 @@ the case for eventually contributing it upstream to Turbo. Still not scheduled.
 ### O3 — Declarative signals layer
 Stimulus has no reactive-state primitive; every derived-UI case is hand-rolled. Datastar shows
 the shape and has **no Rails SDK** (`18`). Genuinely novel, genuinely scope creep. Deferred by D1.
+
+---
+
+## D9 — The styled component tier ("hotwire-shadcn")
+**Locked 2026-08-16 (Jake).**
+
+A second tier, `Crosswire::UI`, ships **in the core gem**, not a second gem —
+purely-presentational components (`button`, `badge`, `card`, `input`, `field`,
+`select`, `alert`, `toast`) plus CSS-only styling over four already-shipped
+primitive-tier widgets (`dialog`, `popover`, `menu`, `combobox`). Same `D7`
+precedent (pagy's extras, the survivability tier): a second gem costs a second
+version number, a second install step and a second place accessibility fixes can
+drift from, for a tier that shares every mechanism — presenter, `cw.`/`cw_attrs`,
+`crosswire:eject` — with the primitive tier it sits beside. Independent
+`Crosswire::UI::CONTRACT_VERSION` (not `Crosswire::CONTRACT_VERSION`) is the
+reopen-if valve `D7` already established: this tier's markup contract can churn on
+its own schedule without forcing a primitive-tier version bump, or vice versa.
+
+**`lib/`, not `app/helpers/`, and NOT autoloaded — two independent, either-alone-
+sufficient reasons (`lib/crosswire/engine.rb`'s own docstring carries the full
+account):** (1) `contract_audit_test.rb`'s `test_every_presenter_has_a_matching_
+controller` globs `lib/crosswire/presenters/` and demands every entry own a
+Stimulus controller — UI presenters have none by design (Rule 0), so autoloading
+them from that directory would either fail the check or force it to special-case a
+subdirectory it has no business knowing about. (2) `UI` is a two-letter acronym;
+Zeitwerk's default inflector would expect `lib/crosswire/ui.rb` to define
+`Crosswire::Ui`, fixable only with a *global* `Zeitwerk::Inflector` override shared
+across the whole host app's autoloader — not a cost a gem should impose on its
+host. `lib/crosswire.rb`/`lib/crosswire/builder.rb` requiring `crosswire/ui`
+explicitly sidesteps both: a `require`d constant is never a Zeitwerk concern, and
+`Crosswire::UI::Component` (the tier's base class) deliberately does NOT subclass
+`Crosswire::Presenter` — it owns no Stimulus identifier, so inheriting Presenter's
+`controller_attrs`/`target`/`action`/`values` machinery would either go unused on
+every UI presenter or force each one to override it away.
+
+**CSS substrate: plain CSS custom properties, not Tailwind, with the Tailwind
+mapping explicitly deferred to v1.1.** ~67 tokens (`--cw-<category>-<step>`
+globals, `--cw-<component>-<prop>` knobs that default to them), two override
+depths, `@layer crosswire.tokens, crosswire.base, crosswire.components` so
+unlayered host CSS always wins with zero specificity war. This is the substrate
+every consumer gets whether or not they run Tailwind — a components library that
+required a specific utility framework to render correctly would be a much bigger
+commitment than shipping some CSS variables. `ui/tailwind.css`'s `@theme inline`
+mapping (`--color-cw-accent: var(--cw-color-accent)`, etc.) is real, scoped, and
+genuinely useful for a Tailwind v4 host wanting `bg-cw-accent` — it is deferred, not
+rejected, because it is pure upside layered on top of the token substrate rather
+than a decision the substrate itself depends on, and nothing in v1's audits,
+registry or gallery needs it to exist yet.
+
+**Both-themes hedge, not a single opinionated palette: neutral `tokens.css` default
+plus a swappable `themes/patchbay.css`.** A components library's default palette is
+a taste claim as much as an engineering one — shipping a bland, uncontroversial set
+of light/dark values as the actual DEFAULT (rather than shipping the site's own
+distinctive palette as the only option) keeps the tier usable as a genuine starting
+point for someone else's brand, while `themes/patchbay.css` demonstrates the
+override mechanism is real by being a real, adversarial (non-default-looking)
+worked example rather than a toy. `data-cw-theme` is canonical; `data-theme` is
+honoured as a bridge (crosswire wins if both are set) so a host already using that
+convention elsewhere doesn't have to invent a second one.
+
+**No screenshot/visual-regression testing, ever — `test/**` §7.4 says so in
+writing.** A screenshot assertion trains `--update-snapshots` the moment it starts
+failing for the RIGHT reason (an intentional restyle) as readily as the wrong one,
+which teaches whoever's running the suite to stop reading failures. Screenshots stay
+available as **failure attachments only** (browser-tier tests already capture them
+on assertion failure) — useful for a human debugging a real assertion, never
+themselves the assertion. The testing pyramid this tier actually runs is presenter
+unit (bulk, no Rails) → render integration (child process, real `ActionView`) →
+browser-tier SEMANTICS only where one already doesn't exist for the underlying
+primitive (`toast` + `field` in v1; dialog/menu/popover/combobox's own browser
+suites are not duplicated — styling changed no semantics) → the CSS-specific audits
+(`ui_contract_audit_test.rb`'s token-discipline/dark-block/bundle-byte-equality
+checks, `token_contrast_test.rb`'s WCAG contrast math) that never need a browser at
+all.
+
+**Registry shipped, not marketed as a standard.** `rake ui:registry` emits
+`site/registry.json` (shadcn-shaped: `name`/`type`/`description`/`files`/`cssVars`)
+from `Crosswire::UI::COMPONENTS`, purely because the shape is a real, useful escape
+hatch for tooling (an agent or script that wants machine-readable "what files make
+up `button`") and costs nothing extra to generate from data this tier already
+tracks by hand for the audit. v1 ships **no remote-fetch command, no stability
+promise, no `npx shadcn add crosswire/button`-shaped CLI** — none of that exists
+yet, and nothing here claims otherwise. It is infrastructure for a later CLI, not
+the CLI.
+
+**The `kind:` marker (spec-driven, Phase 4):** every entry in
+`Crosswire::UI::COMPONENTS` defaults to `kind: :new` — this tier's own presenter,
+helper, partial and CSS. `dialog`/`popover`/`menu`/`combobox` are `kind: :css`
+instead: CSS only, over an ALREADY-SHIPPED, identically-named primitive-tier widget
+— no new presenter, no new helper, no new partial, and (deliberately, the whole
+point of the entry) a name that DOES collide with `Crosswire::COMPONENTS`, which
+`ui_contract_audit_test.rb` check 5 asserts rather than flags. Every one of the ten
+audit checks, `rake ui:registry` and `rake morph:doc` branch on `kind_of`/
+`css_only?` so both shapes stay meaningfully checked rather than the second shape
+silently skipping checks that don't apply to it verbatim.
+
+**Evidence base:** `ui-tier-spec.md` (the executor-ready spec this tier was built
+against, phase by phase) and `D6`/`D7`, whose "in-core, not a second gem" and
+"independent CONTRACT_VERSION, reopen-if design churn forces annoying minor bumps"
+reasoning this decision reuses rather than re-derives.
+
+**Reopen if:** a real Tailwind-only consumer asks for the `@theme` mapping before
+v1.1 lands anyway (cheap to pull forward — the file is already speced, just not
+written); the neutral default palette turns out to read as nobody's actual brand
+and a different default is warranted; or a real "publish this as a public
+registry" use case shows up, at which point the remote-fetch/stability-promise
+questions v1 explicitly ducked need real answers.

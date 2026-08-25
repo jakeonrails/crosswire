@@ -1,0 +1,19 @@
+<%# .cw-menu__item--danger and [role="separator"] are documented classes the
+    standard `items:` partial never emits on its own (see menu.css's own header
+    comment) — cw.menu_for (compose-yourself) is how a caller reaches for either,
+    mirroring exactly what _menu.html.erb itself does per item. %>
+<%= cw.menu_for id: "gallery-menu-danger" do |m| %>
+  <div <%= cw_attrs(m.root_attrs) %>>
+    <button <%= cw_attrs(m.button_attrs, class: "cw-menu__button") %>>Row actions</button>
+
+    <div <%= cw_attrs(m.menu_attrs, class: "cw-menu__list") %>>
+      <button type="button" <%= cw_attrs(m.item_attrs(value: "duplicate"), class: "cw-menu__item") %>>Duplicate</button>
+      <button type="button" <%= cw_attrs(m.item_attrs(value: "archive"), class: "cw-menu__item") %>>Archive</button>
+
+      <div role="separator" class="cw-menu__separator"></div>
+
+      <button type="button" <%= cw_attrs(m.item_attrs(value: "restore"), class: "cw-menu__item", disabled: true) %>>Restore (unavailable)</button>
+      <button type="button" <%= cw_attrs(m.item_attrs(value: "delete"), class: "cw-menu__item cw-menu__item--danger") %>>Delete</button>
+    </div>
+  </div>
+<% end %>

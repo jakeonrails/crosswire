@@ -73,10 +73,24 @@ module CrosswireUIRendering
     # so this test pins the actual shipped convention, not whatever a presenter
     # happens to compute: a component that quietly renamed its own base class would
     # still make THIS test fail.
-    BASE_CLASS = Crosswire::UI.component_names.index_with { |name| "cw-#{name}" }.freeze
+    #
+    # `kind: :css` names (dialog/popover/menu/combobox — spec §2b) are deliberately
+    # EXCLUDED from every loop below: they ship no NEW presenter for `Crosswire::UI`
+    # to render generically, most have required constructor keywords no "defaults"
+    # call could satisfy (`Menu#id`/`#items`, `Combobox#id`/`#name`, `Popover#id`,
+    # `Dialog#id`), and `cw.popover`'s own bare render form has no single wrapping
+    # root at all by design (trigger and panel are documented siblings — see
+    # `Crosswire::Presenters::Popover`'s own docstring) — so "the root element carries
+    # `cw-<name>`" is not even a claim that applies to it. These four widgets already
+    # have their own real-DOM render coverage in the PRIMITIVE tier's own suites; spec
+    # §7.3 is explicit that dialog/menu/popover browser tests exist and this tier must
+    # not duplicate them — styling changed no semantics.
+    UI_ONLY_NAMES = Crosswire::UI.component_names.reject { |name| Crosswire::UI.css_only?(name) }.freeze
+
+    BASE_CLASS = UI_ONLY_NAMES.index_with { |name| "cw-#{name}" }.freeze
 
     def test_every_ui_component_renders_with_defaults
-      Crosswire::UI.component_names.each do |name|
+      UI_ONLY_NAMES.each do |name|
         args = REQUIRED_DEFAULTS.fetch(name, {})
 
         html = view.cw.public_send(name, **args)
@@ -86,7 +100,7 @@ module CrosswireUIRendering
     end
 
     def test_the_root_element_carries_the_components_base_class
-      Crosswire::UI.component_names.each do |name|
+      UI_ONLY_NAMES.each do |name|
         args = REQUIRED_DEFAULTS.fetch(name, {})
         html = view.cw.public_send(name, **args)
 
@@ -96,7 +110,7 @@ module CrosswireUIRendering
     end
 
     def test_a_callers_own_class_survives_onto_the_root_element
-      Crosswire::UI.component_names.each do |name|
+      UI_ONLY_NAMES.each do |name|
         args = REQUIRED_DEFAULTS.fetch(name, {}).merge(class: "caller-class")
         html = view.cw.public_send(name, **args)
 

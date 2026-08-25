@@ -102,6 +102,29 @@ module Crosswire
     # `cw--roving-focus`'s own stop-handoff on the same event, not by a preserve
     # mechanism. Browser test 18 pins "an open menu survives `Turbo.morphElements()`
     # over its wrapper, still open, with focus unmoved."
+    #
+    # Morph: Preserved
+    #   DOM-only state: whether the menu is open, and which item currently holds
+    #     `tabindex="0"` (assigned by the composed `cw--roving-focus`, never by this
+    #     controller — see the class docstring's composition map). Same shape as
+    #     `Crosswire::Presenters::Popover`'s own verdict: `cw--menu` renders NO
+    #     Stimulus values at all (the class docstring: "STATE LIVES IN THE BROWSER,
+    #     NOT A STIMULUS VALUE... nothing here for Turbo 8 morphing to clobber or to
+    #     register with usePreserve"), because open/closed is the same native
+    #     popover top-layer state `cw--popover` already leans on underneath it.
+    #   On morph: with nothing expressed as a DOM attribute, an in-place morph over
+    #     the wrapper has nothing to patch that would change open/closed — proven, not
+    #     merely asserted, against real `@hotwired/turbo` (browser test 18: "an open
+    #     menu survives `Turbo.morphElements()` over its wrapper, still open, with
+    #     focus unmoved"). The one REAL residual hazard is different in kind: a
+    #     background stream replacing `item` elements while the menu is open, which
+    #     `itemTargetDisconnected` (R8) plus `cw--roving-focus`'s own stop-handoff
+    #     cover directly — not a "state was clobbered" bug, but "the items themselves
+    #     changed out from under an open menu," which no preserve mechanism could fix
+    #     either.
+    #   The app must: nothing beyond the ordinary rule for a Stimulus controller with
+    #     no server-rendered state to keep correct — there is no `open:` kwarg here for
+    #     a response to get wrong the way `Crosswire::Presenters::Dialog#open` can.
     class Menu < Presenter
       attr_reader :id, :label, :labelled_by, :placement, :offset, :strategy
 

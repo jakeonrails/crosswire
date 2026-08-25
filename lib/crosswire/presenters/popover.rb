@@ -47,6 +47,30 @@ module Crosswire
     # and the controller lives entirely on the panel (see `panel_attrs`), which is
     # the only element it needs: the native `toggle` event it listens for fires
     # directly on the popover element itself, not on the trigger.
+    #
+    # Morph: Preserved
+    #   DOM-only state: whether the panel is currently open. Unlike `dialog`, this
+    #     controller declares no `open` Stimulus value at all — the native popover
+    #     API's own top-layer membership IS the single source of truth (`cw--popover`'s
+    #     own docstring: "STATE LIVES IN THE BROWSER, NOT A STIMULUS VALUE"), queried
+    #     only via `matches(":popover-open")` when needed, never written by this
+    #     controller (`toggled()` only ever reacts to the browser's own `toggle`
+    #     event).
+    #   On morph: because open/closed is not expressed as any DOM attribute, there is
+    #     nothing for Idiomorph to patch and therefore nothing for it to get wrong —
+    #     an attribute-patching morph over the SAME panel element (Idiomorph matches
+    #     nodes and patches in place; it does not replace the element outright) simply
+    #     never touches the browser's native top-layer state, so an open popover stays
+    #     open through it with no controller intervention required. This is "preserved"
+    #     by construction rather than by an active `usePreserve` guard — there is
+    #     nothing here for that mechanism to name. `placement`/`offset`/`strategy` ARE
+    #     ordinary Stimulus values, but they are pure, deterministic functions of the
+    #     presenter's own constructor arguments, so a morph re-rendering them is a
+    #     no-op, not a hazard.
+    #   The app must: nothing beyond the ordinary rule for a Stimulus value — if the
+    #     SAME panel element is ever replaced outright (not patched) by a morph, its
+    #     native popover state is lost along with the node, same as any other
+    #     browser-owned element state (scroll position, `:hover`) would be.
     class Popover < Presenter
       attr_reader :id, :placement, :offset, :strategy
 

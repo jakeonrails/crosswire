@@ -1,0 +1,137 @@
+/* crosswire/ui/menu.css — CSS over the shipped `_menu.html.erb` widget
+   (Crosswire::Presenters::Menu), ui-tier-spec.md §5 item 10. NO markup, NO presenter,
+   NO helper change — cw-menu / cw-menu__button / cw-menu__list / cw-menu__item all
+   already exist on the shipped partial. Two classes below are NEW and documented,
+   not emitted by the partial itself (a caller adds them via `cw.menu_for`/an
+   `item_attrs` override — see site/examples/menu/danger-and-separators.html.erb):
+
+     .cw-menu__item--danger   a destructive command (Delete, Remove…)
+     .cw-menu__separator      an alias for [role="separator"] — style either one; the
+                               partial never emits an element with this role at all
+                               (a caller renders one by hand inside `cw.menu_for`), so
+                               `[role="separator"]` alone is the real, load-bearing
+                               selector and the class is a documented convenience.
+
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-menu-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-menu {
+    display: inline-block;
+  }
+
+  .cw-menu__button {
+    --cw-menu-button-font: inherit;
+
+    font: var(--cw-menu-button-font);
+  }
+
+  .cw-menu__button:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-menu__list {
+    --cw-menu-bg: var(--cw-color-surface-raised);
+    --cw-menu-fg: var(--cw-color-fg);
+    --cw-menu-border: var(--cw-color-border);
+    --cw-menu-radius: var(--cw-radius-lg);
+    --cw-menu-py: var(--cw-space-2);
+    --cw-menu-min-width: 12rem;
+
+    margin: 0;
+    min-width: var(--cw-menu-min-width);
+    border: var(--cw-border-width) solid var(--cw-menu-border);
+    border-radius: var(--cw-menu-radius);
+    padding: var(--cw-menu-py) 0;
+    background: var(--cw-menu-bg);
+    color: var(--cw-menu-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-menu__item {
+    --cw-menu-item-px: var(--cw-space-4);
+    --cw-menu-item-py: var(--cw-space-2);
+    --cw-menu-item-checked-width: var(--cw-space-5);
+    --cw-menu-item-hover-bg: var(--cw-color-surface-sunk);
+    --cw-menu-item-danger-fg: var(--cw-color-danger);
+    --cw-menu-item-danger-hover-bg: var(--cw-color-danger-subtle);
+    --cw-menu-item-check-top: 50%;
+    --cw-menu-item-check-transform: translateY(-50%);
+
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    font: inherit;
+    padding: var(--cw-menu-item-py) var(--cw-menu-item-px);
+  }
+
+  /* Reserve room for the checkmark that [aria-checked="true"] adds below, on EVERY
+     checkbox/radio item — checked or not — so unchecked siblings don't jump when one
+     item toggles. Plain "menuitem"s (no role attribute check needed: this selector
+     only matches the two roles that ever carry aria-checked) get no reserved gutter. */
+  .cw-menu__item[role="menuitemcheckbox"],
+  .cw-menu__item[role="menuitemradio"] {
+    position: relative;
+    padding-left: calc(var(--cw-menu-item-px) + var(--cw-menu-item-checked-width));
+  }
+
+  .cw-menu__item[aria-checked="true"]::before {
+    content: "✓";
+    position: absolute;
+    left: var(--cw-menu-item-px);
+    top: var(--cw-menu-item-check-top);
+    transform: var(--cw-menu-item-check-transform);
+    color: var(--cw-color-accent);
+  }
+
+  .cw-menu__item:hover,
+  .cw-menu__item:focus-visible {
+    background: var(--cw-menu-item-hover-bg);
+  }
+
+  .cw-menu__item:focus-visible {
+    outline: none;
+  }
+
+  .cw-menu__item[disabled],
+  .cw-menu__item[aria-disabled="true"] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-menu__item[disabled]:hover,
+  .cw-menu__item[aria-disabled="true"]:hover {
+    background: transparent;
+  }
+
+  /* ---- danger modifier — NOT emitted by the partial; see the header comment ----- */
+  .cw-menu__item--danger {
+    color: var(--cw-menu-item-danger-fg);
+  }
+
+  .cw-menu__item--danger:hover,
+  .cw-menu__item--danger:focus-visible {
+    background: var(--cw-menu-item-danger-hover-bg);
+  }
+
+  /* ---- separator — [role="separator"] is the real selector; see header comment -- */
+  [role="separator"].cw-menu__separator,
+  .cw-menu__list [role="separator"] {
+    height: var(--cw-border-width);
+    margin: var(--cw-space-2) var(--cw-space-3);
+    background: var(--cw-color-border);
+    border: 0;
+  }
+}

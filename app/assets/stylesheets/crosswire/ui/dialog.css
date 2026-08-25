@@ -1,0 +1,163 @@
+/* crosswire/ui/dialog.css — CSS over the shipped `_dialog.html.erb` widget
+   (Crosswire::Presenters::Dialog): the modal-composition showcase (ui-tier-spec.md §5
+   item 8). NO markup, NO presenter, NO helper change — every class below already
+   exists on the shipped partial (cw-dialog / cw-dialog__trigger / cw-dialog__panel /
+   cw-dialog__title / cw-dialog__close / cw-dialog__body), and this file only paints
+   them. Every color/length below is either a global token or one of THIS component's
+   own `--cw-dialog-*` knobs, always consumed through `var(...)` — see tokens.css's own
+   header for the override ladder.
+
+   `.cw-dialog__panel` IS the native `<dialog>` element (see the partial) — every rule
+   below that targets it is therefore also styling `::backdrop`, `:modal` and
+   `@starting-style`, none of which exist on any other kind of element. */
+
+@layer crosswire.components {
+  .cw-dialog__trigger {
+    /* Deliberately no chrome of its own — compose `cw.button` for a styled trigger
+       (see site/examples/dialog/composed-with-card.html.erb); this knob exists so a
+       host CAN restyle the bare default without ejecting. */
+    --cw-dialog-trigger-font: inherit;
+
+    font: var(--cw-dialog-trigger-font);
+  }
+
+  .cw-dialog__panel {
+    --cw-dialog-bg: var(--cw-color-surface-raised);
+    --cw-dialog-fg: var(--cw-color-fg);
+    --cw-dialog-border: var(--cw-color-border);
+    --cw-dialog-radius: var(--cw-radius-lg);
+    --cw-dialog-padding: var(--cw-space-5);
+    --cw-dialog-gap: var(--cw-space-4);
+    --cw-dialog-width: min(32rem, calc(100vw - var(--cw-space-6)));
+    --cw-dialog-max-height: min(85vh, 40rem);
+    --cw-dialog-enter-scale: 0.96;
+    --cw-dialog-enter-offset: 1rem;
+    --cw-dialog-backdrop: var(--cw-color-overlay);
+
+    /* The panel is its own flex column so the title/close row can stay put while
+       .cw-dialog__body (below) is the ONE thing that scrolls internally — "internal
+       scroll containment" per the showcase brief, rather than letting a tall body
+       grow the panel past the viewport. `position: relative` makes it an explicit
+       positioning root for .cw-dialog__close below, rather than depending on
+       whatever `position` the UA stylesheet happens to give a top-layer <dialog>. */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-dialog-gap);
+    margin: auto;
+    border: var(--cw-border-width) solid var(--cw-dialog-border);
+    border-radius: var(--cw-dialog-radius);
+    padding: var(--cw-dialog-padding);
+    background: var(--cw-dialog-bg);
+    color: var(--cw-dialog-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-3);
+    max-height: var(--cw-dialog-max-height);
+
+    /* `transition-behavior: allow-discrete` keeps the panel PAINTED (rather than
+       vanishing the instant `open` is removed) for the duration of the opacity/
+       transform transition below — the modern CSS-only dialog open/close recipe.
+       `@starting-style` supplies the FROM state for the enter transition (fires on
+       "newly rendered from display:none/closed", regardless of whether the dialog
+       was opened by a trigger click or a controller call); the EXIT transition is
+       simply this same rule running backwards as `[open]` is removed. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease),
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  /* :modal — only a dialog opened via showModal() (the presenter's `modal: true`
+     default) gets this pseudo-class; a non-modal panel (`modal: false`, opened via
+     show()) keeps the browser's normal static-flow box instead of being centered
+     and width-capped like this. */
+  .cw-dialog__panel:modal {
+    inset: 0;
+    width: var(--cw-dialog-width);
+  }
+
+  .cw-dialog__panel:not([open]) {
+    opacity: 0;
+    transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+  }
+
+  @starting-style {
+    .cw-dialog__panel:modal {
+      opacity: 0;
+      transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+    }
+  }
+
+  /* ::backdrop only exists for a MODAL dialog (showModal()'s top layer) — a
+     non-modal panel (show()) never gets one, so nothing here needs to guard for
+     `modal: false`. Same allow-discrete/@starting-style shape as the panel itself,
+     so the dim-in and the panel's own enter transition read as one motion. */
+  .cw-dialog__panel::backdrop {
+    background: var(--cw-dialog-backdrop);
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  .cw-dialog__panel:not([open])::backdrop {
+    opacity: 0;
+  }
+
+  @starting-style {
+    .cw-dialog__panel[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .cw-dialog__title {
+    margin: 0;
+    padding-inline-end: var(--cw-space-6);
+    font-size: var(--cw-text-lg);
+    font-weight: var(--cw-weight-semibold);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-dialog__close {
+    --cw-dialog-close-size: var(--cw-text-lg);
+
+    position: absolute;
+    top: var(--cw-space-3);
+    right: var(--cw-space-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: var(--cw-space-1);
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-dialog-close-size);
+    line-height: var(--cw-leading-tight);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-dialog__close:hover {
+    color: var(--cw-color-fg);
+    background: var(--cw-color-surface-sunk);
+  }
+
+  /* The one thing that scrolls — see the panel's own flex-column comment above.
+     `scrollbar-gutter: stable` (the same property `cw--dialog`'s own scroll-lock
+     reaches for on the page behind the modal) reserves the scrollbar's track up
+     front, so content does not visually reflow the instant a tall body actually
+     needs to scroll. */
+  .cw-dialog__body {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-dialog__panel,
+    .cw-dialog__panel::backdrop {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+/* crosswire/ui/popover.css — CSS over the shipped `_popover.html.erb` widget
+   (Crosswire::Presenters::Popover), ui-tier-spec.md §5 item 9. NO markup, NO
+   presenter, NO helper change — cw-popover__trigger/cw-popover__panel already exist
+   on the shipped partial. Kept deliberately LEAN per the spec brief: placement
+   (anchor-name/position-anchor, the JS fallback positioner) lives entirely in the
+   primitive — this file adds elevation, radius and padding rhythm, nothing else.
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-popover-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-popover__panel {
+    --cw-popover-bg: var(--cw-color-surface-raised);
+    --cw-popover-fg: var(--cw-color-fg);
+    --cw-popover-border: var(--cw-color-border);
+    --cw-popover-radius: var(--cw-radius-lg);
+    --cw-popover-px: var(--cw-space-4);
+    --cw-popover-py: var(--cw-space-3);
+
+    /* The native `popover` UA stylesheet ships its own margin/border/padding
+       (roughly `margin: auto; border: solid; padding: 0.25em 0.75em;`) — every one
+       of those is overridden explicitly below rather than left to fight ours. */
+    margin: 0;
+    border: var(--cw-border-width) solid var(--cw-popover-border);
+    border-radius: var(--cw-popover-radius);
+    padding: var(--cw-popover-py) var(--cw-popover-px);
+    background: var(--cw-popover-bg);
+    color: var(--cw-popover-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  /* Nothing else — the trigger stays whatever element the caller composed (a plain
+     button by default; compose `cw.button` for a fully styled trigger, as
+     site/examples/popover/composed-with-card.html.erb does). A focus-visible ring
+     is the one thing worth a rule of its own here, since a raw `<button>` gets no
+     visual focus treatment beyond the UA default otherwise. */
+  .cw-popover__trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+}

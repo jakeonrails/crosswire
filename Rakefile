@@ -64,12 +64,27 @@ namespace :ui do
       css_path = File.join(ui_css_dir, "#{name}.css")
       css_vars = File.read(css_path).scan(/(--cw-#{Regexp.escape(name)}(?:-[\w-]+)?)\s*:/).flatten.uniq.sort
 
-      files = [
-        { "path" => "lib/crosswire/ui/#{name}.rb", "type" => "presenter" },
-        { "path" => "lib/crosswire/ui/#{name}_helper.rb", "type" => "helper" },
-        { "path" => "app/views/crosswire/ui/_#{name}.html.erb", "type" => "partial" },
-        { "path" => "app/assets/stylesheets/crosswire/ui/#{name}.css", "type" => "css" }
-      ] + Dir[File.join(root, "site/examples/#{name}/*.html.erb")].sort.map do |example|
+      # `kind: :css` (spec §2b) ships no NEW presenter/helper/partial of its own — it
+      # styles the identically-named PRIMITIVE tier's already-shipped files instead,
+      # so the registry names those real, on-disk paths rather than fabricating
+      # `lib/crosswire/ui/dialog.rb`, which does not exist. See
+      # `Crosswire::UI.css_only?`'s own docstring for the full reasoning; this is the
+      # same branch `ui_contract_audit_test.rb` check 2 and `rake morph:doc` take.
+      files = if Crosswire::UI.css_only?(name)
+                [
+                  { "path" => "lib/crosswire/presenters/#{name}.rb", "type" => "presenter" },
+                  { "path" => "app/views/crosswire/_#{name}.html.erb", "type" => "partial" },
+                  { "path" => "app/assets/stylesheets/crosswire/ui/#{name}.css", "type" => "css" }
+                ]
+              else
+                [
+                  { "path" => "lib/crosswire/ui/#{name}.rb", "type" => "presenter" },
+                  { "path" => "lib/crosswire/ui/#{name}_helper.rb", "type" => "helper" },
+                  { "path" => "app/views/crosswire/ui/_#{name}.html.erb", "type" => "partial" },
+                  { "path" => "app/assets/stylesheets/crosswire/ui/#{name}.css", "type" => "css" }
+                ]
+              end
+      files += Dir[File.join(root, "site/examples/#{name}/*.html.erb")].sort.map do |example|
         { "path" => example.delete_prefix("#{root}/"), "type" => "example" }
       end
 
@@ -105,7 +120,11 @@ namespace :morph do
     require_relative "lib/crosswire/ui"
 
     rows = Crosswire::UI.component_names.filter_map do |name|
-      path = File.expand_path("lib/crosswire/ui/#{name}.rb", __dir__)
+      # `kind: :css` (spec §2b) has no `lib/crosswire/ui/<name>.rb` at all — its Morph
+      # clause lives on the PRIMITIVE presenter it styles instead (the same file
+      # `ui_contract_audit_test.rb` check 10 reads for it).
+      relative = Crosswire::UI.css_only?(name) ? "lib/crosswire/presenters/#{name}.rb" : "lib/crosswire/ui/#{name}.rb"
+      path = File.expand_path(relative, __dir__)
       next unless File.exist?(path)
 
       clause = File.read(path)[MORPH_CLAUSE]

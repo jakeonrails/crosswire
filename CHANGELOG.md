@@ -166,3 +166,63 @@
   real elements in a real document — the same lookup a screen reader's accessibility
   tree builder performs — not just matching strings, which the presenter unit suite
   already pins with no DOM at all.
+- Add `dialog.css`, `popover.css`, `menu.css`, `combobox.css` — the showcase tier
+  (ui-tier-spec.md §5 items 8–10 + 12): CSS ONLY over four already-shipped
+  primitive-tier widgets, no new presenter, no new helper, no API change.
+  `dialog.css` is the modal-composition showcase — `::backdrop` via
+  `--cw-color-overlay`, a `@starting-style` + `transition-behavior: allow-discrete`
+  enter/exit animation (honoring `--cw-duration`/`--cw-ease`, disabled under
+  `prefers-reduced-motion`), `:modal`-scoped sizing, and `scrollbar-gutter: stable`
+  internal scroll containment on the body. `popover.css` stays deliberately lean
+  (elevation/radius/padding only — placement remains entirely in the primitive).
+  `menu.css` adds item hover/`:focus-visible`/`[aria-checked]` states, a documented
+  `[role="separator"]` treatment the partial itself never emits, and a
+  `.cw-menu__item--danger` modifier. `combobox.css` styles `[aria-selected]` and the
+  documented `.cw-combobox__option--active` convention the controller's optional
+  `active_class:` (Stimulus Classes API — opt-in, no default) targets at runtime.
+  Every gallery example exercises the real widget through `cw.dialog`/`cw.popover`/
+  `cw.menu`/`cw.combobox`; `site/examples/dialog/composed-with-card.html.erb`
+  composes `cw.dialog_for` with a real `cw.button` trigger and a `cw.card` body —
+  three styled-tier pieces on one dialog.
+- Extend `Crosswire::UI::COMPONENTS`'s entry shape with a `kind:` marker (`:new`,
+  the default, unchanged for the eight prior components; `:css` for the four
+  above) — every one of `ui_contract_audit_test.rb`'s ten checks, `rake
+  ui:registry`, `rake morph:doc` and `bin/build_gallery.rb` branch on
+  `Crosswire::UI.kind_of`/`.css_only?` so both shapes stay meaningfully checked: a
+  `kind: :css` name is asserted to genuinely collide with a real, shipped
+  `Crosswire::COMPONENTS` primitive (check 5, inverted from the `kind: :new`
+  no-collision rule) rather than requiring files that were never going to exist
+  (a `lib/crosswire/ui/dialog.rb`, an unregistered `DialogHelper`). Their `#
+  Morph:` docstring clauses live on the PRIMITIVE presenter they style
+  (`lib/crosswire/presenters/dialog.rb`/`popover.rb`/`menu.rb`/`combobox.rb`) —
+  dialog is **Server-owned** (the native `<dialog>` `open` attribute vs. actual
+  modal state can diverge across a background morph; the controller's own
+  `turbo:before-morph-element` cancellation is the defence, proven in
+  `test/js/dialog_controller.browser.test.js`); popover and menu are
+  **Preserved** by construction (open/closed lives entirely in the browser's
+  native popover top-layer state, never a Stimulus value, so there is nothing
+  for a morph to touch either way); combobox is **Preserved** via `usePreserve`'s
+  existing `preservedValues = ["value", "expanded"]` guard (already shipped on
+  the primitive; only now carries the formal clause).
+- Add the fourth agent skill, `skills/crosswire-styling` (symlinked into
+  `.claude/skills/`, discovered automatically by `rails g crosswire:skills`) —
+  styling and theming the `cw.*` styled tier: tokens before classes (the
+  redefine-token → plain-rule → eject escalation ladder), the two-depth token
+  system (global vs. component knob vs. per-instance `style=""`), the helper
+  triple read as a STYLING escalation (`_attrs`/bare call → `_for` → eject), the
+  cascade-layer story (unlayered app CSS always beats `@layer crosswire.*`, no
+  `!important` needed), `data-cw-theme` + the `themes/patchbay.css` full-repaint
+  worked example, and a pointer to `docs/MORPH.md` before touching any non-`Safe`
+  component.
+- README: the "Styled components" section names all twelve components (eight
+  new-markup plus four CSS-only), the `crosswire:install` one-liner, a
+  three-line token-override worked example (global vs. component knob), the
+  `site/components/<name>/` gallery link pattern, and a `docs/MORPH.md` pointer.
+  `docs/DECISIONS.md` D9 records the tier's sequencing: in-core (not a second
+  gem, `D7` precedent), `lib/`-not-`app/helpers/`-and-not-autoloaded placement
+  (the contract-audit glob and the Zeitwerk two-letter-acronym collision, both
+  independently sufficient reasons), plain CSS custom properties as the
+  substrate with the Tailwind `@theme` mapping deliberately held to v1.1, the
+  neutral-default-plus-swappable-`patchbay.css` both-themes hedge, the
+  no-screenshot-testing doctrine, and the registry (`site/registry.json`)
+  shipped as real infrastructure but explicitly not marketed as a standard.

@@ -131,7 +131,8 @@ dependency, and it is idempotent, so it is safe to apply at every layer.
 `preserve` · `loading` · `fallback` · `Crosswire::Streams`
 
 **Styled components** (own tier — presenter + partial + CSS, see "Styled components" below)
-`button` · `badge` · `card` · `input` · `field` · `select` · `alert` · `toast`
+`button` · `badge` · `card` · `input` · `field` · `select` · `alert` · `toast` — plus CSS
+over four of the widgets above: `dialog` · `popover` · `menu` · `combobox`
 
 Every component exposes `cw.<name>_for` (yields the presenter) and `cw.<name>_attrs`
 (returns the merged attribute hash); widgets additionally get the bare `cw.<name>`
@@ -143,16 +144,40 @@ code isn't written.
 
 ## Styled components
 
-A second, separate tier: purely presentational components — `button`, `badge`,
-`card`, `input`, `field`, `select`, `alert`, `toast`, and more to come — that ship a
-Ruby presenter, an ejectable partial, and real CSS built on
-~67 design tokens (`--cw-<category>-<step>` globals, `--cw-<component>-<prop>` knobs
-that default to them). Same accessibility-in-the-presenter contract as the primitives
-above, same `cw.<name>` / `cw.<name>_for` / `cw.<name>_attrs` helper triple, and its
-own `crosswire:eject` tiers. It is landing component by component, not all at once —
-see `site/components/` for the ones shipped so far, each with live, restylable
-examples rendered from the gem's real source, and `docs/MORPH.md` for how each one
-behaves under a Turbo 8 morph.
+A second, separate tier, `Crosswire::UI`: purely presentational components —
+`button`, `badge`, `card`, `input`, `field`, `select`, `alert`, `toast` — that ship a
+Ruby presenter, an ejectable partial, and real CSS built on ~67 design tokens
+(`--cw-<category>-<step>` globals, `--cw-<component>-<prop>` knobs that default to
+them). Same accessibility-in-the-presenter contract as the primitives above, same
+`cw.<name>` / `cw.<name>_for` / `cw.<name>_attrs` helper triple, and its own
+`crosswire:eject` tiers (`--css` for styling only, `--presenter` for markup and CSS
+both). Four already-shipped widgets — `dialog`, `popover`, `menu`, `combobox` — get
+CSS ONLY through this same tier: no new presenter, no API change, just
+`app/assets/stylesheets/crosswire/ui/dialog.css` and friends over the markup you
+already have. It is landing component by component, not all at once (see D9).
+
+Install the tier's CSS into your app:
+
+```bash
+bin/rails g crosswire:install                          # writes app/assets/stylesheets/crosswire.css
+```
+
+Override anything by redefining a token, in your own **unlayered** stylesheet — it
+always beats the gem's own `@layer`-wrapped CSS, no `!important` required:
+
+```css
+:root { --cw-color-accent: #16a34a; }       /* every component that reads it, at once */
+.cw-button { --cw-button-radius: 9999px; }  /* just this one component */
+```
+
+See `site/components/<name>/` for every shipped component's live, restylable
+examples rendered from the gem's real source — e.g.
+[`jakeonrails.github.io/crosswire/components/button/`](https://jakeonrails.github.io/crosswire/components/button/)
+— and `docs/MORPH.md` for how each one behaves under a Turbo 8 morph (generated
+from every presenter's own `# Morph:` docstring clause — read it before wiring
+Turbo Streams onto a page that already renders a non-`Safe` component). The
+`crosswire-styling` agent skill (see "For agents" below) teaches the token system
+and the override ladder in full.
 
 ## Accessibility is in the presenter, not the markup
 
@@ -179,12 +204,14 @@ Same check applies.
 
 ## For agents
 
-The gem ships three Claude Code skills that teach a coding agent to work with
+The gem ships four Claude Code skills that teach a coding agent to work with
 crosswire the way this README describes: `crosswire-ui` (use the primitives —
 Rule 0 before any JavaScript, then the right `cw` level), `crosswire-composing`
 (build a modal, dropdown, or drawer by stacking primitives instead of writing a
-controller), and `crosswire-authoring` (write a new controller that survives the
-component contract). Copy them into your app's `.claude/skills/`:
+controller), `crosswire-authoring` (write a new controller that survives the
+component contract), and `crosswire-styling` (style or theme the `cw.*` styled
+tier — tokens before classes, the layer story, theme switching). Copy them into
+your app's `.claude/skills/`:
 
 ```bash
 bin/rails g crosswire:skills

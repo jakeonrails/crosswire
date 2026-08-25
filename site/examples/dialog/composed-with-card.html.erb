@@ -1,0 +1,20 @@
+<%# The modal-composition showcase (ui-tier-spec.md §5 item 8): cw.dialog_for
+    (compose-yourself) driving a real cw.button trigger and a cw.card body — three
+    styled-tier components stacked on one dialog, still fully wired by
+    Crosswire::Presenters::Dialog underneath. No new API: `d.trigger_attrs` and
+    `d.close_attrs` are the SAME hashes `_dialog.html.erb` itself merges onto plain
+    <button> elements; here they merge onto cw.button instead. %>
+<%= cw.dialog_for id: "gallery-dialog-composed", labelled_by: "gallery-dialog-composed-title" do |d| %>
+  <div <%= cw_attrs(d.root_attrs) %>>
+    <%= cw.button "Delete project…", variant: :danger, **d.trigger_attrs %>
+
+    <dialog <%= cw_attrs(d.panel_attrs, class: "cw-dialog__panel") %>>
+      <button <%= cw_attrs(d.close_attrs, class: "cw-dialog__close") %>>&times;</button>
+      <%= cw.card variant: :outlined do |c| %>
+        <% c.header { tag.h2 "Delete this project?", id: "gallery-dialog-composed-title" } %>
+        <% c.body { "This removes it for every collaborator. There is no undo." } %>
+        <% c.footer { cw.button "Cancel", variant: :ghost, data: { action: "click->cw--dialog#close" } } %>
+      <% end %>
+    </dialog>
+  </div>
+<% end %>

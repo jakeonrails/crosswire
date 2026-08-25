@@ -1,0 +1,173 @@
+/* crosswire/ui/combobox.css — CSS over the shipped `_combobox.html.erb` widget
+   (Crosswire::Presenters::Combobox), ui-tier-spec.md §5 item 12. NO markup, NO
+   presenter, NO helper change — every class below already exists on the shipped
+   partial (cw-combobox / __label / __control / __input / __clear / __listbox /
+   __option / __empty / __status).
+
+   ACTIVE OPTION — the controller (combobox_controller.js) applies its `activeClass`
+   to the currently-active option ONLY when the presenter was given `active_class:`
+   (Stimulus's Classes API: `this.hasActiveClass` guards it, per that controller's
+   own docstring on why every crosswire controller must guard an optional class this
+   way) — there is no default active-option class emitted for free. `.cw-combobox__
+   option--active` below is the CONVENTION this file styles; wire it up with
+   `active_class: "cw-combobox__option--active"` on `cw.combobox`/`cw.combobox_for`
+   (see site/examples/combobox/active-option.html.erb). [aria-selected="true"] is
+   separate and always available with zero configuration — it marks the PRESELECTED
+   option (R4, from `value:`/`display:`), independent of which option is merely
+   "active" during keyboard navigation.
+
+   Every color/length below is either a global token or one of THIS component's own
+   `--cw-combobox-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-combobox {
+    --cw-combobox-gap: var(--cw-space-1);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-combobox-gap);
+    position: relative;
+  }
+
+  .cw-combobox__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg-muted);
+  }
+
+  .cw-combobox__control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .cw-combobox__input {
+    --cw-combobox-bg: var(--cw-color-surface);
+    --cw-combobox-fg: var(--cw-color-fg);
+    --cw-combobox-border: var(--cw-color-border);
+    --cw-combobox-radius: var(--cw-radius-md);
+    --cw-combobox-px: var(--cw-space-3);
+    --cw-combobox-py: var(--cw-space-2);
+    --cw-combobox-clear-space: var(--cw-space-6);
+
+    width: 100%;
+    box-sizing: border-box;
+    border: var(--cw-border-width) solid var(--cw-combobox-border);
+    border-radius: var(--cw-combobox-radius);
+    padding: var(--cw-combobox-py) var(--cw-combobox-clear-space) var(--cw-combobox-py) var(--cw-combobox-px);
+    background: var(--cw-combobox-bg);
+    color: var(--cw-combobox-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+  }
+
+  .cw-combobox__input:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  .cw-combobox__input[aria-invalid="true"] {
+    border-color: var(--cw-color-danger);
+  }
+
+  .cw-combobox__input:disabled {
+    background: var(--cw-color-surface-sunk);
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__clear {
+    position: absolute;
+    inset-inline-end: var(--cw-space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-text-lg);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-combobox__clear:hover {
+    color: var(--cw-color-fg);
+  }
+
+  .cw-combobox__listbox {
+    --cw-combobox-listbox-bg: var(--cw-color-surface-raised);
+    --cw-combobox-listbox-border: var(--cw-color-border);
+    --cw-combobox-listbox-radius: var(--cw-radius-lg);
+    --cw-combobox-listbox-max-height: 16rem;
+
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 100%;
+    z-index: var(--cw-z-dropdown);
+    width: 100%;
+    box-sizing: border-box;
+    margin: var(--cw-space-1) 0 0;
+    padding: var(--cw-space-2) 0;
+    max-height: var(--cw-combobox-listbox-max-height);
+    overflow-y: auto;
+    border: var(--cw-border-width) solid var(--cw-combobox-listbox-border);
+    border-radius: var(--cw-combobox-listbox-radius);
+    background: var(--cw-combobox-listbox-bg);
+    box-shadow: var(--cw-shadow-2);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+  }
+
+  .cw-combobox__option {
+    --cw-combobox-option-px: var(--cw-space-3);
+    --cw-combobox-option-py: var(--cw-space-2);
+    --cw-combobox-option-active-bg: var(--cw-color-surface-sunk);
+    --cw-combobox-option-selected-fg: var(--cw-color-accent);
+
+    padding: var(--cw-combobox-option-py) var(--cw-combobox-option-px);
+    cursor: pointer;
+  }
+
+  /* Wired up via `active_class:` — see the header comment. Also matched by hover,
+     so pointer users get the identical highlight keyboard navigation produces. */
+  .cw-combobox__option--active,
+  .cw-combobox__option:hover {
+    background: var(--cw-combobox-option-active-bg);
+  }
+
+  .cw-combobox__option[aria-selected="true"] {
+    color: var(--cw-combobox-option-selected-fg);
+    font-weight: var(--cw-weight-medium);
+  }
+
+  .cw-combobox__option[aria-disabled="true"] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__empty {
+    margin: 0;
+    padding: var(--cw-space-2) var(--cw-space-3);
+    color: var(--cw-color-fg-muted);
+    font-size: var(--cw-text-sm);
+  }
+
+  /* A live region, present from first paint (see the presenter's own docstring on
+     why) — announced, not seen. Same clip-rect technique base.css's own
+     .cw-visually-hidden uses, inlined here rather than requiring a caller to also
+     add that class by hand onto an element this partial always renders itself. */
+  .cw-combobox__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

@@ -1,0 +1,6 @@
+<%# `modal: false` opens via show() instead of showModal() — no inertness, no top
+    layer, no ::backdrop, and it never light-dismisses. See dialog.css's own
+    `:modal`-scoped rules for exactly what changes between the two. %>
+<%= cw.dialog "Filters", id: "gallery-dialog-non-modal", trigger_label: "Show filters", modal: false do %>
+  <p>Non-modal panels skip the backdrop and inert-page treatment entirely.</p>
+<% end %>

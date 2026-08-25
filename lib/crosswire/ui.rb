@@ -86,10 +86,59 @@ module Crosswire
                       "— server-rendered on first paint or Turbo-Stream-appended " \
                       "later; the container survives a page morph via " \
                       "data-turbo-permanent."
+      }.freeze,
+
+      # --- kind: :css — the OTHER anatomy rule (spec §2b): CSS ONLY over an EXISTING,
+      # identically-named primitive-tier widget. No new presenter, no new helper, no
+      # new partial — `Crosswire::Presenters::Dialog`/`Popover`/`Menu`/`Combobox` and
+      # their shipped `app/views/crosswire/_<name>.html.erb` partials already exist
+      # and are unchanged; this tier only adds `app/assets/stylesheets/crosswire/ui/
+      # <name>.css` plus a gallery example that exercises the real `cw.<name>`. Every
+      # entry above this comment defaults to `kind: :new` (the `.fetch(:kind, :new)`
+      # below) — the four below are the only `kind: :css` entries, and their NAME
+      # deliberately DOES collide with a primitive-tier `Crosswire::COMPONENTS` entry
+      # (see `kind_of`/`css_only?` and `ui_contract_audit_test.rb` check 5, which
+      # asserts that collision on purpose instead of flagging it as a bug).
+      dialog: {
+        description: "CSS over the shipped native <dialog> widget — ::backdrop, " \
+                      "@starting-style enter/exit transitions, :modal sizing, and " \
+                      "internal scroll containment. The modal-composition showcase: " \
+                      "no new markup, no new presenter, styles cw.dialog as-is.",
+        kind: :css
+      }.freeze,
+      popover: {
+        description: "CSS over the shipped native popovertarget/popover widget — " \
+                      "elevation, radius, padding rhythm. Positioning stays entirely " \
+                      "in the primitive; this tier adds nothing but paint.",
+        kind: :css
+      }.freeze,
+      menu: {
+        description: "CSS over the shipped role=menu widget — item hover/focus/" \
+                      "checked states, a documented [role=separator] treatment the " \
+                      "partial itself never emits, a .cw-menu__item--danger " \
+                      "modifier, and disabled styling.",
+        kind: :css
+      }.freeze,
+      combobox: {
+        description: "CSS over the shipped APG combobox widget — listbox " \
+                      "elevation, [aria-selected] and the controller's opt-in " \
+                      "active-option class, empty-state and status styling.",
+        kind: :css
       }.freeze
     }.freeze
 
     def self.component_names = COMPONENTS.keys.map(&:to_s)
+
+    # `kind: :new` (this tier's own presenter + partial + CSS — the default; every
+    # entry above omits the key entirely) vs `kind: :css` (spec §2b — CSS only, over
+    # an existing primitive; see dialog/popover/menu/combobox above). Every audit
+    # check, `rake ui:registry` and `rake morph:doc` read this to know which file set
+    # and which source file apply to a given name — each of their own branches
+    # explains why. `.fetch(:kind, :new)` rather than requiring every one of the
+    # first eight entries to spell out `kind: :new` by hand.
+    def self.kind_of(name) = COMPONENTS.fetch(name.to_sym).fetch(:kind, :new)
+
+    def self.css_only?(name) = kind_of(name) == :css
 
     # Independent of `Crosswire::CONTRACT_VERSION` (lib/crosswire/version.rb), which
     # governs the PRIMITIVE tier's shipped partials only. This tier gets its own

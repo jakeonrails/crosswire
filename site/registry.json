@@ -393,5 +393,187 @@
       "--cw-toast-viewport-inset",
       "--cw-toast-viewport-max-width"
     ]
+  },
+  {
+    "name": "dialog",
+    "type": "registry:ui",
+    "description": "CSS over the shipped native <dialog> widget — ::backdrop, @starting-style enter/exit transitions, :modal sizing, and internal scroll containment. The modal-composition showcase: no new markup, no new presenter, styles cw.dialog as-is.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/presenters/dialog.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "app/views/crosswire/_dialog.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/dialog.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/dialog/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/dialog/composed-with-card.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/dialog/non-modal.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-dialog-backdrop",
+      "--cw-dialog-bg",
+      "--cw-dialog-border",
+      "--cw-dialog-close-size",
+      "--cw-dialog-enter-offset",
+      "--cw-dialog-enter-scale",
+      "--cw-dialog-fg",
+      "--cw-dialog-gap",
+      "--cw-dialog-max-height",
+      "--cw-dialog-padding",
+      "--cw-dialog-radius",
+      "--cw-dialog-trigger-font",
+      "--cw-dialog-width"
+    ]
+  },
+  {
+    "name": "popover",
+    "type": "registry:ui",
+    "description": "CSS over the shipped native popovertarget/popover widget — elevation, radius, padding rhythm. Positioning stays entirely in the primitive; this tier adds nothing but paint.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/presenters/popover.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "app/views/crosswire/_popover.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/popover.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/popover/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/popover/composed-with-button.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-popover-bg",
+      "--cw-popover-border",
+      "--cw-popover-fg",
+      "--cw-popover-px",
+      "--cw-popover-py",
+      "--cw-popover-radius"
+    ]
+  },
+  {
+    "name": "menu",
+    "type": "registry:ui",
+    "description": "CSS over the shipped role=menu widget — item hover/focus/checked states, a documented [role=separator] treatment the partial itself never emits, a .cw-menu__item--danger modifier, and disabled styling.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/presenters/menu.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "app/views/crosswire/_menu.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/menu.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/menu/basic.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/menu/checked-items.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/menu/danger-and-separators.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-menu-bg",
+      "--cw-menu-border",
+      "--cw-menu-button-font",
+      "--cw-menu-fg",
+      "--cw-menu-item-check-top",
+      "--cw-menu-item-check-transform",
+      "--cw-menu-item-checked-width",
+      "--cw-menu-item-danger-fg",
+      "--cw-menu-item-danger-hover-bg",
+      "--cw-menu-item-hover-bg",
+      "--cw-menu-item-px",
+      "--cw-menu-item-py",
+      "--cw-menu-min-width",
+      "--cw-menu-py",
+      "--cw-menu-radius"
+    ]
+  },
+  {
+    "name": "combobox",
+    "type": "registry:ui",
+    "description": "CSS over the shipped APG combobox widget — listbox elevation, [aria-selected] and the controller's opt-in active-option class, empty-state and status styling.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "path": "lib/crosswire/presenters/combobox.rb",
+        "type": "presenter"
+      },
+      {
+        "path": "app/views/crosswire/_combobox.html.erb",
+        "type": "partial"
+      },
+      {
+        "path": "app/assets/stylesheets/crosswire/ui/combobox.css",
+        "type": "css"
+      },
+      {
+        "path": "site/examples/combobox/active-option.html.erb",
+        "type": "example"
+      },
+      {
+        "path": "site/examples/combobox/basic.html.erb",
+        "type": "example"
+      }
+    ],
+    "cssVars": [
+      "--cw-combobox-bg",
+      "--cw-combobox-border",
+      "--cw-combobox-clear-space",
+      "--cw-combobox-fg",
+      "--cw-combobox-gap",
+      "--cw-combobox-listbox-bg",
+      "--cw-combobox-listbox-border",
+      "--cw-combobox-listbox-max-height",
+      "--cw-combobox-listbox-radius",
+      "--cw-combobox-option-active-bg",
+      "--cw-combobox-option-px",
+      "--cw-combobox-option-py",
+      "--cw-combobox-option-selected-fg",
+      "--cw-combobox-px",
+      "--cw-combobox-py",
+      "--cw-combobox-radius"
+    ]
   }
 ]

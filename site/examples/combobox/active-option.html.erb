@@ -1,0 +1,21 @@
+<%# The "active" option class is opt-in (Stimulus Classes API) and applied by the
+    controller at RUNTIME during keyboard navigation — active_class:
+    "cw-combobox__option--active" wires it up (see combobox.css's own header on why
+    there is no default). To show the CSS without JS, this compose-yourself example
+    puts the class on one option by hand, exactly where the controller would put it. %>
+<%= cw.combobox_for id: "gallery-combobox-active", name: "record[state]",
+      label: "State", expanded: true, active_class: "cw-combobox__option--active",
+      value: "CA", display: "California" do |c| %>
+  <div <%= cw_attrs(c.root_attrs) %>>
+    <label <%= cw_attrs(c.label_attrs) %>>State</label>
+    <div class="cw-combobox__control">
+      <input type="text" <%= cw_attrs(c.input_attrs) %>>
+      <input <%= cw_attrs(c.field_attrs) %>>
+    </div>
+    <ul <%= cw_attrs(c.listbox_attrs) %>>
+      <li <%= cw_attrs(c.option_attrs(value: "CA", display: "California", selected: true), class: "cw-combobox__option cw-combobox__option--active") %>>California</li>
+      <li <%= cw_attrs(c.option_attrs(value: "NY", display: "New York"), class: "cw-combobox__option") %>>New York</li>
+      <li <%= cw_attrs(c.option_attrs(value: "TX", display: "Texas"), class: "cw-combobox__option") %>>Texas</li>
+    </ul>
+  </div>
+<% end %>

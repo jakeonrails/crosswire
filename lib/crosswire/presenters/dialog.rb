@@ -32,6 +32,30 @@ module Crosswire
     #
     # Composes with `cw--dismiss` for an alternate close trigger and `cw--focus-trap`
     # only if you eject the markup into something that is not a native `<dialog>`.
+    #
+    # Morph: Server-owned
+    #   DOM-only state: the `<dialog>` element's OWN modal state — its `open`
+    #     attribute vs. whether `showModal()`/`close()` has actually been called on it.
+    #     `open:` is rendered server-side (R4), and the controller's `#render` calls
+    #     `showModal()`/`close()` from that value on connect — the two are meant to
+    #     agree, but per the HTML spec they CAN diverge: removing the `open` attribute
+    #     does NOT call `close()`.
+    #   On morph: this is exactly the divergence a background morph can cause. Turbo
+    #     8's Idiomorph gives `open` no special handling, so a morph that strips it
+    #     from a currently-open `<dialog>` would leave the document `inert` (from the
+    #     earlier `showModal()`) with no visible, reachable modal and `close()` reduced
+    #     to a silent no-op — the page goes dead. The controller does not rely on a
+    #     `usePreserve` guard for this: it cancels `turbo:before-morph-element` on the
+    #     panel outright while open (so Idiomorph never touches it mid-modal at all)
+    #     and closes the dialog itself on `turbo:before-cache`, so a page snapshot
+    #     never depicts a live modal as dead markup. A second, narrower guard
+    #     (`turbo:before-morph-attribute`, the seanpdoyle turbo#1239 fix) cancels only
+    #     the `open` attribute's own removal as defence-in-depth. Proven against real
+    #     `@hotwired/turbo`, not merely asserted, in `test/js/dialog_controller.browser.test.js`.
+    #   The app must: always render the CURRENTLY correct `open:` server-side on every
+    #     response that could be followed by a morph — the controller's own defence
+    #     stops a BACKGROUND morph from killing an already-open dialog, but a page-level
+    #     navigation/redirect still trusts whatever `open:` the next response sends.
     class Dialog < Presenter
       attr_reader :id, :open, :modal, :dismissable
 

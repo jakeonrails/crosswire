@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.menu — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>menu</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">CSS over the shipped role=menu widget — item hover/focus/checked states, a documented [role=separator] treatment the partial itself never emits, a .cw-menu__item--danger modifier, and disabled styling.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><div data-controller="cw--menu" class="cw-menu">
+  <button id="gallery-menu-basic-trigger" type="button" popovertarget="gallery-menu-basic" style="anchor-name: --cw-popover-gallery-menu-basic;" data-cw--menu-target="button" data-action="keydown.down-&gt;cw--menu#openFirst keydown.up-&gt;cw--menu#openLast" aria-haspopup="menu" class="cw-menu__button">Actions</button>
+
+  <div data-controller="cw--popover cw--roving-focus" data-cw--popover-placement-value="bottom-start" data-cw--popover-offset-value="8" data-cw--popover-strategy-value="anchor" data-cw--popover-anchor-value="gallery-menu-basic-trigger" data-action="toggle-&gt;cw--popover#toggled keydown-&gt;cw--roving-focus#navigate toggle-&gt;cw--menu#toggled keydown.tab-&gt;cw--menu#tabOut keydown.shift+tab-&gt;cw--menu#tabOut" id="gallery-menu-basic" popover="auto" style="position-anchor: --cw-popover-gallery-menu-basic;" data-cw--roving-focus-orientation-value="vertical" data-cw--roving-focus-wrap-value="true" data-cw--roving-focus-typeahead-value="true" data-cw--menu-target="menu" role="menu" aria-labelledby="gallery-menu-basic-trigger" class="cw-menu__list">
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="duplicate" class="cw-menu__item">Duplicate</button>
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="archive" class="cw-menu__item">Archive</button>
+        <a href="#"
+           data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" class="cw-menu__item">View history</a>
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="delete" class="cw-menu__item">Delete</button>
+  </div>
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/menu/basic.html.erb</p>
+    <pre><code>&lt;%= cw.menu &quot;Actions&quot;, id: &quot;gallery-menu-basic&quot;, items: [
+      { label: &quot;Duplicate&quot;, value: &quot;duplicate&quot; },
+      { label: &quot;Archive&quot;, value: &quot;archive&quot; },
+      { label: &quot;View history&quot;, href: &quot;#&quot; },
+      { label: &quot;Delete&quot;, value: &quot;delete&quot; }
+    ] %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div data-controller="cw--menu" class="cw-menu">
+  <button id="gallery-menu-checked-trigger" type="button" popovertarget="gallery-menu-checked" style="anchor-name: --cw-popover-gallery-menu-checked;" data-cw--menu-target="button" data-action="keydown.down-&gt;cw--menu#openFirst keydown.up-&gt;cw--menu#openLast" aria-haspopup="menu" class="cw-menu__button">View</button>
+
+  <div data-controller="cw--popover cw--roving-focus" data-cw--popover-placement-value="bottom-start" data-cw--popover-offset-value="8" data-cw--popover-strategy-value="anchor" data-cw--popover-anchor-value="gallery-menu-checked-trigger" data-action="toggle-&gt;cw--popover#toggled keydown-&gt;cw--roving-focus#navigate toggle-&gt;cw--menu#toggled keydown.tab-&gt;cw--menu#tabOut keydown.shift+tab-&gt;cw--menu#tabOut" id="gallery-menu-checked" popover="auto" style="position-anchor: --cw-popover-gallery-menu-checked;" data-cw--roving-focus-orientation-value="vertical" data-cw--roving-focus-wrap-value="true" data-cw--roving-focus-typeahead-value="true" data-cw--menu-target="menu" role="menu" aria-labelledby="gallery-menu-checked-trigger" class="cw-menu__list">
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitemcheckbox" aria-checked="true" data-cw--menu-value-param="hidden" class="cw-menu__item">Show hidden files</button>
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitemcheckbox" aria-checked="false" data-cw--menu-value-param="lines" class="cw-menu__item">Show line numbers</button>
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitemradio" aria-checked="false" data-cw--menu-value-param="compact" class="cw-menu__item">Compact</button>
+        <button type="button"
+                data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitemradio" aria-checked="true" data-cw--menu-value-param="comfortable" class="cw-menu__item">Comfortable</button>
+  </div>
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/menu/checked-items.html.erb</p>
+    <pre><code>&lt;%# The standard partial&#39;s `items:` array already supports role:/checked: per item —
+    aria-checked drives menu.css&#39;s checkmark, reserved on every checkbox/radio item
+    (checked or not) so unchecked siblings never jump when one toggles. %&gt;
+&lt;%= cw.menu &quot;View&quot;, id: &quot;gallery-menu-checked&quot;, items: [
+      { label: &quot;Show hidden files&quot;, role: &quot;menuitemcheckbox&quot;, checked: true, value: &quot;hidden&quot; },
+      { label: &quot;Show line numbers&quot;, role: &quot;menuitemcheckbox&quot;, checked: false, value: &quot;lines&quot; },
+      { label: &quot;Compact&quot;, role: &quot;menuitemradio&quot;, checked: false, value: &quot;compact&quot; },
+      { label: &quot;Comfortable&quot;, role: &quot;menuitemradio&quot;, checked: true, value: &quot;comfortable&quot; }
+    ] %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage">
+  <div data-controller="cw--menu">
+    <button id="gallery-menu-danger-trigger" type="button" popovertarget="gallery-menu-danger" style="anchor-name: --cw-popover-gallery-menu-danger;" data-cw--menu-target="button" data-action="keydown.down-&gt;cw--menu#openFirst keydown.up-&gt;cw--menu#openLast" aria-haspopup="menu" class="cw-menu__button">Row actions</button>
+
+    <div data-controller="cw--popover cw--roving-focus" data-cw--popover-placement-value="bottom-start" data-cw--popover-offset-value="8" data-cw--popover-strategy-value="anchor" data-cw--popover-anchor-value="gallery-menu-danger-trigger" data-action="toggle-&gt;cw--popover#toggled keydown-&gt;cw--roving-focus#navigate toggle-&gt;cw--menu#toggled keydown.tab-&gt;cw--menu#tabOut keydown.shift+tab-&gt;cw--menu#tabOut" id="gallery-menu-danger" popover="auto" style="position-anchor: --cw-popover-gallery-menu-danger;" data-cw--roving-focus-orientation-value="vertical" data-cw--roving-focus-wrap-value="true" data-cw--roving-focus-typeahead-value="true" data-cw--menu-target="menu" role="menu" aria-labelledby="gallery-menu-danger-trigger" class="cw-menu__list">
+      <button type="button" data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="duplicate" class="cw-menu__item">Duplicate</button>
+      <button type="button" data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="archive" class="cw-menu__item">Archive</button>
+
+      <div role="separator" class="cw-menu__separator"></div>
+
+      <button type="button" data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="restore" class="cw-menu__item" disabled="disabled">Restore (unavailable)</button>
+      <button type="button" data-cw--roving-focus-target="item" tabindex="-1" data-cw--menu-target="item" data-action="click-&gt;cw--menu#select keydown.space-&gt;cw--menu#activate" role="menuitem" data-cw--menu-value-param="delete" class="cw-menu__item cw-menu__item--danger">Delete</button>
+    </div>
+  </div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/menu/danger-and-separators.html.erb</p>
+    <pre><code>&lt;%# .cw-menu__item--danger and [role=&quot;separator&quot;] are documented classes the
+    standard `items:` partial never emits on its own (see menu.css&#39;s own header
+    comment) — cw.menu_for (compose-yourself) is how a caller reaches for either,
+    mirroring exactly what _menu.html.erb itself does per item. %&gt;
+&lt;%= cw.menu_for id: &quot;gallery-menu-danger&quot; do |m| %&gt;
+  &lt;div &lt;%= cw_attrs(m.root_attrs) %&gt;&gt;
+    &lt;button &lt;%= cw_attrs(m.button_attrs, class: &quot;cw-menu__button&quot;) %&gt;&gt;Row actions&lt;/button&gt;
+
+    &lt;div &lt;%= cw_attrs(m.menu_attrs, class: &quot;cw-menu__list&quot;) %&gt;&gt;
+      &lt;button type=&quot;button&quot; &lt;%= cw_attrs(m.item_attrs(value: &quot;duplicate&quot;), class: &quot;cw-menu__item&quot;) %&gt;&gt;Duplicate&lt;/button&gt;
+      &lt;button type=&quot;button&quot; &lt;%= cw_attrs(m.item_attrs(value: &quot;archive&quot;), class: &quot;cw-menu__item&quot;) %&gt;&gt;Archive&lt;/button&gt;
+
+      &lt;div role=&quot;separator&quot; class=&quot;cw-menu__separator&quot;&gt;&lt;/div&gt;
+
+      &lt;button type=&quot;button&quot; &lt;%= cw_attrs(m.item_attrs(value: &quot;restore&quot;), class: &quot;cw-menu__item&quot;, disabled: true) %&gt;&gt;Restore (unavailable)&lt;/button&gt;
+      &lt;button type=&quot;button&quot; &lt;%= cw_attrs(m.item_attrs(value: &quot;delete&quot;), class: &quot;cw-menu__item cw-menu__item--danger&quot;) %&gt;&gt;Delete&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <p><em>No declared variants — CSS-only styling of the existing primitive; see its own keyword arguments.</em></p>
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Preserved
+  DOM-only state: whether the menu is open, and which item currently holds
+    `tabindex=&quot;0&quot;` (assigned by the composed `cw--roving-focus`, never by this
+    controller — see the class docstring&#39;s composition map). Same shape as
+    `Crosswire::Presenters::Popover`&#39;s own verdict: `cw--menu` renders NO
+    Stimulus values at all (the class docstring: &quot;STATE LIVES IN THE BROWSER,
+    NOT A STIMULUS VALUE... nothing here for Turbo 8 morphing to clobber or to
+    register with usePreserve&quot;), because open/closed is the same native
+    popover top-layer state `cw--popover` already leans on underneath it.
+  On morph: with nothing expressed as a DOM attribute, an in-place morph over
+    the wrapper has nothing to patch that would change open/closed — proven, not
+    merely asserted, against real `@hotwired/turbo` (browser test 18: &quot;an open
+    menu survives `Turbo.morphElements()` over its wrapper, still open, with
+    focus unmoved&quot;). The one REAL residual hazard is different in kind: a
+    background stream replacing `item` elements while the menu is open, which
+    `itemTargetDisconnected` (R8) plus `cw--roving-focus`&#39;s own stop-handoff
+    cover directly — not a &quot;state was clobbered&quot; bug, but &quot;the items themselves
+    changed out from under an open menu,&quot; which no preserve mechanism could fix
+    either.
+  The app must: nothing beyond the ordinary rule for a Stimulus controller with
+    no server-rendered state to keep correct — there is no `open:` kwarg here for
+    a response to get wrong the way `Crosswire::Presenters::Dialog#open` can.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/menu.css — CSS over the shipped `_menu.html.erb` widget
+   (Crosswire::Presenters::Menu), ui-tier-spec.md §5 item 10. NO markup, NO presenter,
+   NO helper change — cw-menu / cw-menu__button / cw-menu__list / cw-menu__item all
+   already exist on the shipped partial. Two classes below are NEW and documented,
+   not emitted by the partial itself (a caller adds them via `cw.menu_for`/an
+   `item_attrs` override — see site/examples/menu/danger-and-separators.html.erb):
+
+     .cw-menu__item--danger   a destructive command (Delete, Remove…)
+     .cw-menu__separator      an alias for [role=&quot;separator&quot;] — style either one; the
+                               partial never emits an element with this role at all
+                               (a caller renders one by hand inside `cw.menu_for`), so
+                               `[role=&quot;separator&quot;]` alone is the real, load-bearing
+                               selector and the class is a documented convenience.
+
+   Every color/length below is either a global token or one of THIS component&#39;s own
+   `--cw-menu-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-menu {
+    display: inline-block;
+  }
+
+  .cw-menu__button {
+    --cw-menu-button-font: inherit;
+
+    font: var(--cw-menu-button-font);
+  }
+
+  .cw-menu__button:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-menu__list {
+    --cw-menu-bg: var(--cw-color-surface-raised);
+    --cw-menu-fg: var(--cw-color-fg);
+    --cw-menu-border: var(--cw-color-border);
+    --cw-menu-radius: var(--cw-radius-lg);
+    --cw-menu-py: var(--cw-space-2);
+    --cw-menu-min-width: 12rem;
+
+    margin: 0;
+    min-width: var(--cw-menu-min-width);
+    border: var(--cw-border-width) solid var(--cw-menu-border);
+    border-radius: var(--cw-menu-radius);
+    padding: var(--cw-menu-py) 0;
+    background: var(--cw-menu-bg);
+    color: var(--cw-menu-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-2);
+  }
+
+  .cw-menu__item {
+    --cw-menu-item-px: var(--cw-space-4);
+    --cw-menu-item-py: var(--cw-space-2);
+    --cw-menu-item-checked-width: var(--cw-space-5);
+    --cw-menu-item-hover-bg: var(--cw-color-surface-sunk);
+    --cw-menu-item-danger-fg: var(--cw-color-danger);
+    --cw-menu-item-danger-hover-bg: var(--cw-color-danger-subtle);
+    --cw-menu-item-check-top: 50%;
+    --cw-menu-item-check-transform: translateY(-50%);
+
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    font: inherit;
+    padding: var(--cw-menu-item-py) var(--cw-menu-item-px);
+  }
+
+  /* Reserve room for the checkmark that [aria-checked=&quot;true&quot;] adds below, on EVERY
+     checkbox/radio item — checked or not — so unchecked siblings don&#39;t jump when one
+     item toggles. Plain &quot;menuitem&quot;s (no role attribute check needed: this selector
+     only matches the two roles that ever carry aria-checked) get no reserved gutter. */
+  .cw-menu__item[role=&quot;menuitemcheckbox&quot;],
+  .cw-menu__item[role=&quot;menuitemradio&quot;] {
+    position: relative;
+    padding-left: calc(var(--cw-menu-item-px) + var(--cw-menu-item-checked-width));
+  }
+
+  .cw-menu__item[aria-checked=&quot;true&quot;]::before {
+    content: &quot;✓&quot;;
+    position: absolute;
+    left: var(--cw-menu-item-px);
+    top: var(--cw-menu-item-check-top);
+    transform: var(--cw-menu-item-check-transform);
+    color: var(--cw-color-accent);
+  }
+
+  .cw-menu__item:hover,
+  .cw-menu__item:focus-visible {
+    background: var(--cw-menu-item-hover-bg);
+  }
+
+  .cw-menu__item:focus-visible {
+    outline: none;
+  }
+
+  .cw-menu__item[disabled],
+  .cw-menu__item[aria-disabled=&quot;true&quot;] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-menu__item[disabled]:hover,
+  .cw-menu__item[aria-disabled=&quot;true&quot;]:hover {
+    background: transparent;
+  }
+
+  /* ---- danger modifier — NOT emitted by the partial; see the header comment ----- */
+  .cw-menu__item--danger {
+    color: var(--cw-menu-item-danger-fg);
+  }
+
+  .cw-menu__item--danger:hover,
+  .cw-menu__item--danger:focus-visible {
+    background: var(--cw-menu-item-danger-hover-bg);
+  }
+
+  /* ---- separator — [role=&quot;separator&quot;] is the real selector; see header comment -- */
+  [role=&quot;separator&quot;].cw-menu__separator,
+  .cw-menu__list [role=&quot;separator&quot;] {
+    height: var(--cw-border-width);
+    margin: var(--cw-space-2) var(--cw-space-3);
+    background: var(--cw-color-border);
+    border: 0;
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject menu</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -31,8 +31,12 @@ abort "missing #{TEMPLATE}" unless File.exist?(TEMPLATE)
 
 MORPH_CLAUSE = /^\s*# Morph:.*(?:\n\s*#.*)*/
 
+# `kind: :css` names (spec §2b — dialog/popover/menu/combobox) have no
+# `Crosswire::UI::<Name>` presenter at all; the class that actually renders them is
+# the PRIMITIVE tier's `Crosswire::Presenters::<Name>`, already loaded (this script
+# boots a full Rails app, so the gem's own eager presenter requires have already run).
 def presenter_class_for(name)
-  Crosswire::UI.const_get(name.camelize)
+  Crosswire::UI.css_only?(name) ? Crosswire::Presenters.const_get(name.camelize) : Crosswire::UI.const_get(name.camelize)
 end
 
 # Renders one example's raw ERB SOURCE through the real view stack —
@@ -45,6 +49,14 @@ def render_example(source)
 end
 
 def props_table(presenter_class)
+  # `kind: :css` names' presenter class is a plain `Crosswire::Presenter` (the
+  # PRIMITIVE tier's base class), which never `extend`s `Crosswire::UI::Variants` —
+  # there is no `.variants` to introspect at all, not merely an empty declaration.
+  # Its real keyword arguments are documented on the presenter itself (linked from
+  # the page via the eject command), not surfaced as a props table.
+  return "<p><em>No declared variants — CSS-only styling of the existing " \
+         "primitive; see its own keyword arguments.</em></p>" unless presenter_class.respond_to?(:variants)
+
   variants = presenter_class.variants
   return "<p><em>No declared variants.</em></p>" if variants.empty?
 
@@ -69,8 +81,17 @@ def props_table(presenter_class)
   HTML
 end
 
+PRIMITIVE_LIB_DIR = File.join(ROOT, "lib/crosswire/presenters")
+
 def morph_clause_for(name)
-  path = File.join(UI_LIB_DIR, "#{name}.rb")
+  # `kind: :css` names carry their Morph: clause on the PRIMITIVE presenter they
+  # style, not on a `lib/crosswire/ui/<name>.rb` that was never going to exist — the
+  # same branch `ui_contract_audit_test.rb` check 10 and `rake morph:doc` take.
+  path = if Crosswire::UI.css_only?(name)
+           File.join(PRIMITIVE_LIB_DIR, "#{name}.rb")
+         else
+           File.join(UI_LIB_DIR, "#{name}.rb")
+         end
   clause = File.read(path)[MORPH_CLAUSE]
   abort "#{path} carries no `# Morph:` docstring clause — ui_contract_audit_test.rb " \
         "check 10 should already have caught this" unless clause

@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.combobox — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>combobox</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">CSS over the shipped APG combobox widget — listbox elevation, [aria-selected] and the controller&#39;s opt-in active-option class, empty-state and status styling.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage">
+  <div data-controller="cw--combobox cw--click-outside" data-cw--combobox-value-value="CA" data-cw--combobox-expanded-value="true" data-cw--combobox-filter-value="client" data-cw--combobox-autocomplete-value="list" data-cw--combobox-param-value="q" data-cw--combobox-delay-value="200" data-cw--combobox-min-length-value="0" data-cw--combobox-wrap-value="true" data-cw--combobox-clear-on-escape-value="true" data-cw--combobox-results-message-value="%{count} results available" data-cw--combobox-empty-message-value="No results available" data-cw--combobox-active-class="cw-combobox__option--active" data-cw--click-outside-enabled-value="true" data-action="cw--click-outside:clicked-&gt;cw--combobox#close">
+    <label id="gallery-combobox-active-label" for="gallery-combobox-active-input">State</label>
+    <div class="cw-combobox__control">
+      <input type="text" data-cw--combobox-target="input" data-action="input-&gt;cw--combobox#filter keydown.down-&gt;cw--combobox#down keydown.alt+down-&gt;cw--combobox#down keydown.up-&gt;cw--combobox#up keydown.alt+up-&gt;cw--combobox#up keydown.esc-&gt;cw--combobox#escape keydown.enter-&gt;cw--combobox#enter keydown.tab-&gt;cw--combobox#tabOut keydown.shift+tab-&gt;cw--combobox#tabOut" id="gallery-combobox-active-input" role="combobox" aria-expanded="true" aria-controls="gallery-combobox-active-listbox" aria-haspopup="listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" autocapitalize="none" autocorrect="off" value="California">
+      <input data-cw--combobox-target="field" type="hidden" name="record[state]" value="CA">
+    </div>
+    <ul data-cw--combobox-target="listbox" id="gallery-combobox-active-listbox" role="listbox" aria-labelledby="gallery-combobox-active-label">
+      <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-active-option-CA" role="option" aria-selected="true" data-cw--combobox-value-param="CA" data-cw--combobox-display-param="California" class="cw-combobox__option cw-combobox__option--active">California</li>
+      <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-active-option-NY" role="option" aria-selected="false" data-cw--combobox-value-param="NY" data-cw--combobox-display-param="New York" class="cw-combobox__option">New York</li>
+      <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-active-option-TX" role="option" aria-selected="false" data-cw--combobox-value-param="TX" data-cw--combobox-display-param="Texas" class="cw-combobox__option">Texas</li>
+    </ul>
+  </div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/combobox/active-option.html.erb</p>
+    <pre><code>&lt;%# The &quot;active&quot; option class is opt-in (Stimulus Classes API) and applied by the
+    controller at RUNTIME during keyboard navigation — active_class:
+    &quot;cw-combobox__option--active&quot; wires it up (see combobox.css&#39;s own header on why
+    there is no default). To show the CSS without JS, this compose-yourself example
+    puts the class on one option by hand, exactly where the controller would put it. %&gt;
+&lt;%= cw.combobox_for id: &quot;gallery-combobox-active&quot;, name: &quot;record[state]&quot;,
+      label: &quot;State&quot;, expanded: true, active_class: &quot;cw-combobox__option--active&quot;,
+      value: &quot;CA&quot;, display: &quot;California&quot; do |c| %&gt;
+  &lt;div &lt;%= cw_attrs(c.root_attrs) %&gt;&gt;
+    &lt;label &lt;%= cw_attrs(c.label_attrs) %&gt;&gt;State&lt;/label&gt;
+    &lt;div class=&quot;cw-combobox__control&quot;&gt;
+      &lt;input type=&quot;text&quot; &lt;%= cw_attrs(c.input_attrs) %&gt;&gt;
+      &lt;input &lt;%= cw_attrs(c.field_attrs) %&gt;&gt;
+    &lt;/div&gt;
+    &lt;ul &lt;%= cw_attrs(c.listbox_attrs) %&gt;&gt;
+      &lt;li &lt;%= cw_attrs(c.option_attrs(value: &quot;CA&quot;, display: &quot;California&quot;, selected: true), class: &quot;cw-combobox__option cw-combobox__option--active&quot;) %&gt;&gt;California&lt;/li&gt;
+      &lt;li &lt;%= cw_attrs(c.option_attrs(value: &quot;NY&quot;, display: &quot;New York&quot;), class: &quot;cw-combobox__option&quot;) %&gt;&gt;New York&lt;/li&gt;
+      &lt;li &lt;%= cw_attrs(c.option_attrs(value: &quot;TX&quot;, display: &quot;Texas&quot;), class: &quot;cw-combobox__option&quot;) %&gt;&gt;Texas&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div data-controller="cw--combobox cw--click-outside" data-cw--combobox-value-value="CA" data-cw--combobox-expanded-value="false" data-cw--combobox-filter-value="client" data-cw--combobox-autocomplete-value="list" data-cw--combobox-param-value="q" data-cw--combobox-delay-value="200" data-cw--combobox-min-length-value="0" data-cw--combobox-wrap-value="true" data-cw--combobox-clear-on-escape-value="true" data-cw--combobox-results-message-value="%{count} results available" data-cw--combobox-empty-message-value="No results available" data-cw--click-outside-enabled-value="false" data-action="cw--click-outside:clicked-&gt;cw--combobox#close" class="cw-combobox">
+    <label id="gallery-combobox-basic-label" for="gallery-combobox-basic-input" class="cw-combobox__label">State</label>
+
+  <div class="cw-combobox__control">
+    <input type="text" data-cw--combobox-target="input" data-action="input-&gt;cw--combobox#filter keydown.down-&gt;cw--combobox#down keydown.alt+down-&gt;cw--combobox#down keydown.up-&gt;cw--combobox#up keydown.alt+up-&gt;cw--combobox#up keydown.esc-&gt;cw--combobox#escape keydown.enter-&gt;cw--combobox#enter keydown.tab-&gt;cw--combobox#tabOut keydown.shift+tab-&gt;cw--combobox#tabOut" id="gallery-combobox-basic-input" role="combobox" aria-expanded="false" aria-controls="gallery-combobox-basic-listbox" aria-haspopup="listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" autocapitalize="none" autocorrect="off" value="California" class="cw-combobox__input">
+    <input data-cw--combobox-target="field" type="hidden" name="record[state]" value="CA">
+    <button type="button" data-action="click-&gt;cw--combobox#clear" type="button" aria-label="Clear" class="cw-combobox__clear">&times;</button>
+  </div>
+
+
+        <ul data-cw--combobox-target="listbox" id="gallery-combobox-basic-listbox" role="listbox" hidden="hidden" aria-labelledby="gallery-combobox-basic-label" class="cw-combobox__listbox">
+        <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-basic-option-CA" role="option" aria-selected="true" data-cw--combobox-value-param="CA" data-cw--combobox-display-param="California" class="cw-combobox__option">California</li>
+        <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-basic-option-NY" role="option" aria-selected="false" data-cw--combobox-value-param="NY" data-cw--combobox-display-param="New York" class="cw-combobox__option">New York</li>
+        <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-basic-option-TX" role="option" aria-selected="false" data-cw--combobox-value-param="TX" data-cw--combobox-display-param="Texas" class="cw-combobox__option">Texas</li>
+        <li data-cw--combobox-target="option" data-action="click-&gt;cw--combobox#select mousedown-&gt;cw--combobox#preventBlur" id="gallery-combobox-basic-option-WA" role="option" aria-selected="false" data-cw--combobox-value-param="WA" data-cw--combobox-display-param="Washington" class="cw-combobox__option">Washington</li>
+    </ul>
+
+
+  <p data-cw--combobox-target="empty" hidden="hidden" class="cw-combobox__empty">No results available</p>
+
+  <div data-cw--combobox-target="status" id="gallery-combobox-basic-status" role="status" aria-live="polite" aria-atomic="true" class="cw-combobox__status"></div>
+</div>
+
+</div>
+  <div class="source">
+    <p class="name">site/examples/combobox/basic.html.erb</p>
+    <pre><code>&lt;%= cw.combobox id: &quot;gallery-combobox-basic&quot;, name: &quot;record[state]&quot;, label: &quot;State&quot;,
+      value: &quot;CA&quot;, display: &quot;California&quot;,
+      options: [
+        { value: &quot;CA&quot;, display: &quot;California&quot; },
+        { value: &quot;NY&quot;, display: &quot;New York&quot; },
+        { value: &quot;TX&quot;, display: &quot;Texas&quot; },
+        { value: &quot;WA&quot;, display: &quot;Washington&quot; }
+      ] %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <p><em>No declared variants — CSS-only styling of the existing primitive; see its own keyword arguments.</em></p>
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Preserved
+  DOM-only state: the selected `value` and whether the listbox is `expanded`.
+    Unlike `Crosswire::Presenters::Popover`/`Menu`, this controller DOES declare
+    ordinary Stimulus values for both (`value`/`expanded`, per `root_attrs`
+    above), so there is a real attribute a morph could patch out from under a
+    choice the user already made client-side.
+  On morph: `static preservedValues = [&quot;value&quot;, &quot;expanded&quot;]`, guarded by
+    `usePreserve(this)` (called in `connect()`, AFTER the controller has
+    re-rendered from its own values and flipped internal readiness — see the
+    controller&#39;s own comment on that ordering) — the same `crosswire/morph`
+    mechanism `cw--disclosure`/`cw--dialog`&#39;s sibling primitives use. A
+    divergence check (B2) means the SERVER still wins whenever this controller
+    has not itself written a value since the last sync — the guard only stops a
+    background morph from silently reverting a write THIS controller actually
+    made. KNOWN RESIDUAL, documented rather than papered over: the characters the
+    user has typed live in the visible `input` element&#39;s `value` PROPERTY, a
+    DESCENDANT of the element `usePreserve` guards — `createMorphGuard`&#39;s B1
+    per-element scoping means a guard on the root cannot reach a descendant&#39;s
+    property, by design, no matter what `preservedValues` lists.
+    `aria-activedescendant`/the active option are correctly NOT preserved: they
+    are transient client-only navigation state with no server-rendered
+    counterpart, and morph legitimately invalidates them. Proven, not merely
+    asserted, against real `@hotwired/turbo` in
+    `test/js/combobox_controller.browser.test.js` (tests 20/21) — the docstring
+    claims exactly what the code is observed to do, no more.
+  The app must: narrow the SERVER-SIDE update&#39;s scope with
+    `turbo_stream.replace(target, method: :morph)` so this combobox&#39;s own subtree
+    is never the thing being morphed INTO — that is `crosswire/morph`&#39;s own Rule
+    0, and it is the only way to close the descendant-`value`-property residual
+    above; `usePreserve` alone cannot reach it.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/combobox.css — CSS over the shipped `_combobox.html.erb` widget
+   (Crosswire::Presenters::Combobox), ui-tier-spec.md §5 item 12. NO markup, NO
+   presenter, NO helper change — every class below already exists on the shipped
+   partial (cw-combobox / __label / __control / __input / __clear / __listbox /
+   __option / __empty / __status).
+
+   ACTIVE OPTION — the controller (combobox_controller.js) applies its `activeClass`
+   to the currently-active option ONLY when the presenter was given `active_class:`
+   (Stimulus&#39;s Classes API: `this.hasActiveClass` guards it, per that controller&#39;s
+   own docstring on why every crosswire controller must guard an optional class this
+   way) — there is no default active-option class emitted for free. `.cw-combobox__
+   option--active` below is the CONVENTION this file styles; wire it up with
+   `active_class: &quot;cw-combobox__option--active&quot;` on `cw.combobox`/`cw.combobox_for`
+   (see site/examples/combobox/active-option.html.erb). [aria-selected=&quot;true&quot;] is
+   separate and always available with zero configuration — it marks the PRESELECTED
+   option (R4, from `value:`/`display:`), independent of which option is merely
+   &quot;active&quot; during keyboard navigation.
+
+   Every color/length below is either a global token or one of THIS component&#39;s own
+   `--cw-combobox-*` knobs, always consumed through `var(...)`. */
+
+@layer crosswire.components {
+  .cw-combobox {
+    --cw-combobox-gap: var(--cw-space-1);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-combobox-gap);
+    position: relative;
+  }
+
+  .cw-combobox__label {
+    font-size: var(--cw-text-sm);
+    font-weight: var(--cw-weight-medium);
+    color: var(--cw-color-fg-muted);
+  }
+
+  .cw-combobox__control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .cw-combobox__input {
+    --cw-combobox-bg: var(--cw-color-surface);
+    --cw-combobox-fg: var(--cw-color-fg);
+    --cw-combobox-border: var(--cw-color-border);
+    --cw-combobox-radius: var(--cw-radius-md);
+    --cw-combobox-px: var(--cw-space-3);
+    --cw-combobox-py: var(--cw-space-2);
+    --cw-combobox-clear-space: var(--cw-space-6);
+
+    width: 100%;
+    box-sizing: border-box;
+    border: var(--cw-border-width) solid var(--cw-combobox-border);
+    border-radius: var(--cw-combobox-radius);
+    padding: var(--cw-combobox-py) var(--cw-combobox-clear-space) var(--cw-combobox-py) var(--cw-combobox-px);
+    background: var(--cw-combobox-bg);
+    color: var(--cw-combobox-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+  }
+
+  .cw-combobox__input:focus-visible {
+    outline: none;
+    box-shadow: var(--cw-shadow-focus);
+  }
+
+  .cw-combobox__input[aria-invalid=&quot;true&quot;] {
+    border-color: var(--cw-color-danger);
+  }
+
+  .cw-combobox__input:disabled {
+    background: var(--cw-color-surface-sunk);
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__clear {
+    position: absolute;
+    inset-inline-end: var(--cw-space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-text-lg);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-combobox__clear:hover {
+    color: var(--cw-color-fg);
+  }
+
+  .cw-combobox__listbox {
+    --cw-combobox-listbox-bg: var(--cw-color-surface-raised);
+    --cw-combobox-listbox-border: var(--cw-color-border);
+    --cw-combobox-listbox-radius: var(--cw-radius-lg);
+    --cw-combobox-listbox-max-height: 16rem;
+
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 100%;
+    z-index: var(--cw-z-dropdown);
+    width: 100%;
+    box-sizing: border-box;
+    margin: var(--cw-space-1) 0 0;
+    padding: var(--cw-space-2) 0;
+    max-height: var(--cw-combobox-listbox-max-height);
+    overflow-y: auto;
+    border: var(--cw-border-width) solid var(--cw-combobox-listbox-border);
+    border-radius: var(--cw-combobox-listbox-radius);
+    background: var(--cw-combobox-listbox-bg);
+    box-shadow: var(--cw-shadow-2);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+  }
+
+  .cw-combobox__option {
+    --cw-combobox-option-px: var(--cw-space-3);
+    --cw-combobox-option-py: var(--cw-space-2);
+    --cw-combobox-option-active-bg: var(--cw-color-surface-sunk);
+    --cw-combobox-option-selected-fg: var(--cw-color-accent);
+
+    padding: var(--cw-combobox-option-py) var(--cw-combobox-option-px);
+    cursor: pointer;
+  }
+
+  /* Wired up via `active_class:` — see the header comment. Also matched by hover,
+     so pointer users get the identical highlight keyboard navigation produces. */
+  .cw-combobox__option--active,
+  .cw-combobox__option:hover {
+    background: var(--cw-combobox-option-active-bg);
+  }
+
+  .cw-combobox__option[aria-selected=&quot;true&quot;] {
+    color: var(--cw-combobox-option-selected-fg);
+    font-weight: var(--cw-weight-medium);
+  }
+
+  .cw-combobox__option[aria-disabled=&quot;true&quot;] {
+    color: var(--cw-color-fg-subtle);
+    cursor: not-allowed;
+  }
+
+  .cw-combobox__empty {
+    margin: 0;
+    padding: var(--cw-space-2) var(--cw-space-3);
+    color: var(--cw-color-fg-muted);
+    font-size: var(--cw-text-sm);
+  }
+
+  /* A live region, present from first paint (see the presenter&#39;s own docstring on
+     why) — announced, not seen. Same clip-rect technique base.css&#39;s own
+     .cw-visually-hidden uses, inlined here rather than requiring a caller to also
+     add that class by hand onto an element this partial always renders itself. */
+  .cw-combobox__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject combobox</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>

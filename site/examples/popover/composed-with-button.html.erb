@@ -1,0 +1,10 @@
+<%# popover.css is deliberately lean (elevation/radius/padding only — placement stays
+    entirely in Crosswire::Presenters::Popover), so the trigger is usually composed
+    from cw.button rather than styled by popover.css itself. %>
+<%= cw.popover_for id: "gallery-popover-composed" do |p| %>
+  <%= cw.button "Share…", variant: :secondary, **p.trigger_attrs %>
+  <div <%= cw_attrs(p.panel_attrs) %>>
+    <strong>Share this page</strong>
+    <p>Only people with the link can view it.</p>
+  </div>
+<% end %>

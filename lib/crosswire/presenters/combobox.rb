@@ -154,6 +154,37 @@ module Crosswire
     # logic that D2 routes to the consuming application, not this gem. A caller who
     # needs chips today can build them over `cw.combobox_for` — `name:` is already
     # the submitted field name.
+    #
+    # Morph: Preserved
+    #   DOM-only state: the selected `value` and whether the listbox is `expanded`.
+    #     Unlike `Crosswire::Presenters::Popover`/`Menu`, this controller DOES declare
+    #     ordinary Stimulus values for both (`value`/`expanded`, per `root_attrs`
+    #     above), so there is a real attribute a morph could patch out from under a
+    #     choice the user already made client-side.
+    #   On morph: `static preservedValues = ["value", "expanded"]`, guarded by
+    #     `usePreserve(this)` (called in `connect()`, AFTER the controller has
+    #     re-rendered from its own values and flipped internal readiness — see the
+    #     controller's own comment on that ordering) — the same `crosswire/morph`
+    #     mechanism `cw--disclosure`/`cw--dialog`'s sibling primitives use. A
+    #     divergence check (B2) means the SERVER still wins whenever this controller
+    #     has not itself written a value since the last sync — the guard only stops a
+    #     background morph from silently reverting a write THIS controller actually
+    #     made. KNOWN RESIDUAL, documented rather than papered over: the characters the
+    #     user has typed live in the visible `input` element's `value` PROPERTY, a
+    #     DESCENDANT of the element `usePreserve` guards — `createMorphGuard`'s B1
+    #     per-element scoping means a guard on the root cannot reach a descendant's
+    #     property, by design, no matter what `preservedValues` lists.
+    #     `aria-activedescendant`/the active option are correctly NOT preserved: they
+    #     are transient client-only navigation state with no server-rendered
+    #     counterpart, and morph legitimately invalidates them. Proven, not merely
+    #     asserted, against real `@hotwired/turbo` in
+    #     `test/js/combobox_controller.browser.test.js` (tests 20/21) — the docstring
+    #     claims exactly what the code is observed to do, no more.
+    #   The app must: narrow the SERVER-SIDE update's scope with
+    #     `turbo_stream.replace(target, method: :morph)` so this combobox's own subtree
+    #     is never the thing being morphed INTO — that is `crosswire/morph`'s own Rule
+    #     0, and it is the only way to close the descendant-`value`-property residual
+    #     above; `usePreserve` alone cannot reach it.
     class Combobox < Presenter
       FILTERS = %w[client remote none].freeze
       AUTOCOMPLETES = %w[none list both].freeze

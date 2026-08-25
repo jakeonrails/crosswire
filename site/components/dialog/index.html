@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cw.dialog — crosswire</title>
+<link rel="stylesheet" href="../../../app/assets/stylesheets/crosswire/ui.css">
+<style>
+  :root {
+    --shell-max: 56rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cw-color-bg);
+    color: var(--cw-color-fg);
+    font-family: var(--cw-font-sans);
+    line-height: var(--cw-leading-normal);
+  }
+  header.page {
+    border-bottom: var(--cw-border-width) solid var(--cw-color-border);
+    padding: var(--cw-space-4) var(--cw-space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cw-space-4);
+    flex-wrap: wrap;
+  }
+  header.page a.back { color: var(--cw-color-fg-muted); text-decoration: none; font-size: var(--cw-text-sm); }
+  header.page a.back:hover { color: var(--cw-color-accent); }
+  h1 { font-size: var(--cw-text-2xl); margin: 0; }
+  h1 code { font-family: var(--cw-font-mono); }
+  p.description { color: var(--cw-color-fg-muted); max-width: var(--shell-max); margin: var(--cw-space-2) var(--cw-space-5) 0; }
+  main { max-width: var(--shell-max); margin: 0 auto; padding: var(--cw-space-5); }
+  h2 { font-size: var(--cw-text-lg); margin: var(--cw-space-6) 0 var(--cw-space-2); }
+  .example { border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-lg); margin-bottom: var(--cw-space-4); overflow: hidden; }
+  .example > .stage { padding: var(--cw-space-5); background: var(--cw-color-surface-raised); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cw-space-3); }
+  .example > .source { border-top: var(--cw-border-width) solid var(--cw-color-border); background: var(--cw-color-surface-sunk); }
+  .example > .source > .name { font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); color: var(--cw-color-fg-subtle); padding: var(--cw-space-1) var(--cw-space-3) 0; }
+  pre { margin: 0; padding: var(--cw-space-3); overflow-x: auto; font-family: var(--cw-font-mono); font-size: var(--cw-text-xs); }
+  table.props { border-collapse: collapse; width: 100%; font-size: var(--cw-text-sm); }
+  table.props th, table.props td { text-align: left; padding: var(--cw-space-2) var(--cw-space-3); border-bottom: var(--cw-border-width) solid var(--cw-color-border); }
+  table.props th { color: var(--cw-color-fg-muted); font-weight: var(--cw-weight-medium); font-size: var(--cw-text-xs); text-transform: uppercase; letter-spacing: .04em; }
+  .eject { background: var(--cw-color-surface-sunk); border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md); padding: var(--cw-space-3); }
+  .panel {
+    display: flex; flex-wrap: wrap; gap: var(--cw-space-4); align-items: center;
+    border: var(--cw-border-width) solid var(--cw-color-border); border-radius: var(--cw-radius-md);
+    padding: var(--cw-space-3) var(--cw-space-4); margin: 0 var(--cw-space-5); background: var(--cw-color-surface);
+  }
+  .panel label { display: flex; flex-direction: column; gap: var(--cw-space-1); font-size: var(--cw-text-xs); color: var(--cw-color-fg-muted); }
+  footer.page { padding: var(--cw-space-6) var(--cw-space-5); color: var(--cw-color-fg-subtle); font-size: var(--cw-text-xs); }
+</style>
+</head>
+<body>
+  <header class="page">
+    <div>
+      <a class="back" href="../../index.html">← crosswire</a>
+      <h1>cw.<code>dialog</code></h1>
+    </div>
+    <!-- Theme switcher: writes data-cw-theme, the canonical token — see tokens.css's
+         own header on why data-cw-theme wins over the bridged data-theme. -->
+    <div role="group" aria-label="Theme">
+      <button type="button" class="cw-button" data-cw-theme-choice="light">Light</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="dark">Dark</button>
+      <button type="button" class="cw-button" data-cw-theme-choice="system">System</button>
+    </div>
+  </header>
+
+  <p class="description">CSS over the shipped native &lt;dialog&gt; widget — ::backdrop, @starting-style enter/exit transitions, :modal sizing, and internal scroll containment. The modal-composition showcase: no new markup, no new presenter, styles cw.dialog as-is.</p>
+
+  <!-- Live token panel: every input sets a :root inline custom property directly —
+       no JS framework, no build step, just CSSOM. -->
+  <div class="panel">
+    <label>Accent
+      <input type="color" id="cw-live-accent" value="#4f46e5">
+    </label>
+    <label>Radius
+      <input type="range" id="cw-live-radius" min="0" max="24" step="1" value="8">
+    </label>
+    <label>Font scale
+      <input type="range" id="cw-live-font-scale" min="80" max="130" step="5" value="100">
+    </label>
+  </div>
+
+  <main>
+    <h2>Examples</h2>
+    <div class="example">
+  <div class="stage"><div data-controller="cw--dialog" data-cw--dialog-open-value="false" data-cw--dialog-modal-value="true" data-cw--dialog-dismissable-value="true" class="cw-dialog">
+    <button data-cw--dialog-target="trigger" data-action="click-&gt;cw--dialog#open" type="button" aria-haspopup="dialog" aria-controls="gallery-dialog-basic" class="cw-dialog__trigger">
+      Delete…
+    </button>
+
+  <dialog data-cw--dialog-target="panel" data-action="close-&gt;cw--dialog#syncClosed cancel-&gt;cw--dialog#cancel click-&gt;cw--dialog#backdropClick turbo:before-morph-element-&gt;cw--dialog#beforeMorph turbo:before-cache-&gt;cw--dialog#reset" id="gallery-dialog-basic" aria-labelledby="gallery-dialog-basic-title" class="cw-dialog__panel">
+      <h2 id="gallery-dialog-basic-title" class="cw-dialog__title">Delete this project?</h2>
+      <button data-action="click-&gt;cw--dialog#close" type="button" aria-label="Close" class="cw-dialog__close">&times;</button>
+
+    <div class="cw-dialog__body">
+      
+  <p>This cannot be undone.</p>
+
+    </div>
+  </dialog>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/dialog/basic.html.erb</p>
+    <pre><code>&lt;%= cw.dialog &quot;Delete this project?&quot;, id: &quot;gallery-dialog-basic&quot;, trigger_label: &quot;Delete…&quot; do %&gt;
+  &lt;p&gt;This cannot be undone.&lt;/p&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage">
+  <div data-controller="cw--dialog" data-cw--dialog-open-value="false" data-cw--dialog-modal-value="true" data-cw--dialog-dismissable-value="true">
+    <button class="cw-button cw-button--danger cw-focusable" type="button" data-cw--dialog-target="trigger" data-action="click-&gt;cw--dialog#open" aria-haspopup="dialog" aria-controls="gallery-dialog-composed">Delete project…</button>
+
+
+    <dialog data-cw--dialog-target="panel" data-action="close-&gt;cw--dialog#syncClosed cancel-&gt;cw--dialog#cancel click-&gt;cw--dialog#backdropClick turbo:before-morph-element-&gt;cw--dialog#beforeMorph turbo:before-cache-&gt;cw--dialog#reset" id="gallery-dialog-composed" aria-labelledby="gallery-dialog-composed-title" class="cw-dialog__panel">
+      <button data-action="click-&gt;cw--dialog#close" type="button" aria-label="Close" class="cw-dialog__close">&times;</button>
+      <div class="cw-card cw-card--outlined">
+    <div class="cw-card__header"><h2 id="gallery-dialog-composed-title">Delete this project?</h2></div>
+  <div class="cw-card__body">This removes it for every collaborator. There is no undo.</div>
+    <div class="cw-card__footer"><button class="cw-button cw-button--ghost cw-focusable" type="button" data-action="click-&gt;cw--dialog#close">Cancel</button>
+</div>
+</div>
+    </dialog>
+  </div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/dialog/composed-with-card.html.erb</p>
+    <pre><code>&lt;%# The modal-composition showcase (ui-tier-spec.md §5 item 8): cw.dialog_for
+    (compose-yourself) driving a real cw.button trigger and a cw.card body — three
+    styled-tier components stacked on one dialog, still fully wired by
+    Crosswire::Presenters::Dialog underneath. No new API: `d.trigger_attrs` and
+    `d.close_attrs` are the SAME hashes `_dialog.html.erb` itself merges onto plain
+    &lt;button&gt; elements; here they merge onto cw.button instead. %&gt;
+&lt;%= cw.dialog_for id: &quot;gallery-dialog-composed&quot;, labelled_by: &quot;gallery-dialog-composed-title&quot; do |d| %&gt;
+  &lt;div &lt;%= cw_attrs(d.root_attrs) %&gt;&gt;
+    &lt;%= cw.button &quot;Delete project…&quot;, variant: :danger, **d.trigger_attrs %&gt;
+
+    &lt;dialog &lt;%= cw_attrs(d.panel_attrs, class: &quot;cw-dialog__panel&quot;) %&gt;&gt;
+      &lt;button &lt;%= cw_attrs(d.close_attrs, class: &quot;cw-dialog__close&quot;) %&gt;&gt;&amp;times;&lt;/button&gt;
+      &lt;%= cw.card variant: :outlined do |c| %&gt;
+        &lt;% c.header { tag.h2 &quot;Delete this project?&quot;, id: &quot;gallery-dialog-composed-title&quot; } %&gt;
+        &lt;% c.body { &quot;This removes it for every collaborator. There is no undo.&quot; } %&gt;
+        &lt;% c.footer { cw.button &quot;Cancel&quot;, variant: :ghost, data: { action: &quot;click-&gt;cw--dialog#close&quot; } } %&gt;
+      &lt;% end %&gt;
+    &lt;/dialog&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+<div class="example">
+  <div class="stage"><div data-controller="cw--dialog" data-cw--dialog-open-value="false" data-cw--dialog-modal-value="false" data-cw--dialog-dismissable-value="true" class="cw-dialog">
+    <button data-cw--dialog-target="trigger" data-action="click-&gt;cw--dialog#open" type="button" aria-haspopup="dialog" aria-controls="gallery-dialog-non-modal" class="cw-dialog__trigger">
+      Show filters
+    </button>
+
+  <dialog data-cw--dialog-target="panel" data-action="close-&gt;cw--dialog#syncClosed cancel-&gt;cw--dialog#cancel click-&gt;cw--dialog#backdropClick turbo:before-morph-element-&gt;cw--dialog#beforeMorph turbo:before-cache-&gt;cw--dialog#reset" id="gallery-dialog-non-modal" aria-labelledby="gallery-dialog-non-modal-title" class="cw-dialog__panel">
+      <h2 id="gallery-dialog-non-modal-title" class="cw-dialog__title">Filters</h2>
+      <button data-action="click-&gt;cw--dialog#close" type="button" aria-label="Close" class="cw-dialog__close">&times;</button>
+
+    <div class="cw-dialog__body">
+      
+  <p>Non-modal panels skip the backdrop and inert-page treatment entirely.</p>
+
+    </div>
+  </dialog>
+</div>
+</div>
+  <div class="source">
+    <p class="name">site/examples/dialog/non-modal.html.erb</p>
+    <pre><code>&lt;%# `modal: false` opens via show() instead of showModal() — no inertness, no top
+    layer, no ::backdrop, and it never light-dismisses. See dialog.css&#39;s own
+    `:modal`-scoped rules for exactly what changes between the two. %&gt;
+&lt;%= cw.dialog &quot;Filters&quot;, id: &quot;gallery-dialog-non-modal&quot;, trigger_label: &quot;Show filters&quot;, modal: false do %&gt;
+  &lt;p&gt;Non-modal panels skip the backdrop and inert-page treatment entirely.&lt;/p&gt;
+&lt;% end %&gt;</code></pre>
+  </div>
+</div>
+
+
+    <h2>Props</h2>
+    <p><em>No declared variants — CSS-only styling of the existing primitive; see its own keyword arguments.</em></p>
+
+    <h2>Morph contract</h2>
+    <pre><code>Morph: Server-owned
+  DOM-only state: the `&lt;dialog&gt;` element&#39;s OWN modal state — its `open`
+    attribute vs. whether `showModal()`/`close()` has actually been called on it.
+    `open:` is rendered server-side (R4), and the controller&#39;s `#render` calls
+    `showModal()`/`close()` from that value on connect — the two are meant to
+    agree, but per the HTML spec they CAN diverge: removing the `open` attribute
+    does NOT call `close()`.
+  On morph: this is exactly the divergence a background morph can cause. Turbo
+    8&#39;s Idiomorph gives `open` no special handling, so a morph that strips it
+    from a currently-open `&lt;dialog&gt;` would leave the document `inert` (from the
+    earlier `showModal()`) with no visible, reachable modal and `close()` reduced
+    to a silent no-op — the page goes dead. The controller does not rely on a
+    `usePreserve` guard for this: it cancels `turbo:before-morph-element` on the
+    panel outright while open (so Idiomorph never touches it mid-modal at all)
+    and closes the dialog itself on `turbo:before-cache`, so a page snapshot
+    never depicts a live modal as dead markup. A second, narrower guard
+    (`turbo:before-morph-attribute`, the seanpdoyle turbo#1239 fix) cancels only
+    the `open` attribute&#39;s own removal as defence-in-depth. Proven against real
+    `@hotwired/turbo`, not merely asserted, in `test/js/dialog_controller.browser.test.js`.
+  The app must: always render the CURRENTLY correct `open:` server-side on every
+    response that could be followed by a morph — the controller&#39;s own defence
+    stops a BACKGROUND morph from killing an already-open dialog, but a page-level
+    navigation/redirect still trusts whatever `open:` the next response sends.</code></pre>
+
+    <h2>CSS</h2>
+    <pre><code>/* crosswire/ui/dialog.css — CSS over the shipped `_dialog.html.erb` widget
+   (Crosswire::Presenters::Dialog): the modal-composition showcase (ui-tier-spec.md §5
+   item 8). NO markup, NO presenter, NO helper change — every class below already
+   exists on the shipped partial (cw-dialog / cw-dialog__trigger / cw-dialog__panel /
+   cw-dialog__title / cw-dialog__close / cw-dialog__body), and this file only paints
+   them. Every color/length below is either a global token or one of THIS component&#39;s
+   own `--cw-dialog-*` knobs, always consumed through `var(...)` — see tokens.css&#39;s own
+   header for the override ladder.
+
+   `.cw-dialog__panel` IS the native `&lt;dialog&gt;` element (see the partial) — every rule
+   below that targets it is therefore also styling `::backdrop`, `:modal` and
+   `@starting-style`, none of which exist on any other kind of element. */
+
+@layer crosswire.components {
+  .cw-dialog__trigger {
+    /* Deliberately no chrome of its own — compose `cw.button` for a styled trigger
+       (see site/examples/dialog/composed-with-card.html.erb); this knob exists so a
+       host CAN restyle the bare default without ejecting. */
+    --cw-dialog-trigger-font: inherit;
+
+    font: var(--cw-dialog-trigger-font);
+  }
+
+  .cw-dialog__panel {
+    --cw-dialog-bg: var(--cw-color-surface-raised);
+    --cw-dialog-fg: var(--cw-color-fg);
+    --cw-dialog-border: var(--cw-color-border);
+    --cw-dialog-radius: var(--cw-radius-lg);
+    --cw-dialog-padding: var(--cw-space-5);
+    --cw-dialog-gap: var(--cw-space-4);
+    --cw-dialog-width: min(32rem, calc(100vw - var(--cw-space-6)));
+    --cw-dialog-max-height: min(85vh, 40rem);
+    --cw-dialog-enter-scale: 0.96;
+    --cw-dialog-enter-offset: 1rem;
+    --cw-dialog-backdrop: var(--cw-color-overlay);
+
+    /* The panel is its own flex column so the title/close row can stay put while
+       .cw-dialog__body (below) is the ONE thing that scrolls internally — &quot;internal
+       scroll containment&quot; per the showcase brief, rather than letting a tall body
+       grow the panel past the viewport. `position: relative` makes it an explicit
+       positioning root for .cw-dialog__close below, rather than depending on
+       whatever `position` the UA stylesheet happens to give a top-layer &lt;dialog&gt;. */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-dialog-gap);
+    margin: auto;
+    border: var(--cw-border-width) solid var(--cw-dialog-border);
+    border-radius: var(--cw-dialog-radius);
+    padding: var(--cw-dialog-padding);
+    background: var(--cw-dialog-bg);
+    color: var(--cw-dialog-fg);
+    font-family: var(--cw-font-sans);
+    font-size: var(--cw-text-sm);
+    line-height: var(--cw-leading-normal);
+    box-shadow: var(--cw-shadow-3);
+    max-height: var(--cw-dialog-max-height);
+
+    /* `transition-behavior: allow-discrete` keeps the panel PAINTED (rather than
+       vanishing the instant `open` is removed) for the duration of the opacity/
+       transform transition below — the modern CSS-only dialog open/close recipe.
+       `@starting-style` supplies the FROM state for the enter transition (fires on
+       &quot;newly rendered from display:none/closed&quot;, regardless of whether the dialog
+       was opened by a trigger click or a controller call); the EXIT transition is
+       simply this same rule running backwards as `[open]` is removed. */
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                transform var(--cw-duration-base) var(--cw-ease),
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  /* :modal — only a dialog opened via showModal() (the presenter&#39;s `modal: true`
+     default) gets this pseudo-class; a non-modal panel (`modal: false`, opened via
+     show()) keeps the browser&#39;s normal static-flow box instead of being centered
+     and width-capped like this. */
+  .cw-dialog__panel:modal {
+    inset: 0;
+    width: var(--cw-dialog-width);
+  }
+
+  .cw-dialog__panel:not([open]) {
+    opacity: 0;
+    transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+  }
+
+  @starting-style {
+    .cw-dialog__panel:modal {
+      opacity: 0;
+      transform: scale(var(--cw-dialog-enter-scale)) translateY(var(--cw-dialog-enter-offset));
+    }
+  }
+
+  /* ::backdrop only exists for a MODAL dialog (showModal()&#39;s top layer) — a
+     non-modal panel (show()) never gets one, so nothing here needs to guard for
+     `modal: false`. Same allow-discrete/@starting-style shape as the panel itself,
+     so the dim-in and the panel&#39;s own enter transition read as one motion. */
+  .cw-dialog__panel::backdrop {
+    background: var(--cw-dialog-backdrop);
+    transition: opacity var(--cw-duration-base) var(--cw-ease),
+                display var(--cw-duration-base) var(--cw-ease) allow-discrete,
+                overlay var(--cw-duration-base) var(--cw-ease) allow-discrete;
+  }
+
+  .cw-dialog__panel:not([open])::backdrop {
+    opacity: 0;
+  }
+
+  @starting-style {
+    .cw-dialog__panel[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .cw-dialog__title {
+    margin: 0;
+    padding-inline-end: var(--cw-space-6);
+    font-size: var(--cw-text-lg);
+    font-weight: var(--cw-weight-semibold);
+    line-height: var(--cw-leading-tight);
+  }
+
+  .cw-dialog__close {
+    --cw-dialog-close-size: var(--cw-text-lg);
+
+    position: absolute;
+    top: var(--cw-space-3);
+    right: var(--cw-space-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 0;
+    padding: var(--cw-space-1);
+    background: transparent;
+    color: var(--cw-color-fg-muted);
+    cursor: pointer;
+    font-size: var(--cw-dialog-close-size);
+    line-height: var(--cw-leading-tight);
+    border-radius: var(--cw-radius-sm);
+  }
+
+  .cw-dialog__close:hover {
+    color: var(--cw-color-fg);
+    background: var(--cw-color-surface-sunk);
+  }
+
+  /* The one thing that scrolls — see the panel&#39;s own flex-column comment above.
+     `scrollbar-gutter: stable` (the same property `cw--dialog`&#39;s own scroll-lock
+     reaches for on the page behind the modal) reserves the scrollbar&#39;s track up
+     front, so content does not visually reflow the instant a tall body actually
+     needs to scroll. */
+  .cw-dialog__body {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cw-dialog__panel,
+    .cw-dialog__panel::backdrop {
+      transition: none;
+    }
+  }
+}
+</code></pre>
+
+    <h2>Own the code</h2>
+    <p class="eject"><code>rails g crosswire:eject dialog</code></p>
+  </main>
+
+  <footer class="page">
+    Rendered from the gem's real source at build time — nothing on this page is a mock.
+    See <code>docs/MORPH.md</code> and <code>site/registry.json</code>.
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.documentElement;
+
+      // ---- theme switcher --------------------------------------------------------
+      document.querySelectorAll("[data-cw-theme-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var choice = button.getAttribute("data-cw-theme-choice");
+          if (choice === "system") {
+            root.removeAttribute("data-cw-theme");
+          } else {
+            root.setAttribute("data-cw-theme", choice);
+          }
+        });
+      });
+
+      // ---- live token panel -------------------------------------------------------
+      var accent = document.getElementById("cw-live-accent");
+      accent.addEventListener("input", function () {
+        root.style.setProperty("--cw-color-accent", accent.value);
+      });
+
+      var radius = document.getElementById("cw-live-radius");
+      radius.addEventListener("input", function () {
+        root.style.setProperty("--cw-radius", radius.value + "px");
+      });
+
+      var fontScale = document.getElementById("cw-live-font-scale");
+      fontScale.addEventListener("input", function () {
+        var scale = Number(fontScale.value) / 100;
+        root.style.setProperty("--cw-text-sm", (0.875 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-base", (1 * scale).toFixed(4) + "rem");
+        root.style.setProperty("--cw-text-lg", (1.125 * scale).toFixed(4) + "rem");
+      });
+    })();
+  </script>
+</body>
+</html>
