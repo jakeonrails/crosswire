@@ -33,9 +33,12 @@ import { Controller } from "@hotwired/stimulus"
  * `<turbo-frame>`) determines its scope, same as that one.
  *
  * `fail` calls `event.preventDefault()` on `turbo:frame-missing` deliberately:
- * Turbo's default behaviour for a missing frame is to visit the response as a full
- * page — this primitive exists so the FAILED STATE, not a surprise navigation, is
- * what the user sees. `turbo:fetch-request-error` is also cancelable; preventing it
+ * Turbo's default for a missing frame is to write `<strong
+ * class="turbo-frame-error">Content missing</strong>` into the frame and throw
+ * `TurboFrameMissingError` — no automatic full-page visit (that fallback was removed
+ * in Turbo 7.3; a visit happens only when the response carries
+ * `turbo-visit-control: reload`). This primitive exists so the FAILED STATE, not two
+ * unexplained words, is what the user sees. `turbo:fetch-request-error` is also cancelable; preventing it
  * suppresses Turbo's own console error in favour of the same owned failure UI.
  *
  * Single write path (R4): `pending`/`check`/`fail`/`retry` only ever decide WHETHER
